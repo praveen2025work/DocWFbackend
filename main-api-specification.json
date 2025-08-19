@@ -1,0 +1,174 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DocWF Workflow Management System API - Main Specification",
+    "description": "Comprehensive REST API for managing workflows, tasks, and workflow executions with file management, decision support, and role-based access control. This is the main specification file that provides an overview of all available APIs.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DocWF Development Team",
+      "email": "dev@docwf.com",
+      "url": "https://docwf.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.docwf.com",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "API Overview",
+      "description": "Overview and documentation of all available API modules"
+    },
+    {
+      "name": "User Management",
+      "description": "APIs for managing workflow users and their profiles"
+    },
+    {
+      "name": "Workflow Configuration",
+      "description": "APIs for creating, updating, and managing workflow configurations"
+    },
+    {
+      "name": "Workflow Execution",
+      "description": "APIs for executing workflows, managing instances, and task execution"
+    },
+    {
+      "name": "File Management",
+      "description": "APIs for file upload, download, update, and consolidation operations"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["API Overview"],
+        "summary": "API Documentation",
+        "description": "Welcome to DocWF API. This endpoint provides information about the available API modules.",
+        "responses": {
+          "200": {
+            "description": "API documentation overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Welcome to DocWF Workflow Management System API"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "modules": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": [
+                        "User Management",
+                        "Workflow Configuration", 
+                        "Workflow Execution",
+                        "File Management"
+                      ]
+                    },
+                    "documentation": {
+                      "type": "string",
+                      "example": "See individual API specification files for detailed endpoints"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiOverview": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Welcome message"
+          },
+          "version": {
+            "type": "string",
+            "description": "API version"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Available API modules"
+          },
+          "documentation": {
+            "type": "string",
+            "description": "Documentation information"
+          }
+        }
+      }
+    }
+  },
+  "x-api-modules": {
+    "user-management": {
+      "file": "user-management-api.json",
+      "description": "Complete API specification for user management operations",
+      "endpoints": [
+        "User CRUD operations",
+        "User search and filtering",
+        "Role-based user queries",
+        "Escalation hierarchy management",
+        "User status management"
+      ]
+    },
+    "workflow-configuration": {
+      "file": "workflow-config-api.json", 
+      "description": "Complete API specification for workflow configuration management",
+      "endpoints": [
+        "Workflow CRUD operations",
+        "Workflow role management",
+        "Workflow task configuration",
+        "Workflow parameter management",
+        "Workflow status management"
+      ]
+    },
+    "workflow-execution": {
+      "file": "workflow-execution-api.json",
+      "description": "Complete API specification for workflow execution and task management",
+      "endpoints": [
+        "Workflow instance management",
+        "Task assignment and execution",
+        "Workflow progress monitoring",
+        "Task escalation",
+        "Workflow statistics and reporting"
+      ]
+    },
+    "file-management": {
+      "file": "file-management-api.json",
+      "description": "Complete API specification for file operations",
+      "endpoints": [
+        "File upload and download",
+        "File updates and consolidation",
+        "File metadata management",
+        "Task instance file associations"
+      ]
+    }
+  },
+  "x-documentation": {
+    "note": "This is the main API specification file. For detailed endpoint documentation, please refer to the individual entity-specific API specification files listed above.",
+    "structure": "The API is organized into logical modules, each with its own specification file for better maintainability and easier navigation.",
+    "usage": "Use the individual API specification files for development and testing. This main file serves as an overview and index."
+  }
+}

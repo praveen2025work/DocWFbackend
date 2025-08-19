@@ -1,0 +1,662 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DocWF User Management API",
+    "description": "APIs for managing workflow users, profiles, and user-related operations",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DocWF Development Team",
+      "email": "dev@docwf.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.docwf.com",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "User Management",
+      "description": "APIs for managing workflow users and their profiles"
+    }
+  ],
+  "paths": {
+    "/api/users": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Get All Users",
+        "description": "Retrieves a list of all users in the system with optional filtering",
+        "operationId": "getAllUsers",
+        "parameters": [
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Filter by active status",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowUserDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["User Management"],
+        "summary": "Create New User",
+        "description": "Creates a new user with the specified profile information",
+        "operationId": "createUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowUserDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowUserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "409": {
+            "description": "Username or email already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Get User by ID",
+        "description": "Retrieves a specific user by their unique identifier",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Unique identifier of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowUserDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": ["User Management"],
+        "summary": "Update User",
+        "description": "Updates an existing user with new information",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Unique identifier of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowUserDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowUserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User Management"],
+        "summary": "Delete User",
+        "description": "Deletes a user from the system",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Unique identifier of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted successfully"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Cannot delete user with active workflows"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/username/{username}": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Get User by Username",
+        "description": "Retrieves a user by their username",
+        "operationId": "getUserByUsername",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john.doe"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowUserDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/email/{email}": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Get User by Email",
+        "description": "Retrieves a user by their email address",
+        "operationId": "getUserByEmail",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "Email address of the user",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            },
+            "example": "john.doe@example.com"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowUserDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/role/{roleName}": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Get Users by Role",
+        "description": "Retrieves all users assigned to a specific role",
+        "operationId": "getUsersByRole",
+        "parameters": [
+          {
+            "name": "roleName",
+            "in": "path",
+            "description": "Name of the role",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "APPROVER"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowUserDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/workflow/{workflowId}": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Get Users by Workflow",
+        "description": "Retrieves all users assigned to a specific workflow",
+        "operationId": "getUsersByWorkflow",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "description": "ID of the workflow",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowUserDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/escalation-hierarchy": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Get Escalation Hierarchy",
+        "description": "Retrieves the escalation hierarchy for a user",
+        "operationId": "getEscalationHierarchy",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved escalation hierarchy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowUserDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/check/username/{username}": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Check Username Availability",
+        "description": "Checks if a username is already taken",
+        "operationId": "checkUsernameExists",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username to check",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john.doe"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Username availability check result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "description": "true if username exists, false if available"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/check/email/{email}": {
+      "get": {
+        "tags": ["User Management"],
+        "summary": "Check Email Availability",
+        "description": "Checks if an email is already registered",
+        "operationId": "checkEmailExists",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "Email to check",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            },
+            "example": "john.doe@example.com"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email availability check result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "description": "true if email exists, false if available"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/status": {
+      "patch": {
+        "tags": ["User Management"],
+        "summary": "Toggle User Status",
+        "description": "Activates or deactivates a user",
+        "operationId": "toggleUserStatus",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Active status (Y/N)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["Y", "N"]
+            },
+            "example": "Y"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowUserDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/escalation": {
+      "patch": {
+        "tags": ["User Management"],
+        "summary": "Set User Escalation",
+        "description": "Sets the escalation user for a specific user",
+        "operationId": "setEscalation",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "escalationToUserId",
+            "in": "query",
+            "description": "Escalation user ID",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User escalation updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowUserDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkflowUserDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the user"
+          },
+          "username": {
+            "type": "string",
+            "description": "Unique username for login",
+            "example": "john.doe"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "User's first name",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "User's last name",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address",
+            "example": "john.doe@example.com"
+          },
+          "escalationTo": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "User ID to escalate tasks to"
+          },
+          "isActive": {
+            "type": "string",
+            "enum": ["Y", "N"],
+            "description": "Whether the user account is active"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Username of the user who created this account"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was created"
+          },
+          "updatedBy": {
+            "type": "string",
+            "nullable": true,
+            "description": "Username of the user who last updated this account"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the user was last updated"
+          }
+        },
+        "required": ["username", "firstName", "lastName", "email", "isActive", "createdBy"]
+      }
+    }
+  }
+}

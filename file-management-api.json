@@ -1,0 +1,372 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DocWF File Management API",
+    "description": "APIs for file upload, download, update, and consolidation operations",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DocWF Development Team",
+      "email": "dev@docwf.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.docwf.com",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "File Management",
+      "description": "APIs for file upload, download, update, and consolidation operations"
+    }
+  ],
+  "paths": {
+    "/api/files/upload": {
+      "post": {
+        "tags": ["File Management"],
+        "summary": "Upload File",
+        "description": "Uploads a file for a specific task instance",
+        "operationId": "uploadFile",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File to upload"
+                  },
+                  "instanceTaskId": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "ID of the task instance"
+                  },
+                  "actionType": {
+                    "type": "string",
+                    "enum": ["FILE_UPLOAD", "FILE_DOWNLOAD", "FILE_UPDATE", "CONSOLIDATE_FILES", "DECISION"],
+                    "description": "Type of file action"
+                  },
+                  "createdBy": {
+                    "type": "string",
+                    "description": "Username of the user uploading the file"
+                  }
+                },
+                "required": ["file", "instanceTaskId", "actionType", "createdBy"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskFileDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Task instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/files/download/{filename}": {
+      "get": {
+        "tags": ["File Management"],
+        "summary": "Download File",
+        "description": "Downloads a specific file by its filename",
+        "operationId": "downloadFile",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "description": "Filename to download",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "document.pdf"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File downloaded successfully",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/files/{fileId}/update": {
+      "put": {
+        "tags": ["File Management"],
+        "summary": "Update File",
+        "description": "Updates an existing file with new content",
+        "operationId": "updateFile",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "description": "Unique identifier of the file to update",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "New file content"
+                  },
+                  "updatedBy": {
+                    "type": "string",
+                    "description": "Username of the user updating the file"
+                  }
+                },
+                "required": ["file", "updatedBy"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "File updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskFileDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "File not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/files/consolidate": {
+      "post": {
+        "tags": ["File Management"],
+        "summary": "Consolidate Files",
+        "description": "Consolidates multiple files into a single consolidated file",
+        "operationId": "consolidateFiles",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "description": "Array of file IDs to consolidate"
+                  },
+                  "instanceTaskId": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "ID of the task instance"
+                  },
+                  "consolidatedBy": {
+                    "type": "string",
+                    "description": "Username of the user consolidating the files"
+                  }
+                },
+                "required": ["fileIds", "instanceTaskId", "consolidatedBy"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Files consolidated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskFileDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "One or more files not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/files/instance/{instanceTaskId}": {
+      "get": {
+        "tags": ["File Management"],
+        "summary": "Get Files by Instance Task",
+        "description": "Retrieves all files associated with a specific task instance",
+        "operationId": "getFilesByInstanceTask",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "ID of the task instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowInstanceTaskFileDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/files/{fileId}": {
+      "delete": {
+        "tags": ["File Management"],
+        "summary": "Delete File",
+        "description": "Deletes a specific file from the system",
+        "operationId": "deleteFile",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "description": "Unique identifier of the file to delete",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "File deleted successfully"
+          },
+          "404": {
+            "description": "File not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkflowInstanceTaskFileDto": {
+        "type": "object",
+        "properties": {
+          "instanceFileId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the file instance"
+          },
+          "instanceTaskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the task instance"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Name of the file"
+          },
+          "filePath": {
+            "type": "string",
+            "description": "Path to the file in storage"
+          },
+          "actionType": {
+            "type": "string",
+            "enum": ["FILE_UPLOAD", "FILE_DOWNLOAD", "FILE_UPDATE", "CONSOLIDATE_FILES", "DECISION"],
+            "description": "Type of file action"
+          },
+          "fileVersion": {
+            "type": "integer",
+            "description": "Version number of the file"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Username of the user who created the file"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the file was created"
+          }
+        }
+      }
+    }
+  }
+}

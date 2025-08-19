@@ -1,0 +1,1111 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DocWF Workflow Execution API",
+    "description": "APIs for executing workflows, managing instances, and task execution",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DocWF Development Team",
+      "email": "dev@docwf.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.docwf.com",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Workflow Execution",
+      "description": "APIs for executing workflows, managing instances, and task execution"
+    },
+    {
+      "name": "Task Management",
+      "description": "APIs for managing individual tasks and their statuses"
+    },
+    {
+      "name": "Workflow Monitoring",
+      "description": "APIs for monitoring workflow progress and statistics"
+    }
+  ],
+  "paths": {
+    "/api/execution/workflows/{workflowId}/start": {
+      "post": {
+        "tags": ["Workflow Execution"],
+        "summary": "Start Workflow Instance",
+        "description": "Starts a new workflow instance for the specified workflow configuration",
+        "operationId": "startWorkflow",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "description": "Unique identifier of the workflow to start",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "startedByUserId",
+            "in": "query",
+            "description": "ID of the user starting the workflow",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Workflow instance started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Workflow not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/workflows/{workflowId}/instances": {
+      "get": {
+        "tags": ["Workflow Execution"],
+        "summary": "Get Workflow Instances",
+        "description": "Retrieves all instances of a specific workflow",
+        "operationId": "getWorkflowInstances",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "description": "ID of the workflow",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workflow instances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowInstanceDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/instances/{instanceId}": {
+      "get": {
+        "tags": ["Workflow Execution"],
+        "summary": "Get Workflow Instance",
+        "description": "Retrieves a specific workflow instance by its unique identifier",
+        "operationId": "getWorkflowInstance",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "Unique identifier of the workflow instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workflow instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/instances/status/{status}": {
+      "get": {
+        "tags": ["Workflow Execution"],
+        "summary": "Get Instances by Status",
+        "description": "Retrieves workflow instances by status",
+        "operationId": "getInstancesByStatus",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "description": "Instance status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"]
+            },
+            "example": "IN_PROGRESS"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved instances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowInstanceDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/instances/{instanceId}/status": {
+      "patch": {
+        "tags": ["Workflow Execution"],
+        "summary": "Update Instance Status",
+        "description": "Updates the status of a workflow instance",
+        "operationId": "updateInstanceStatus",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "ID of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "New status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"]
+            },
+            "example": "COMPLETED"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Instance status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/instances/{instanceId}/complete": {
+      "post": {
+        "tags": ["Workflow Execution"],
+        "summary": "Complete Workflow Instance",
+        "description": "Marks a workflow instance as completed",
+        "operationId": "completeWorkflowInstance",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "ID of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow instance completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/instances/{instanceId}/cancel": {
+      "post": {
+        "tags": ["Workflow Execution"],
+        "summary": "Cancel Workflow Instance",
+        "description": "Cancels a workflow instance",
+        "operationId": "cancelWorkflowInstance",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "ID of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow instance cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/instances/{instanceId}/escalate": {
+      "post": {
+        "tags": ["Workflow Execution"],
+        "summary": "Escalate Workflow Instance",
+        "description": "Escalates a workflow instance to another user",
+        "operationId": "escalateWorkflowInstance",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "ID of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "escalatedToUserId",
+            "in": "query",
+            "description": "ID of the user to escalate to",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow instance escalated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instance or user not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/instances/{instanceId}/tasks": {
+      "get": {
+        "tags": ["Task Management"],
+        "summary": "Get Instance Tasks",
+        "description": "Retrieves all tasks for a specific workflow instance",
+        "operationId": "getInstanceTasks",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "Unique identifier of the workflow instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved instance tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/tasks/{taskId}": {
+      "get": {
+        "tags": ["Task Management"],
+        "summary": "Get Task by ID",
+        "description": "Retrieves a specific task by its unique identifier",
+        "operationId": "getTaskById",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier of the task",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/tasks/{taskId}/assign": {
+      "post": {
+        "tags": ["Task Management"],
+        "summary": "Assign Task to User",
+        "description": "Assigns a specific task to a user for execution",
+        "operationId": "assignTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier of the task to assign",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "ID of the user to assign the task to",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task assigned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Task or user not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/tasks/{taskId}/start": {
+      "post": {
+        "tags": ["Task Management"],
+        "summary": "Start Task",
+        "description": "Marks a task as started and begins execution",
+        "operationId": "startTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier of the task to start",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Task cannot be started"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/tasks/{taskId}/complete": {
+      "post": {
+        "tags": ["Task Management"],
+        "summary": "Complete Task",
+        "description": "Marks a task as completed with optional decision outcome",
+        "operationId": "completeTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier of the task to complete",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "decisionOutcome",
+            "in": "query",
+            "description": "Optional decision outcome for decision tasks",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "APPROVED"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Task cannot be completed"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/tasks/{taskId}/escalate": {
+      "post": {
+        "tags": ["Task Management"],
+        "summary": "Escalate Task",
+        "description": "Escalates a task to another user due to timeout or issues",
+        "operationId": "escalateTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier of the task to escalate",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "escalatedToUserId",
+            "in": "query",
+            "description": "ID of the user to escalate the task to",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task escalated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Task cannot be escalated"
+          },
+          "404": {
+            "description": "Task or user not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/tasks/user/{userId}": {
+      "get": {
+        "tags": ["Task Management"],
+        "summary": "Get User's Tasks",
+        "description": "Retrieves all tasks assigned to a specific user",
+        "operationId": "getUserTasks",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved user tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/tasks/status/{status}": {
+      "get": {
+        "tags": ["Task Management"],
+        "summary": "Get Tasks by Status",
+        "description": "Retrieves tasks by their status",
+        "operationId": "getTasksByStatus",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "description": "Task status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "ESCALATED"]
+            },
+            "example": "PENDING"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/progress/{instanceId}": {
+      "get": {
+        "tags": ["Workflow Monitoring"],
+        "summary": "Get Workflow Progress",
+        "description": "Retrieves the progress information for a workflow instance",
+        "operationId": "getWorkflowProgress",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "ID of the workflow instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workflow progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowProgressDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/stats/{workflowId}": {
+      "get": {
+        "tags": ["Workflow Monitoring"],
+        "summary": "Get Workflow Statistics",
+        "description": "Retrieves statistics for a specific workflow",
+        "operationId": "getWorkflowStats",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "description": "ID of the workflow",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workflow statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceStatsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/execution/workload": {
+      "get": {
+        "tags": ["Workflow Monitoring"],
+        "summary": "Get User Workload",
+        "description": "Retrieves workload information for all users",
+        "operationId": "getUserWorkload",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved user workload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserWorkloadDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkflowInstanceDto": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the workflow instance"
+          },
+          "workflowId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the workflow configuration"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"],
+            "description": "Current status of the workflow instance"
+          },
+          "startedBy": {
+            "type": "integer",
+            "format": "int64",
+            "description": "User ID who started the workflow"
+          },
+          "startedOn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workflow was started"
+          },
+          "completedOn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the workflow was completed"
+          },
+          "escalatedTo": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "User ID to escalate the workflow to"
+          },
+          "workflowName": {
+            "type": "string",
+            "description": "Name of the workflow configuration"
+          },
+          "startedByUsername": {
+            "type": "string",
+            "description": "Username of the user who started the workflow"
+          },
+          "escalatedToUsername": {
+            "type": "string",
+            "nullable": true,
+            "description": "Username of the user escalated to"
+          },
+          "instanceTasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+            },
+            "nullable": true,
+            "description": "Tasks in this workflow instance"
+          }
+        }
+      },
+      "WorkflowInstanceTaskDto": {
+        "type": "object",
+        "properties": {
+          "instanceTaskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the task instance"
+          },
+          "instanceId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the workflow instance"
+          },
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the workflow configuration task"
+          },
+          "assignedTo": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "User ID assigned to this task"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "ESCALATED"],
+            "description": "Current status of the task"
+          },
+          "startedOn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the task was started"
+          },
+          "completedOn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the task was completed"
+          },
+          "decisionOutcome": {
+            "type": "string",
+            "nullable": true,
+            "description": "Decision outcome for decision tasks"
+          },
+          "assignedToUsername": {
+            "type": "string",
+            "nullable": true,
+            "description": "Username of the assigned user"
+          },
+          "taskName": {
+            "type": "string",
+            "description": "Name of the task"
+          },
+          "taskType": {
+            "type": "string",
+            "enum": ["FILE_UPLOAD", "FILE_DOWNLOAD", "FILE_UPDATE", "CONSOLIDATE_FILES", "DECISION"],
+            "description": "Type of the task"
+          }
+        }
+      },
+      "WorkflowProgressDto": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the workflow instance"
+          },
+          "workflowName": {
+            "type": "string",
+            "description": "Name of the workflow"
+          },
+          "totalTasks": {
+            "type": "integer",
+            "description": "Total number of tasks in the workflow"
+          },
+          "completedTasks": {
+            "type": "integer",
+            "description": "Number of completed tasks"
+          },
+          "pendingTasks": {
+            "type": "integer",
+            "description": "Number of pending tasks"
+          },
+          "inProgressTasks": {
+            "type": "integer",
+            "description": "Number of tasks in progress"
+          },
+          "failedTasks": {
+            "type": "integer",
+            "description": "Number of failed tasks"
+          },
+          "progressPercentage": {
+            "type": "number",
+            "format": "float",
+            "description": "Percentage of workflow completion"
+          }
+        }
+      },
+      "WorkflowInstanceStatsDto": {
+        "type": "object",
+        "properties": {
+          "workflowId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the workflow configuration"
+          },
+          "workflowName": {
+            "type": "string",
+            "description": "Name of the workflow"
+          },
+          "totalInstances": {
+            "type": "integer",
+            "description": "Total number of workflow instances"
+          },
+          "completedInstances": {
+            "type": "integer",
+            "description": "Number of completed instances"
+          },
+          "inProgressInstances": {
+            "type": "integer",
+            "description": "Number of instances in progress"
+          },
+          "pendingInstances": {
+            "type": "integer",
+            "description": "Number of pending instances"
+          },
+          "failedInstances": {
+            "type": "integer",
+            "description": "Number of failed instances"
+          },
+          "cancelledInstances": {
+            "type": "integer",
+            "description": "Number of cancelled instances"
+          },
+          "successRate": {
+            "type": "number",
+            "format": "float",
+            "description": "Percentage of successful workflow completions"
+          },
+          "averageCompletionTime": {
+            "type": "number",
+            "format": "float",
+            "description": "Average time to complete workflows in minutes"
+          }
+        }
+      },
+      "UserWorkloadDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the user"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username of the user"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "Full name of the user"
+          },
+          "totalAssignedTasks": {
+            "type": "integer",
+            "description": "Total number of tasks assigned to the user"
+          },
+          "pendingTasks": {
+            "type": "integer",
+            "description": "Number of pending tasks"
+          },
+          "inProgressTasks": {
+            "type": "integer",
+            "description": "Number of tasks in progress"
+          },
+          "completedTasks": {
+            "type": "integer",
+            "description": "Number of completed tasks"
+          },
+          "overdueTasks": {
+            "type": "integer",
+            "description": "Number of overdue tasks"
+          },
+          "workloadPercentage": {
+            "type": "number",
+            "format": "float",
+            "description": "Percentage of user's workload capacity"
+          }
+        }
+      }
+    }
+  }
+}

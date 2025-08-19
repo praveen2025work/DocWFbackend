@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=Oracle
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        envers:
+          audit_table_suffix: _AUD
+          revision_field_name: REV
+          revision_type_field_name: REVTYPE
+          store_data_at_delete: true
+    
+  quartz:
+    job-store-type: memory
+    properties:
+      org.quartz.scheduler.instanceName: TestWorkflowScheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.class: org.quartz.simpl.RAMJobStore
+      org.quartz.threadPool.class: org.quartz.simpl.SimpleThreadPool
+      org.quartz.threadPool.threadCount: 5
+
+logging:
+  level:
+    com.docwf: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.quartz: INFO
+
+# Test-specific properties
+app:
+  workflow:
+    trigger-interval: 1 # minutes for faster testing
+    file:
+      upload-dir: ./test-uploads
+      max-size: 1MB
