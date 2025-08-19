@@ -1,0 +1,704 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DocWF Role Management API",
+    "description": "APIs for managing workflow roles, permissions, and role assignments across the system",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DocWF Development Team",
+      "email": "dev@docwf.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.docwf.com",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Role Management",
+      "description": "APIs for managing system roles and permissions"
+    },
+    {
+      "name": "Role Assignments",
+      "description": "APIs for assigning roles to users and workflows"
+    },
+    {
+      "name": "Role Permissions",
+      "description": "APIs for managing role permissions and access control"
+    }
+  ],
+  "paths": {
+    "/api/roles": {
+      "get": {
+        "tags": ["Role Management"],
+        "summary": "Get All Roles",
+        "description": "Retrieves a list of all roles in the system with optional filtering",
+        "operationId": "getAllRoles",
+        "parameters": [
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Filter by active status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["Y", "N"]
+            }
+          },
+          {
+            "name": "roleType",
+            "in": "query",
+            "description": "Filter by role type",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["SYSTEM", "WORKFLOW", "TASK", "ADMIN"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved roles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowRoleDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Role Management"],
+        "summary": "Create New Role",
+        "description": "Creates a new role with the specified permissions and settings",
+        "operationId": "createRole",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowRoleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Role created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRoleDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "409": {
+            "description": "Role name already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/{roleId}": {
+      "get": {
+        "tags": ["Role Management"],
+        "summary": "Get Role by ID",
+        "description": "Retrieves a specific role by its unique identifier",
+        "operationId": "getRoleById",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Unique identifier of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRoleDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Role Management"],
+        "summary": "Update Role",
+        "description": "Updates an existing role with new information",
+        "operationId": "updateRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Unique identifier of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowRoleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRoleDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Role Management"],
+        "summary": "Delete Role",
+        "description": "Deletes a role from the system",
+        "operationId": "deleteRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Unique identifier of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role deleted successfully"
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "409": {
+            "description": "Cannot delete role with active assignments"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/name/{roleName}": {
+      "get": {
+        "tags": ["Role Management"],
+        "summary": "Get Role by Name",
+        "description": "Retrieves a role by its name",
+        "operationId": "getRoleByName",
+        "parameters": [
+          {
+            "name": "roleName",
+            "in": "path",
+            "description": "Name of the role",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "APPROVER"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRoleDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/{roleId}/permissions": {
+      "get": {
+        "tags": ["Role Permissions"],
+        "summary": "Get Role Permissions",
+        "description": "Retrieves all permissions assigned to a specific role",
+        "operationId": "getRolePermissions",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "ID of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved role permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RolePermissionDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Role Permissions"],
+        "summary": "Assign Permission to Role",
+        "description": "Assigns a new permission to a role",
+        "operationId": "assignPermissionToRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "ID of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolePermissionDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Permission assigned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolePermissionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/{roleId}/permissions/{permissionId}": {
+      "delete": {
+        "tags": ["Role Permissions"],
+        "summary": "Remove Permission from Role",
+        "description": "Removes a permission from a role",
+        "operationId": "removePermissionFromRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "ID of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "permissionId",
+            "in": "path",
+            "description": "ID of the permission",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Permission removed successfully"
+          },
+          "404": {
+            "description": "Role or permission not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/{roleId}/users": {
+      "get": {
+        "tags": ["Role Assignments"],
+        "summary": "Get Users with Role",
+        "description": "Retrieves all users assigned to a specific role",
+        "operationId": "getUsersWithRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "ID of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved users with role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowUserDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/{roleId}/workflows": {
+      "get": {
+        "tags": ["Role Assignments"],
+        "summary": "Get Workflows with Role",
+        "description": "Retrieves all workflows that use a specific role",
+        "operationId": "getWorkflowsWithRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "ID of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workflows with role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowConfigDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/{roleId}/status": {
+      "patch": {
+        "tags": ["Role Management"],
+        "summary": "Toggle Role Status",
+        "description": "Activates or deactivates a role",
+        "operationId": "toggleRoleStatus",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "ID of the role",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Active status (Y/N)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["Y", "N"]
+            },
+            "example": "Y"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRoleDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/roles/hierarchy": {
+      "get": {
+        "tags": ["Role Management"],
+        "summary": "Get Role Hierarchy",
+        "description": "Retrieves the role hierarchy and inheritance structure",
+        "operationId": "getRoleHierarchy",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved role hierarchy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoleHierarchyDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkflowRoleDto": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the role"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "Name of the role",
+            "example": "APPROVER"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the role",
+            "example": "Role for approving workflow decisions"
+          },
+          "roleType": {
+            "type": "string",
+            "enum": ["SYSTEM", "WORKFLOW", "TASK", "ADMIN"],
+            "description": "Type of the role"
+          },
+          "isActive": {
+            "type": "string",
+            "enum": ["Y", "N"],
+            "description": "Whether the role is active"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Username of the user who created this role"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the role was created"
+          },
+          "updatedBy": {
+            "type": "string",
+            "nullable": true,
+            "description": "Username of the user who last updated this role"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the role was last updated"
+          }
+        },
+        "required": ["roleName", "description", "roleType", "isActive", "createdBy"]
+      },
+      "RolePermissionDto": {
+        "type": "object",
+        "properties": {
+          "permissionId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the permission"
+          },
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the role"
+          },
+          "permissionName": {
+            "type": "string",
+            "description": "Name of the permission",
+            "example": "WORKFLOW_CREATE"
+          },
+          "permissionDescription": {
+            "type": "string",
+            "description": "Description of the permission"
+          },
+          "resource": {
+            "type": "string",
+            "description": "Resource this permission applies to",
+            "example": "workflow"
+          },
+          "action": {
+            "type": "string",
+            "description": "Action allowed by this permission",
+            "example": "CREATE"
+          },
+          "isActive": {
+            "type": "string",
+            "enum": ["Y", "N"],
+            "description": "Whether this permission is active"
+          }
+        }
+      },
+      "RoleHierarchyDto": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the role"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "Name of the role"
+          },
+          "level": {
+            "type": "integer",
+            "description": "Hierarchy level of the role"
+          },
+          "parentRoleId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "ID of the parent role"
+          },
+          "childRoles": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "IDs of child roles"
+          }
+        }
+      }
+    }
+  }
+}

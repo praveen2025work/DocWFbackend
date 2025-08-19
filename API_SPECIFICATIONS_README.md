@@ -10,6 +10,8 @@ This directory contains the complete OpenAPI 3.0.1 specifications for the DocWF 
 - **`workflow-config-api.json`** - Complete workflow configuration API specification  
 - **`workflow-execution-api.json`** - Complete workflow execution and task management API specification
 - **`file-management-api.json`** - Complete file management API specification
+- **`role-management-api.json`** - Complete role management and permissions API specification
+- **`calendar-api.json`** - Complete calendar and scheduling API specification
 
 ## 🎯 Why Separate Files?
 
@@ -74,6 +76,35 @@ The original `api-specification.json` was causing Cursor to crash due to its lar
 **Key DTOs:**
 - `WorkflowInstanceTaskFileDto`
 
+### 5. Role Management API (`role-management-api.json`)
+**Endpoints:** 12 total
+- Role CRUD operations (Create, Read, Update, Delete)
+- Role permissions management (assign, remove)
+- Role hierarchy and inheritance
+- Role assignments to users and workflows
+- Role status management (activate/deactivate)
+
+**Key DTOs:**
+- `WorkflowRoleDto`
+- `RolePermissionDto`
+- `RoleHierarchyDto`
+
+### 6. Calendar & Scheduling API (`calendar-api.json`)
+**Endpoints:** 10 total
+- Workflow scheduling (schedule, update, cancel)
+- Task due date management
+- Reminder and notification system
+- Calendar export (ICS, CSV, JSON)
+- User availability checking
+- Overdue items tracking
+
+**Key DTOs:**
+- `ScheduledWorkflowDto`
+- `WorkflowScheduleDto`
+- `ScheduledTaskDto`
+- `ReminderDto`
+- `UserAvailabilityDto`
+
 ## 🚀 How to Use
 
 ### For Development
@@ -116,7 +147,9 @@ The original `api-specification.json` was causing Cursor to crash due to its lar
 | Workflow Configuration | 20+ | 4 | 100% |
 | Workflow Execution | 25+ | 5 | 100% |
 | File Management | 6 | 1 | 100% |
-| **Total** | **66+** | **11** | **100%** |
+| Role Management | 12 | 3 | 100% |
+| Calendar & Scheduling | 10 | 6 | 100% |
+| **Total** | **88+** | **20** | **100%** |
 
 ## 🆕 What's New
 

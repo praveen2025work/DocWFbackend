@@ -77,7 +77,9 @@
                         "User Management",
                         "Workflow Configuration", 
                         "Workflow Execution",
-                        "File Management"
+                        "File Management",
+                        "Role Management",
+                        "Calendar & Scheduling"
                       ]
                     },
                     "documentation": {
@@ -163,6 +165,28 @@
         "File updates and consolidation",
         "File metadata management",
         "Task instance file associations"
+      ]
+    },
+    "role-management": {
+      "file": "role-management-api.json",
+      "description": "Complete API specification for role management operations",
+      "endpoints": [
+        "Role CRUD operations",
+        "Role permissions management",
+        "Role hierarchy management",
+        "Role assignments to users and workflows",
+        "Role status management"
+      ]
+    },
+    "calendar-scheduling": {
+      "file": "calendar-api.json",
+      "description": "Complete API specification for calendar and scheduling operations",
+      "endpoints": [
+        "Workflow scheduling",
+        "Task due date management",
+        "Reminder and notification system",
+        "Calendar export and integration",
+        "User availability checking"
       ]
     }
   },
