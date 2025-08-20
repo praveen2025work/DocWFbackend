@@ -1,6 +1,8 @@
 package com.docwf.repository;
 
 import com.docwf.entity.WorkflowCalendar;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,4 +30,9 @@ public interface WorkflowCalendarRepository extends JpaRepository<WorkflowCalend
     
     @Query("SELECT c FROM WorkflowCalendar c WHERE c.startDate >= :startDate AND c.endDate <= :endDate")
     List<WorkflowCalendar> findCalendarsInDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    /**
+     * Find calendars by recurrence with pagination
+     */
+    Page<WorkflowCalendar> findByRecurrence(String recurrence, Pageable pageable);
 }

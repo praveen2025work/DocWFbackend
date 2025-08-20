@@ -115,7 +115,7 @@ public class WorkflowSystemTest {
             task.setTaskType(com.docwf.entity.WorkflowConfigTask.TaskType.valueOf(taskTypes[i]));
             task.setSequenceOrder(i + 1);
             
-            WorkflowConfigTaskDto createdTask = workflowService.createTask(workflowId, task);
+            WorkflowConfigTaskDto createdTask = workflowService.addTask(workflowId, task);
             System.out.println("Created task: " + createdTask.getName() + " (Sequence: " + createdTask.getSequenceOrder() + ")");
         }
     }
@@ -188,7 +188,7 @@ public class WorkflowSystemTest {
         System.out.println("Found workflow: " + foundWorkflow.map(w -> w.getName()).orElse("Not found"));
         
         // Get all workflows
-        List<WorkflowConfigDto> allWorkflows = workflowService.getAllWorkflows();
+        List<WorkflowConfigDto> allWorkflows = workflowService.getAllActiveWorkflows();
         System.out.println("Total workflows: " + allWorkflows.size());
         
         // Toggle workflow status

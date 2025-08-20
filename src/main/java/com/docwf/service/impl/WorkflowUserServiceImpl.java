@@ -6,6 +6,8 @@ import com.docwf.exception.WorkflowException;
 import com.docwf.repository.WorkflowUserRepository;
 import com.docwf.service.WorkflowUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +89,28 @@ public class WorkflowUserServiceImpl implements WorkflowUserService {
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowUserDto> getAllUsers(String isActive, Pageable pageable) {
+        Page<WorkflowUser> users;
+        if (isActive != null && !isActive.isEmpty()) {
+            users = userRepository.findByIsActive(isActive, pageable);
+        } else {
+            users = userRepository.findAll(pageable);
+        }
+        return users.map(this::convertToDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowUserDto> searchUsers(String username, String firstName, String lastName, String email, 
+                                           String isActive, String createdBy, Long escalationTo, 
+                                           String createdAfter, String createdBefore, Pageable pageable) {
+        // For now, return all users with pagination
+        // TODO: Implement proper search logic
+        return getAllUsers(isActive, pageable);
     }
     
     @Override

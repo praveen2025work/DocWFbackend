@@ -1,6 +1,8 @@
 package com.docwf.service;
 
 import com.docwf.dto.WorkflowRoleDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +34,20 @@ public interface RoleService {
      * @return list of all roles
      */
     List<WorkflowRoleDto> getAllRoles();
+    
+    /**
+     * Retrieves all roles with pagination and optional filtering
+     * @return page of roles
+     */
+    Page<WorkflowRoleDto> getAllRoles(String isActive, Pageable pageable);
+    
+    /**
+     * Search roles using multiple criteria with pagination
+     * @return page of roles
+     */
+    Page<WorkflowRoleDto> searchRoles(String roleName, String isActive, String createdBy, 
+                                    Long minRoleId, Long maxRoleId, String createdAfter, 
+                                    String createdBefore, Pageable pageable);
     
     /**
      * Retrieves all active roles

@@ -2,6 +2,8 @@ package com.docwf.service;
 
 import com.docwf.dto.WorkflowUserDto;
 import com.docwf.entity.WorkflowUser;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +38,18 @@ public interface WorkflowUserService {
      * Get all users
      */
     List<WorkflowUserDto> getAllUsers();
+    
+    /**
+     * Get all users with pagination and optional filtering
+     */
+    Page<WorkflowUserDto> getAllUsers(String isActive, Pageable pageable);
+    
+    /**
+     * Search users using multiple criteria with pagination
+     */
+    Page<WorkflowUserDto> searchUsers(String username, String firstName, String lastName, String email, 
+                                    String isActive, String createdBy, Long escalationTo, 
+                                    String createdAfter, String createdBefore, Pageable pageable);
     
     /**
      * Update user

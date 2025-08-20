@@ -1,6 +1,8 @@
 package com.docwf.repository;
 
 import com.docwf.entity.WorkflowUser;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -59,4 +61,9 @@ public interface WorkflowUserRepository extends JpaRepository<WorkflowUser, Long
      * Check if email exists
      */
     boolean existsByEmail(String email);
+    
+    /**
+     * Find users by active status with pagination
+     */
+    Page<WorkflowUser> findByIsActive(String isActive, Pageable pageable);
 }

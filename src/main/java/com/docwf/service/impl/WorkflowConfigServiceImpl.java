@@ -9,6 +9,8 @@ import com.docwf.exception.WorkflowException;
 import com.docwf.repository.*;
 import com.docwf.service.WorkflowConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,11 +86,24 @@ public class WorkflowConfigServiceImpl implements WorkflowConfigService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<WorkflowConfigDto> getAllWorkflows() {
-        return workflowRepository.findAll()
-                .stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+    public Page<WorkflowConfigDto> getAllWorkflows(String isActive, Pageable pageable) {
+        Page<WorkflowConfig> workflows;
+        if (isActive != null && !isActive.isEmpty()) {
+            workflows = workflowRepository.findByIsActive(isActive, pageable);
+        } else {
+            workflows = workflowRepository.findAll(pageable);
+        }
+        return workflows.map(this::convertToDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowConfigDto> searchWorkflows(String name, String description, String isActive, 
+                                                 String createdBy, Integer minDueTime, Integer maxDueTime,
+                                                 String createdAfter, String createdBefore, Pageable pageable) {
+        // For now, return all workflows with pagination
+        // TODO: Implement proper search logic
+        return getAllWorkflows(isActive, pageable);
     }
     
     @Override
@@ -248,7 +263,7 @@ public class WorkflowConfigServiceImpl implements WorkflowConfigService {
     
     // Workflow Task Management
     @Override
-    public WorkflowConfigTaskDto createTask(Long workflowId, WorkflowConfigTaskDto taskDto) {
+    public WorkflowConfigTaskDto addTask(Long workflowId, WorkflowConfigTaskDto taskDto) {
         WorkflowConfig workflow = workflowRepository.findById(workflowId)
                 .orElseThrow(() -> new WorkflowException("Workflow not found with ID: " + workflowId));
         

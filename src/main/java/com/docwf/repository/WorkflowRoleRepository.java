@@ -1,6 +1,8 @@
 package com.docwf.repository;
 
 import com.docwf.entity.WorkflowRole;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,4 +45,9 @@ public interface WorkflowRoleRepository extends JpaRepository<WorkflowRole, Long
      * Find roles by multiple role names
      */
     List<WorkflowRole> findByRoleNameIn(List<String> roleNames);
+    
+    /**
+     * Find roles by active status with pagination
+     */
+    Page<WorkflowRole> findByIsActive(String isActive, Pageable pageable);
 }

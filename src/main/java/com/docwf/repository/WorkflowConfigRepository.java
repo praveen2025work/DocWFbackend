@@ -1,6 +1,8 @@
 package com.docwf.repository;
 
 import com.docwf.entity.WorkflowConfig;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -72,4 +74,9 @@ public interface WorkflowConfigRepository extends JpaRepository<WorkflowConfig, 
      */
     @Query("SELECT wc FROM WorkflowConfig wc WHERE wc.isActive = 'Y' AND wc.escalationAfterMins IS NOT NULL")
     List<WorkflowConfig> findWorkflowsNeedingEscalation();
+    
+    /**
+     * Find workflows by active status with pagination
+     */
+    Page<WorkflowConfig> findByIsActive(String isActive, Pageable pageable);
 }

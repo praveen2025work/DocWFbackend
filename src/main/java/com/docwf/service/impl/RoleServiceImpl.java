@@ -5,6 +5,8 @@ import com.docwf.entity.WorkflowRole;
 import com.docwf.repository.WorkflowRoleRepository;
 import com.docwf.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +53,28 @@ public class RoleServiceImpl implements RoleService {
         return roleRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowRoleDto> getAllRoles(String isActive, Pageable pageable) {
+        Page<WorkflowRole> roles;
+        if (isActive != null && !isActive.isEmpty()) {
+            roles = roleRepository.findByIsActive(isActive, pageable);
+        } else {
+            roles = roleRepository.findAll(pageable);
+        }
+        return roles.map(this::convertToDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowRoleDto> searchRoles(String roleName, String isActive, String createdBy, 
+                                           Long minRoleId, Long maxRoleId, String createdAfter, 
+                                           String createdBefore, Pageable pageable) {
+        // For now, return all roles with pagination
+        // TODO: Implement proper search logic
+        return getAllRoles(isActive, pageable);
     }
     
     @Override

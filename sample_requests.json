@@ -1,632 +1,448 @@
 {
-  "api_overview": {
-    "total_endpoints": "~60 (Reduced from 180+)",
-    "structure": "Predicate-based search with unified endpoints",
-    "controllers": {
-      "calendar_management": 18,
-      "workflow_configuration": 18,
-      "workflow_execution": 25,
-      "user_management": 10,
-      "role_management": 9,
-      "file_management": 8,
-      "dashboard_views": 15,
-      "process_owner": 12
-    }
+  "api_info": {
+    "name": "DocWF Workflow Management System API",
+    "version": "1.0.0",
+    "base_url": "http://localhost:8080",
+    "description": "Comprehensive REST API for managing workflows, tasks, and workflow executions"
   },
-  "calendar_management": {
-    "description": "18 endpoints for managing workflow calendars with holidays and run days",
-    "endpoints": {
-      "create_calendar": {
-        "method": "POST",
-        "url": "/api/calendar",
-        "description": "Create a new workflow calendar",
-        "request_body": {
-          "calendarName": "US Business Days 2025",
-          "description": "Calendar for US business days excluding holidays and weekends",
-          "startDate": "2025-01-01",
-          "endDate": "2025-12-31",
-          "recurrence": "YEARLY",
-          "createdBy": "admin@docwf.com"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/calendar' -H 'Content-Type: application/json' -d '{\"calendarName\":\"US Business Days 2025\",\"description\":\"Calendar for US business days excluding holidays and weekends\",\"startDate\":\"2025-01-01\",\"endDate\":\"2025-12-31\",\"recurrence\":\"YEARLY\",\"createdBy\":\"admin@docwf.com\"}'"
-      },
-      "search_calendars": {
+  "endpoints": {
+    "users": {
+      "get_all_users": {
         "method": "GET",
-        "url": "/api/calendar/search",
-        "description": "Search calendars using multiple criteria with pagination",
-        "query_parameters": {
-          "calendarName": "Business",
-          "recurrence": "YEARLY",
-          "startDate": "2025-01-01",
-          "page": 0,
-          "size": 20
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/calendar/search?calendarName=Business&recurrence=YEARLY&startDate=2025-01-01&page=0&size=20'"
-      },
-      "add_calendar_day": {
-        "method": "POST",
-        "url": "/api/calendar/1/days",
-        "description": "Add a single day to a calendar",
-        "request_body": {
-          "dayDate": "2025-01-01",
-          "dayType": "HOLIDAY",
-          "note": "New Year Day"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/calendar/1/days' -H 'Content-Type: application/json' -d '{\"dayDate\":\"2025-01-01\",\"dayType\":\"HOLIDAY\",\"note\":\"New Year Day\"}'"
-      },
-      "add_calendar_days_batch": {
-        "method": "POST",
-        "url": "/api/calendar/1/days/batch",
-        "description": "Add multiple days to a calendar in batch",
-        "request_body": [
-          {
-            "dayDate": "2025-01-01",
-            "dayType": "HOLIDAY",
-            "note": "New Year Day"
-          },
-          {
-            "dayDate": "2025-01-20",
-            "dayType": "HOLIDAY",
-            "note": "Martin Luther King Jr. Day"
-          }
-        ],
-        "curl": "curl -X POST 'http://localhost:8080/api/calendar/1/days/batch' -H 'Content-Type: application/json' -d '[{\"dayDate\":\"2025-01-01\",\"dayType\":\"HOLIDAY\",\"note\":\"New Year Day\"},{\"dayDate\":\"2025-01-20\",\"dayType\":\"HOLIDAY\",\"note\":\"Martin Luther King Jr. Day\"}]'"
-      },
-      "validate_date": {
-        "method": "GET",
-        "url": "/api/calendar/1/validate-date",
-        "description": "Check if a specific date is valid for workflow execution",
-        "query_parameters": {
-          "date": "2025-01-01"
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/calendar/1/validate-date?date=2025-01-01'"
-      },
-      "can_execute_workflow": {
-        "method": "GET",
-        "url": "/api/calendar/1/can-execute",
-        "description": "Check if a workflow can execute on a specific date",
-        "query_parameters": {
-          "date": "2025-01-02"
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/calendar/1/can-execute?date=2025-01-02'"
-      }
-    }
-  },
-  "workflow_configuration": {
-    "description": "18 endpoints for managing workflow configurations, tasks, roles, and parameters",
-    "endpoints": {
-      "create_workflow": {
-        "method": "POST",
-        "url": "/api/workflows",
-        "description": "Create a new workflow configuration",
-        "request_body": {
-          "name": "Document Approval Workflow",
-          "description": "Workflow for approving documents",
-          "dueInMins": 1440,
-          "escalationAfterMins": 2880,
-          "reminderBeforeDueMins": 240,
-          "minutesAfterDue": 60,
-          "isActive": "Y",
-          "createdBy": "admin@docwf.com"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/workflows' -H 'Content-Type: application/json' -d '{\"name\":\"Document Approval Workflow\",\"description\":\"Workflow for approving documents\",\"dueInMins\":1440,\"escalationAfterMins\":2880,\"reminderBeforeDueMins\":240,\"minutesAfterDue\":60,\"isActive\":\"Y\",\"createdBy\":\"admin@docwf.com\"}'"
-      },
-      "search_workflows": {
-        "method": "GET",
-        "url": "/api/workflows/search",
-        "description": "Search workflows using multiple criteria with pagination",
-        "query_parameters": {
-          "name": "approval",
-          "isActive": "Y",
-          "minDueTime": 1440,
-          "page": 0,
-          "size": 20
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/workflows/search?name=approval&isActive=Y&minDueTime=1440&page=0&size=20'"
-      },
-      "add_task": {
-        "method": "POST",
-        "url": "/api/workflows/1/tasks",
-        "description": "Add a task to a workflow",
-        "request_body": {
-          "name": "Initial Review",
-          "description": "Initial document review",
-          "sequenceOrder": 1,
-          "taskType": "REVIEW",
-          "roleId": 1,
-          "createdBy": "admin@docwf.com"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/workflows/1/tasks' -H 'Content-Type: application/json' -d '{\"name\":\"Initial Review\",\"description\":\"Initial document review\",\"sequenceOrder\":1,\"taskType\":\"REVIEW\",\"roleId\":1,\"createdBy\":\"admin@docwf.com\"}'"
-      },
-      "assign_role": {
-        "method": "POST",
-        "url": "/api/workflows/1/roles",
-        "description": "Assign a role to a workflow",
-        "request_body": {
-          "roleId": 1,
-          "createdBy": "admin@docwf.com"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/workflows/1/roles' -H 'Content-Type: application/json' -d '{\"roleId\":1,\"createdBy\":\"admin@docwf.com\"}'"
-      },
-      "add_parameter": {
-        "method": "POST",
-        "url": "/api/workflows/1/parameters",
-        "description": "Add a parameter to a workflow",
-        "request_body": {
-          "paramKey": "MAX_FILE_SIZE",
-          "paramValue": "10MB",
-          "description": "Maximum file size allowed",
-          "createdBy": "admin@docwf.com"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/workflows/1/parameters' -H 'Content-Type: application/json' -d '{\"paramKey\":\"MAX_FILE_SIZE\",\"paramValue\":\"10MB\",\"description\":\"Maximum file size allowed\",\"createdBy\":\"admin@docwf.com\"}'"
-      },
-      "toggle_status": {
-        "method": "PATCH",
-        "url": "/api/workflows/1/status",
-        "description": "Toggle workflow active status",
-        "query_parameters": {
-          "isActive": "N"
-        },
-        "curl": "curl -X PATCH 'http://localhost:8080/api/workflows/1/status?isActive=N'"
-      }
-    }
-  },
-  "user_management": {
-    "description": "10 endpoints for managing workflow users with predicate-based search",
-    "endpoints": {
-      "create_user": {
-        "method": "POST",
         "url": "/api/users",
-        "description": "Create a new workflow user",
-        "request_body": {
-          "username": "john.doe",
-          "firstName": "John",
-          "lastName": "Doe",
-          "email": "john.doe@company.com",
-          "isActive": "Y",
-          "escalationTo": 2,
-          "createdBy": "admin@docwf.com"
+        "description": "Retrieve all users with pagination",
+        "query_params": {
+          "page": "0",
+          "size": "10",
+          "isActive": "Y"
         },
-        "curl": "curl -X POST 'http://localhost:8080/api/users' -H 'Content-Type: application/json' -d '{\"username\":\"john.doe\",\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@company.com\",\"isActive\":\"Y\",\"escalationTo\":2,\"createdBy\":\"admin@docwf.com\"}'"
+        "response_example": {
+          "content": [
+            {
+              "userId": 1,
+              "username": "alice",
+              "firstName": "Alice",
+              "lastName": "Smith",
+              "email": "alice@example.com",
+              "isActive": "Y",
+              "createdBy": "system",
+              "createdOn": "2025-08-20T11:56:07.612172"
+            }
+          ],
+          "totalElements": 5,
+          "totalPages": 1,
+          "size": 10,
+          "number": 0
+        }
       },
       "search_users": {
         "method": "GET",
         "url": "/api/users/search",
-        "description": "Search users using multiple criteria with pagination",
-        "query_parameters": {
-          "firstName": "John",
+        "description": "Search users with multiple criteria",
+        "query_params": {
+          "username": "alice",
+          "firstName": "Alice",
+          "page": "0",
+          "size": "10"
+        }
+      },
+      "create_user": {
+        "method": "POST",
+        "url": "/api/users",
+        "description": "Create a new user",
+        "request_body": {
+          "username": "newuser",
+          "firstName": "New",
+          "lastName": "User",
+          "email": "newuser@example.com",
           "isActive": "Y",
-          "roleName": "REVIEWER",
-          "page": 0,
-          "size": 20
+          "createdBy": "system"
         },
-        "curl": "curl -X GET 'http://localhost:8080/api/users/search?firstName=John&isActive=Y&roleName=REVIEWER&page=0&size=20'"
+        "response_example": {
+          "userId": 6,
+          "username": "newuser",
+          "firstName": "New",
+          "lastName": "User",
+          "email": "newuser@example.com",
+          "isActive": "Y",
+          "createdBy": "system",
+          "createdOn": "2025-08-20T18:55:00.000000"
+        }
+      },
+      "get_user_by_id": {
+        "method": "GET",
+        "url": "/api/users/1",
+        "description": "Get user by ID"
+      },
+      "update_user": {
+        "method": "PUT",
+        "url": "/api/users/1",
+        "description": "Update user information",
+        "request_body": {
+          "firstName": "Updated Alice",
+          "lastName": "Smith",
+          "email": "alice.updated@example.com"
+        }
       },
       "toggle_user_status": {
         "method": "PATCH",
-        "url": "/api/users/1/status",
-        "description": "Toggle user active status",
-        "query_parameters": {
-          "isActive": "N"
-        },
-        "curl": "curl -X PATCH 'http://localhost:8080/api/users/1/status?isActive=N'"
-      },
-      "set_escalation": {
-        "method": "PATCH",
-        "url": "/api/users/1/escalation",
-        "description": "Set user escalation hierarchy",
-        "query_parameters": {
-          "escalationToUserId": 3
-        },
-        "curl": "curl -X PATCH 'http://localhost:8080/api/users/1/escalation?escalationToUserId=3'"
-      },
-      "check_username": {
-        "method": "GET",
-        "url": "/api/users/check/username/john.doe",
-        "description": "Check if username is available",
-        "curl": "curl -X GET 'http://localhost:8080/api/users/check/username/john.doe'"
+        "url": "/api/users/1/status?isActive=N",
+        "description": "Activate/deactivate user"
       }
-    }
-  },
-  "role_management": {
-    "description": "9 endpoints for managing workflow roles with predicate-based search",
-    "endpoints": {
+    },
+    "roles": {
+      "get_all_roles": {
+        "method": "GET",
+        "url": "/api/roles",
+        "description": "Retrieve all roles with pagination",
+        "query_params": {
+          "page": "0",
+          "size": "10",
+          "isActive": "Y"
+        }
+      },
       "create_role": {
         "method": "POST",
         "url": "/api/roles",
-        "description": "Create a new workflow role",
+        "description": "Create a new role",
         "request_body": {
-          "roleName": "REVIEWER",
+          "roleName": "Manager",
           "isActive": "Y",
-          "createdBy": "admin@docwf.com"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/roles' -H 'Content-Type: application/json' -d '{\"roleName\":\"REVIEWER\",\"isActive\":\"Y\",\"createdBy\":\"admin@docwf.com\"}'"
+          "createdBy": "system"
+        }
       },
-      "search_roles": {
+      "get_role_by_id": {
         "method": "GET",
-        "url": "/api/roles/search",
-        "description": "Search roles using multiple criteria with pagination",
-        "query_parameters": {
-          "roleName": "REVIEWER",
-          "isActive": "Y",
-          "workflowId": 1,
-          "page": 0,
-          "size": 20
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/roles/search?roleName=REVIEWER&isActive=Y&workflowId=1&page=0&size=20'"
+        "url": "/api/roles/1",
+        "description": "Get role by ID"
       },
       "assign_role_to_user": {
         "method": "POST",
         "url": "/api/roles/1/assign/user/1",
-        "description": "Assign a role to a user",
-        "curl": "curl -X POST 'http://localhost:8080/api/roles/1/assign/user/1'"
-      },
-      "toggle_role_status": {
-        "method": "PATCH",
-        "url": "/api/roles/1/status",
-        "description": "Toggle role active status",
-        "query_parameters": {
-          "isActive": "N"
-        },
-        "curl": "curl -X PATCH 'http://localhost:8080/api/roles/1/status?isActive=N'"
+        "description": "Assign role to user"
       }
-    }
-  },
-  "workflow_execution": {
-    "description": "25 endpoints for runtime workflow management and task execution",
-    "endpoints": {
-      "start_workflow": {
-        "method": "POST",
-        "url": "/api/execution/workflows/1/start",
-        "description": "Start a workflow instance",
-        "query_parameters": {
-          "startedByUserId": 1
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/execution/workflows/1/start?startedByUserId=1'"
-      },
-      "start_workflow_with_calendar": {
-        "method": "POST",
-        "url": "/api/execution/workflows/1/start-with-calendar",
-        "description": "Start workflow with calendar validation",
-        "query_parameters": {
-          "startedByUserId": 1,
-          "calendarId": 1
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/execution/workflows/1/start-with-calendar?startedByUserId=1&calendarId=1'"
-      },
-      "get_instance_tasks": {
+    },
+    "workflows": {
+      "get_all_workflows": {
         "method": "GET",
-        "url": "/api/execution/instances/1/tasks",
-        "description": "Get all tasks for a workflow instance",
-        "curl": "curl -X GET 'http://localhost:8080/api/execution/instances/1/tasks'"
+        "url": "/api/workflows",
+        "description": "Retrieve all workflows with pagination",
+        "query_params": {
+          "page": "0",
+          "size": "10",
+          "isActive": "Y"
+        }
       },
-      "assign_task": {
+      "create_workflow": {
         "method": "POST",
-        "url": "/api/execution/tasks/1/assign",
-        "description": "Assign a task to a user",
-        "query_parameters": {
-          "userId": 2
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/execution/tasks/1/assign?userId=2'"
+        "url": "/api/workflows",
+        "description": "Create a new workflow",
+        "request_body": {
+          "name": "Monthly Report Workflow",
+          "description": "Automated monthly reporting process",
+          "reminderBeforeDueMins": 30,
+          "minutesAfterDue": 15,
+          "escalationAfterMins": 60,
+          "dueInMins": 120,
+          "isActive": "Y",
+          "createdBy": "system"
+        }
       },
-      "complete_task": {
+      "get_workflow_by_id": {
+        "method": "GET",
+        "url": "/api/workflows/1",
+        "description": "Get workflow by ID"
+      },
+      "update_workflow": {
+        "method": "PUT",
+        "url": "/api/workflows/1",
+        "description": "Update workflow configuration",
+        "request_body": {
+          "description": "Updated monthly reporting process",
+          "dueInMins": 180
+        }
+      },
+      "get_workflow_tasks": {
+        "method": "GET",
+        "url": "/api/workflows/1/tasks",
+        "description": "Get all tasks for a workflow"
+      },
+      "add_task_to_workflow": {
         "method": "POST",
-        "url": "/api/execution/tasks/1/complete",
-        "description": "Complete a task with decision outcome",
-        "query_parameters": {
-          "decisionOutcome": "APPROVED",
-          "completedBy": 2
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/execution/tasks/1/complete?decisionOutcome=APPROVED&completedBy=2'"
+        "url": "/api/workflows/1/tasks",
+        "description": "Add a new task to workflow",
+        "request_body": {
+          "name": "Data Validation",
+          "taskType": "FILE_UPDATE",
+          "roleId": 2,
+          "sequenceOrder": 3,
+          "expectedCompletion": 60
+        }
       },
-      "get_next_task": {
+      "get_workflow_roles": {
         "method": "GET",
-        "url": "/api/execution/instances/1/next-task",
-        "description": "Get the next pending task for a workflow instance",
-        "curl": "curl -X GET 'http://localhost:8080/api/execution/instances/1/next-task'"
+        "url": "/api/workflows/1/roles",
+        "description": "Get roles assigned to workflow"
       },
-      "execute_next_task": {
+      "assign_role_to_workflow": {
         "method": "POST",
-        "url": "/api/execution/instances/1/execute-next",
-        "description": "Execute the next pending task",
-        "curl": "curl -X POST 'http://localhost:8080/api/execution/instances/1/execute-next'"
-      },
-      "check_calendar_execution": {
-        "method": "GET",
-        "url": "/api/execution/workflows/1/calendar/1/can-execute",
-        "description": "Check if workflow can execute on a specific date",
-        "query_parameters": {
-          "date": "2025-01-02"
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/execution/workflows/1/calendar/1/can-execute?date=2025-01-02'"
-      },
-      "get_next_valid_date": {
-        "method": "GET",
-        "url": "/api/execution/workflows/1/calendar/1/next-valid-date",
-        "description": "Get the next valid date for workflow execution",
-        "query_parameters": {
-          "fromDate": "2025-01-01"
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/execution/workflows/1/calendar/1/next-valid-date?fromDate=2025-01-01'"
+        "url": "/api/workflows/1/roles",
+        "description": "Assign role to workflow",
+        "request_body": {
+          "roleId": 1,
+          "userId": 1,
+          "isActive": "Y"
+        }
       }
-    }
-  },
-  "file_management": {
-    "description": "8 endpoints for file upload, download, and consolidation",
-    "endpoints": {
+    },
+    "calendars": {
+      "get_all_calendars": {
+        "method": "GET",
+        "url": "/api/calendars",
+        "description": "Retrieve all calendars with pagination",
+        "query_params": {
+          "page": "0",
+          "size": "10",
+          "recurrence": "MONTHLY"
+        }
+      },
+      "create_calendar": {
+        "method": "POST",
+        "url": "/api/calendars",
+        "description": "Create a new calendar",
+        "request_body": {
+          "calendarName": "Business Calendar",
+          "description": "Standard business days calendar",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "MONTHLY",
+          "createdBy": "system"
+        }
+      },
+      "get_calendar_days": {
+        "method": "GET",
+        "url": "/api/calendars/1/days",
+        "description": "Get all days for a calendar"
+      },
+      "add_calendar_day": {
+        "method": "POST",
+        "url": "/api/calendars/1/days",
+        "description": "Add a day to calendar",
+        "request_body": {
+          "dayDate": "2025-01-01",
+          "dayType": "RUNDAY",
+          "note": "New Year's Day - Business Closed"
+        }
+      }
+    },
+    "files": {
       "upload_file": {
         "method": "POST",
         "url": "/api/files/upload",
-        "description": "Upload a file for a workflow task",
+        "description": "Upload a file to the system",
+        "content_type": "multipart/form-data",
         "form_data": {
-          "file": "[binary file data]",
-          "instanceTaskId": 1,
-          "actionType": "UPLOAD",
-          "createdBy": "john.doe"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/files/upload' -F 'file=@document.pdf' -F 'instanceTaskId=1' -F 'actionType=UPLOAD' -F 'createdBy=john.doe'"
+          "file": "document.pdf",
+          "instanceTaskId": "1",
+          "actionType": "FILE_UPLOAD",
+          "createdBy": "system"
+        }
       },
       "download_file": {
         "method": "GET",
-        "url": "/api/files/download/uuid-filename.pdf",
-        "description": "Download a file by filename",
-        "curl": "curl -X GET 'http://localhost:8080/api/files/download/uuid-filename.pdf' -o downloaded_file.pdf"
-      },
-      "get_file_info": {
-        "method": "GET",
-        "url": "/api/files/info/uuid-filename.pdf",
-        "description": "Get file information",
-        "curl": "curl -X GET 'http://localhost:8080/api/files/info/uuid-filename.pdf'"
-      },
-      "delete_file": {
-        "method": "DELETE",
-        "url": "/api/files/uuid-filename.pdf",
-        "description": "Delete a file",
-        "curl": "curl -X DELETE 'http://localhost:8080/api/files/uuid-filename.pdf'"
+        "url": "/api/files/download/document.pdf",
+        "description": "Download a file from the system"
       },
       "consolidate_files": {
         "method": "POST",
         "url": "/api/files/consolidate",
-        "description": "Consolidate multiple files into one",
-        "form_data": {
-          "instanceTaskId": 1,
+        "description": "Consolidate multiple files",
+        "query_params": {
+          "instanceTaskId": "1",
           "fileIds": "1,2,3",
-          "createdBy": "john.doe"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/files/consolidate' -F 'instanceTaskId=1' -F 'fileIds=1,2,3' -F 'createdBy=john.doe'"
+          "createdBy": "system"
+        }
       }
-    }
-  },
-  "dashboard_views": {
-    "description": "15 endpoints for role-based dashboards and analytics",
-    "endpoints": {
-      "user_dashboard": {
+    },
+    "execution": {
+      "start_workflow": {
+        "method": "POST",
+        "url": "/api/execution/workflows/1/start",
+        "description": "Start a new workflow instance",
+        "query_params": {
+          "startedByUserId": "1"
+        }
+      },
+      "get_workflow_instances": {
+        "method": "GET",
+        "url": "/api/execution/workflows/1/instances",
+        "description": "Get all instances of a workflow"
+      },
+      "get_instance_tasks": {
+        "method": "GET",
+        "url": "/api/execution/instances/1/tasks",
+        "description": "Get all tasks for a workflow instance"
+      },
+      "start_task": {
+        "method": "POST",
+        "url": "/api/execution/tasks/1/start",
+        "description": "Mark a task as started"
+      },
+      "complete_task": {
+        "method": "POST",
+        "url": "/api/execution/tasks/1/complete",
+        "description": "Mark a task as completed",
+        "query_params": {
+          "decisionOutcome": "APPROVED"
+        }
+      },
+      "assign_task": {
+        "method": "POST",
+        "url": "/api/execution/tasks/1/assign",
+        "description": "Assign task to user",
+        "query_params": {
+          "userId": "2"
+        }
+      },
+      "escalate_task": {
+        "method": "POST",
+        "url": "/api/execution/tasks/1/escalate",
+        "description": "Escalate task to another user",
+        "query_params": {
+          "escalatedToUserId": "3"
+        }
+      }
+    },
+    "dashboard": {
+      "get_user_dashboard": {
         "method": "GET",
         "url": "/api/dashboard/user",
-        "description": "Get user dashboard with tasks and workflows",
-        "query_parameters": {
-          "userId": 1
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/dashboard/user?userId=1'"
+        "description": "Get user dashboard data",
+        "query_params": {
+          "userId": "1"
+        }
       },
-      "user_tasks": {
-        "method": "GET",
-        "url": "/api/dashboard/tasks",
-        "description": "Get user tasks with filtering",
-        "query_parameters": {
-          "userId": 1,
-          "status": "PENDING",
-          "priority": "HIGH"
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/dashboard/tasks?userId=1&status=PENDING&priority=HIGH'"
-      },
-      "process_owner_dashboard": {
-        "method": "GET",
-        "url": "/api/dashboard/process-owner",
-        "description": "Get process owner dashboard",
-        "query_parameters": {
-          "processOwnerId": 1
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/dashboard/process-owner?processOwnerId=1'"
-      },
-      "manager_dashboard": {
-        "method": "GET",
-        "url": "/api/dashboard/manager",
-        "description": "Get manager dashboard with team performance",
-        "query_parameters": {
-          "managerId": 1
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/dashboard/manager?managerId=1'"
-      },
-      "admin_dashboard": {
+      "get_admin_dashboard": {
         "method": "GET",
         "url": "/api/dashboard/admin",
-        "description": "Get admin dashboard with system statistics",
-        "query_parameters": {
-          "adminId": 1
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/dashboard/admin?adminId=1'"
+        "description": "Get admin dashboard data",
+        "query_params": {
+          "adminId": "1"
+        }
+      },
+      "get_user_workload": {
+        "method": "GET",
+        "url": "/api/dashboard/workload",
+        "description": "Get user workload summary",
+        "query_params": {
+          "userId": "1"
+        }
+      },
+      "get_user_notifications": {
+        "method": "GET",
+        "url": "/api/dashboard/notifications",
+        "description": "Get user notifications",
+        "query_params": {
+          "userId": "1",
+          "status": "UNREAD"
+        }
       }
-    }
-  },
-  "process_owner": {
-    "description": "12 endpoints for escalation and process management",
-    "endpoints": {
-      "escalate_workflow": {
-        "method": "POST",
-        "url": "/api/process-owners/escalate/1",
-        "description": "Escalate a workflow instance",
-        "query_parameters": {
-          "escalatedToUserId": 3,
-          "reason": "Task overdue"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/process-owners/escalate/1?escalatedToUserId=3&reason=Task overdue'"
+    },
+    "process_owners": {
+      "get_process_owner_dashboard": {
+        "method": "GET",
+        "url": "/api/process-owners/dashboard",
+        "description": "Get process owner dashboard",
+        "query_params": {
+          "processOwnerId": "1"
+        }
+      },
+      "get_process_owner_workload": {
+        "method": "GET",
+        "url": "/api/process-owners/workload",
+        "description": "Get process owner workload",
+        "query_params": {
+          "processOwnerId": "1"
+        }
       },
       "reassign_task": {
         "method": "POST",
         "url": "/api/process-owners/tasks/1/reassign",
-        "description": "Reassign a task to another user",
-        "query_parameters": {
-          "newUserId": 4,
+        "description": "Reassign task to different user",
+        "query_params": {
+          "newUserId": "2",
           "reason": "User unavailable"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/process-owners/tasks/1/reassign?newUserId=4&reason=User unavailable'"
+        }
       },
-      "override_decision": {
+      "escalate_workflow": {
         "method": "POST",
-        "url": "/api/process-owners/tasks/1/override",
-        "description": "Override a task decision",
-        "query_parameters": {
-          "decision": "APPROVED",
-          "reason": "Manager override"
-        },
-        "curl": "curl -X POST 'http://localhost:8080/api/process-owners/tasks/1/override?decision=APPROVED&reason=Manager override'"
-      },
-      "get_escalation_queue": {
-        "method": "GET",
-        "url": "/api/process-owners/escalation-queue",
-        "description": "Get escalation queue for process owner",
-        "query_parameters": {
-          "processOwnerId": 1
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/process-owners/escalation-queue?processOwnerId=1'"
-      },
-      "get_process_owner_stats": {
-        "method": "GET",
-        "url": "/api/process-owners/stats",
-        "description": "Get process owner statistics",
-        "query_parameters": {
-          "processOwnerId": 1,
-          "startDate": "2025-08-01",
-          "endDate": "2025-08-20"
-        },
-        "curl": "curl -X GET 'http://localhost:8080/api/process-owners/stats?processOwnerId=1&startDate=2025-08-01&endDate=2025-08-20'"
+        "url": "/api/process-owners/escalate/1",
+        "description": "Escalate workflow to higher authority",
+        "query_params": {
+          "escalatedToUserId": "3",
+          "reason": "Complex decision required"
+        }
       }
     }
   },
-  "complete_workflow_example": {
-    "description": "Complete workflow setup example with calendar integration",
-    "steps": [
+  "authentication": {
+    "note": "Development mode: No authentication required. Production mode: Basic authentication with role-based access control."
+  },
+  "testing": {
+    "insomnia_collection": "DocWF_Insomnia_Test_Suite.json",
+    "swagger_ui": "http://localhost:8080/swagger-ui.html",
+    "openapi_docs": "http://localhost:8080/api-docs",
+    "h2_console": "http://localhost:8080/h2-console"
+  },
+  "sample_data": {
+    "users": [
       {
-        "step": 1,
-        "action": "Create Calendar",
-        "endpoint": "POST /api/calendar",
-        "description": "Create a business calendar for 2025"
+        "userId": 1,
+        "username": "alice",
+        "firstName": "Alice",
+        "lastName": "Smith",
+        "email": "alice@example.com",
+        "role": "Preparer"
       },
       {
-        "step": 2,
-        "action": "Add Holidays",
-        "endpoint": "POST /api/calendar/1/days/batch",
-        "description": "Add US holidays to the calendar"
+        "userId": 2,
+        "username": "bob",
+        "firstName": "Bob",
+        "lastName": "Johnson",
+        "email": "bob@example.com",
+        "role": "Reviewer"
       },
       {
-        "step": 3,
-        "action": "Create Workflow",
-        "endpoint": "POST /api/workflows",
-        "description": "Create document approval workflow"
-      },
-      {
-        "step": 4,
-        "action": "Add Tasks",
-        "endpoint": "POST /api/workflows/1/tasks",
-        "description": "Add review and approval tasks"
-      },
-      {
-        "step": 5,
-        "action": "Start Workflow",
-        "endpoint": "POST /api/execution/workflows/1/start-with-calendar",
-        "description": "Start workflow with calendar validation"
-      },
-      {
-        "step": 6,
-        "action": "Execute Tasks",
-        "endpoint": "POST /api/execution/tasks/1/complete",
-        "description": "Complete tasks following calendar rules"
+        "userId": 3,
+        "username": "carol",
+        "firstName": "Carol",
+        "lastName": "Williams",
+        "email": "carol@example.com",
+        "role": "Approver"
       }
     ],
-    "curl_sequence": [
-      "curl -X POST 'http://localhost:8080/api/calendar' -H 'Content-Type: application/json' -d '{\"calendarName\":\"US Business Days 2025\",\"description\":\"Calendar for US business days excluding holidays and weekends\",\"startDate\":\"2025-01-01\",\"endDate\":\"2025-12-31\",\"recurrence\":\"YEARLY\",\"createdBy\":\"admin@docwf.com\"}'",
-      "curl -X POST 'http://localhost:8080/api/calendar/1/days/batch' -H 'Content-Type: application/json' -d '[{\"dayDate\":\"2025-01-01\",\"dayType\":\"HOLIDAY\",\"note\":\"New Year Day\"},{\"dayDate\":\"2025-01-20\",\"dayType\":\"HOLIDAY\",\"note\":\"Martin Luther King Jr. Day\"}]'",
-      "curl -X POST 'http://localhost:8080/api/workflows' -H 'Content-Type: application/json' -d '{\"name\":\"Document Approval Workflow\",\"description\":\"Workflow for approving documents\",\"dueInMins\":1440,\"escalationAfterMins\":2880,\"reminderBeforeDueMins\":240,\"minutesAfterDue\":60,\"isActive\":\"Y\",\"createdBy\":\"admin@docwf.com\"}'",
-      "curl -X POST 'http://localhost:8080/api/workflows/1/tasks' -H 'Content-Type: application/json' -d '{\"name\":\"Initial Review\",\"description\":\"Initial document review\",\"sequenceOrder\":1,\"taskType\":\"REVIEW\",\"roleId\":1,\"createdBy\":\"admin@docwf.com\"}'",
-      "curl -X POST 'http://localhost:8080/api/execution/workflows/1/start-with-calendar?startedByUserId=1&calendarId=1'",
-      "curl -X POST 'http://localhost:8080/api/execution/tasks/1/complete?decisionOutcome=APPROVED&completedBy=2'"
+    "workflows": [
+      {
+        "workflowId": 1,
+        "name": "Monthly Finance Workflow",
+        "description": "Finance reporting workflow",
+        "tasks": [
+          "Upload Raw Data",
+          "Review Data",
+          "Consolidate Report",
+          "Approval Decision"
+        ]
+      },
+      {
+        "workflowId": 2,
+        "name": "Quarterly Audit Workflow",
+        "description": "Audit workflow for quarterly reports",
+        "tasks": [
+          "Upload Audit Files",
+          "Review Audit Data",
+          "Audit Decision"
+        ]
+      }
     ]
-  },
-  "predicate_search_examples": {
-    "description": "Examples of predicate-based search across all controllers",
-    "calendar_search": {
-      "description": "Search calendars with multiple criteria",
-      "url": "/api/calendar/search?calendarName=Business&recurrence=YEARLY&startDate=2025-01-01&page=0&size=20",
-      "curl": "curl -X GET 'http://localhost:8080/api/calendar/search?calendarName=Business&recurrence=YEARLY&startDate=2025-01-01&page=0&size=20'"
-    },
-    "workflow_search": {
-      "description": "Search workflows with multiple criteria",
-      "url": "/api/workflows/search?name=approval&isActive=Y&minDueTime=1440&page=0&size=20",
-      "curl": "curl -X GET 'http://localhost:8080/api/workflows/search?name=approval&isActive=Y&minDueTime=1440&page=0&size=20'"
-    },
-    "user_search": {
-      "description": "Search users with multiple criteria",
-      "url": "/api/users/search?firstName=John&isActive=Y&roleName=REVIEWER&page=0&size=20",
-      "curl": "curl -X GET 'http://localhost:8080/api/users/search?firstName=John&isActive=Y&roleName=REVIEWER&page=0&size=20'"
-    },
-    "role_search": {
-      "description": "Search roles with multiple criteria",
-      "url": "/api/roles/search?roleName=REVIEWER&isActive=Y&workflowId=1&page=0&size=20",
-      "curl": "curl -X GET 'http://localhost:8080/api/roles/search?roleName=REVIEWER&isActive=Y&workflowId=1&page=0&size=20'"
-    }
-  },
-  "pagination_examples": {
-    "description": "Examples of pagination across all search endpoints",
-    "basic_pagination": {
-      "description": "Basic pagination with page and size",
-      "url": "?page=0&size=20",
-      "parameters": {
-        "page": "Page number (0-based)",
-        "size": "Page size (number of items per page)"
-      }
-    },
-    "with_sorting": {
-      "description": "Pagination with sorting",
-      "url": "?page=0&size=20&sort=name,asc",
-      "parameters": {
-        "page": "Page number (0-based)",
-        "size": "Page size",
-        "sort": "Sort field and direction (field,direction)"
-      }
-    },
-    "with_filtering": {
-      "description": "Pagination with filtering",
-      "url": "?page=0&size=20&isActive=Y&createdAfter=2025-01-01",
-      "parameters": {
-        "page": "Page number (0-based)",
-        "size": "Page size",
-        "isActive": "Filter by active status",
-        "createdAfter": "Filter by creation date"
-      }
-    }
-  },
-  "response_formats": {
-    "description": "Standard response formats for different endpoint types",
-    "single_entity": {
-      "description": "Response for single entity operations (GET by ID, POST, PUT)",
-      "format": "Direct entity object"
-    },
-    "paginated_list": {
-      "description": "Response for search and list operations with pagination",
-      "format": {
-        "content": "Array of entities",
-        "pageable": "Pagination information",
-        "totalElements": "Total number of entities",
-        "totalPages": "Total number of pages",
-        "last": "Boolean indicating if this is the last page",
-        "first": "Boolean indicating if this is the first page",
-        "numberOfElements": "Number of elements in current page"
-      }
-    },
-    "simple_response": {
-      "description": "Response for simple operations (DELETE, status updates)",
-      "format": "HTTP status code only or simple boolean/string response"
-    }
   }
 }

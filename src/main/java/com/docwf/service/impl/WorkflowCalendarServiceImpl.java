@@ -9,6 +9,8 @@ import com.docwf.repository.WorkflowCalendarRepository;
 import com.docwf.repository.WorkflowCalendarDayRepository;
 import com.docwf.service.WorkflowCalendarService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +62,28 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         return calendarRepository.findAll().stream()
             .map(this::convertToDto)
             .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowCalendarDto> getAllCalendars(String recurrence, Pageable pageable) {
+        Page<WorkflowCalendar> calendars;
+        if (recurrence != null && !recurrence.isEmpty()) {
+            calendars = calendarRepository.findByRecurrence(recurrence, pageable);
+        } else {
+            calendars = calendarRepository.findAll(pageable);
+        }
+        return calendars.map(this::convertToDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowCalendarDto> searchCalendars(String calendarName, String description, String recurrence, 
+                                                    String createdBy, String startDate, String endDate, 
+                                                    String createdAfter, String createdBefore, Pageable pageable) {
+        // For now, return all calendars with pagination
+        // TODO: Implement proper search logic
+        return getAllCalendars(recurrence, pageable);
     }
     
     @Override
@@ -265,6 +289,38 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         }
         
         return null;
+    }
+    
+    @Override
+    public List<WorkflowCalendarDayDto> addCalendarDaysBatch(Long calendarId, List<WorkflowCalendarDayDto> daysDto) {
+        return daysDto.stream()
+            .map(dayDto -> addCalendarDays(calendarId, List.of(dayDto)))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<LocalDate> getValidDatesInRange(Long calendarId, LocalDate startDate, LocalDate endDate) {
+        return getValidDates(calendarId, startDate, endDate);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowCalendarDayDto> getHolidaysInRange(Long calendarId, LocalDate startDate, LocalDate endDate) {
+        return calendarDayRepository.findByCalendarAndDateRange(calendarId, startDate, endDate).stream()
+            .filter(day -> "HOLIDAY".equals(day.getDayType()))
+            .map(this::convertToDayDto)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowCalendarDayDto> getRunDaysInRange(Long calendarId, LocalDate startDate, LocalDate endDate) {
+        return calendarDayRepository.findByCalendarAndDateRange(calendarId, startDate, endDate).stream()
+            .filter(day -> "RUNDAY".equals(day.getDayType()))
+            .map(this::convertToDayDto)
+            .collect(Collectors.toList());
     }
     
     // Helper methods for conversion
