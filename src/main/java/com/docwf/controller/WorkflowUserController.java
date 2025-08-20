@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +18,16 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@Tag(name = "Workflow User Management", description = "APIs for managing workflow users")
+@Tag(name = "User Management", description = "APIs for managing workflow users with predicate-based search")
 public class WorkflowUserController {
     
     @Autowired
     private WorkflowUserService userService;
     
+    // ===== CORE CRUD OPERATIONS =====
+    
     @PostMapping
-    @Operation(summary = "Create a new user", description = "Creates a new workflow user with the provided details")
+    @Operation(summary = "Create user", description = "Creates a new workflow user")
     public ResponseEntity<WorkflowUserDto> createUser(
             @Valid @RequestBody WorkflowUserDto userDto) {
         WorkflowUserDto createdUser = userService.createUser(userDto);
@@ -37,37 +41,6 @@ public class WorkflowUserController {
         Optional<WorkflowUserDto> user = userService.getUserById(userId);
         return user.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-    
-    @GetMapping("/username/{username}")
-    @Operation(summary = "Get user by username", description = "Retrieves a user by their username")
-    public ResponseEntity<WorkflowUserDto> getUserByUsername(
-            @Parameter(description = "Username") @PathVariable String username) {
-        Optional<WorkflowUserDto> user = userService.getUserByUsername(username);
-        return user.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-    
-    @GetMapping("/email/{email}")
-    @Operation(summary = "Get user by email", description = "Retrieves a user by their email address")
-    public ResponseEntity<WorkflowUserDto> getUserByEmail(
-            @Parameter(description = "Email address") @PathVariable String email) {
-        Optional<WorkflowUserDto> user = userService.getUserByEmail(email);
-        return user.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-    
-    @GetMapping
-    @Operation(summary = "Get all users", description = "Retrieves all users with optional filtering")
-    public ResponseEntity<List<WorkflowUserDto>> getAllUsers(
-            @Parameter(description = "Filter by active status") @RequestParam(required = false) String isActive) {
-        List<WorkflowUserDto> users;
-        if (isActive != null) {
-            users = userService.getAllActiveUsers();
-        } else {
-            users = userService.getAllUsers();
-        }
-        return ResponseEntity.ok(users);
     }
     
     @PutMapping("/{userId}")
@@ -87,20 +60,54 @@ public class WorkflowUserController {
         return ResponseEntity.noContent().build();
     }
     
-    @GetMapping("/role/{roleName}")
-    @Operation(summary = "Get users by role", description = "Retrieves all users assigned to a specific role")
-    public ResponseEntity<List<WorkflowUserDto>> getUsersByRole(
-            @Parameter(description = "Role name") @PathVariable String roleName) {
-        List<WorkflowUserDto> users = userService.getUsersByRoleName(roleName);
+    // ===== PREDICATE-BASED SEARCH =====
+    
+    @GetMapping("/search")
+    @Operation(summary = "Search users with predicates", description = "Search users using multiple criteria with pagination")
+    public ResponseEntity<Page<WorkflowUserDto>> searchUsers(
+            @Parameter(description = "Username (partial match)") @RequestParam(required = false) String username,
+            @Parameter(description = "First name (partial match)") @RequestParam(required = false) String firstName,
+            @Parameter(description = "Last name (partial match)") @RequestParam(required = false) String lastName,
+            @Parameter(description = "Email (partial match)") @RequestParam(required = false) String email,
+            @Parameter(description = "Active status (Y/N)") @RequestParam(required = false) String isActive,
+            @Parameter(description = "Role name") @RequestParam(required = false) String roleName,
+            @Parameter(description = "Workflow ID") @RequestParam(required = false) Long workflowId,
+            @Parameter(description = "Created after date (ISO format)") @RequestParam(required = false) String createdAfter,
+            @Parameter(description = "Created before date (ISO format)") @RequestParam(required = false) String createdBefore,
+            Pageable pageable) {
+        
+        Page<WorkflowUserDto> users = userService.searchUsers(
+                username, firstName, lastName, email, isActive, roleName, workflowId, createdAfter, createdBefore, pageable);
         return ResponseEntity.ok(users);
     }
     
-    @GetMapping("/workflow/{workflowId}")
-    @Operation(summary = "Get users by workflow", description = "Retrieves all users assigned to a specific workflow")
-    public ResponseEntity<List<WorkflowUserDto>> getUsersByWorkflow(
-            @Parameter(description = "Workflow ID") @PathVariable Long workflowId) {
-        List<WorkflowUserDto> users = userService.getUsersByWorkflowId(workflowId);
+    @GetMapping
+    @Operation(summary = "Get all users", description = "Retrieves all users with optional filtering and pagination")
+    public ResponseEntity<Page<WorkflowUserDto>> getAllUsers(
+            @Parameter(description = "Filter by active status") @RequestParam(required = false) String isActive,
+            Pageable pageable) {
+        Page<WorkflowUserDto> users = userService.getAllUsers(isActive, pageable);
         return ResponseEntity.ok(users);
+    }
+    
+    // ===== UTILITY OPERATIONS =====
+    
+    @PatchMapping("/{userId}/status")
+    @Operation(summary = "Toggle user status", description = "Activates or deactivates a user")
+    public ResponseEntity<WorkflowUserDto> toggleUserStatus(
+            @Parameter(description = "User ID") @PathVariable Long userId,
+            @Parameter(description = "Active status (Y/N)") @RequestParam String isActive) {
+        WorkflowUserDto user = userService.toggleUserStatus(userId, isActive);
+        return ResponseEntity.ok(user);
+    }
+    
+    @PatchMapping("/{userId}/escalation")
+    @Operation(summary = "Set user escalation", description = "Sets the escalation user for a specific user")
+    public ResponseEntity<WorkflowUserDto> setEscalation(
+            @Parameter(description = "User ID") @PathVariable Long userId,
+            @Parameter(description = "Escalation user ID") @RequestParam(required = false) Long escalationToUserId) {
+        WorkflowUserDto user = userService.setEscalation(userId, escalationToUserId);
+        return ResponseEntity.ok(user);
     }
     
     @GetMapping("/{userId}/escalation-hierarchy")
@@ -125,23 +132,5 @@ public class WorkflowUserController {
             @Parameter(description = "Email to check") @PathVariable String email) {
         boolean exists = userService.emailExists(email);
         return ResponseEntity.ok(exists);
-    }
-    
-    @PatchMapping("/{userId}/status")
-    @Operation(summary = "Toggle user status", description = "Activates or deactivates a user")
-    public ResponseEntity<WorkflowUserDto> toggleUserStatus(
-            @Parameter(description = "User ID") @PathVariable Long userId,
-            @Parameter(description = "Active status (Y/N)") @RequestParam String isActive) {
-        WorkflowUserDto user = userService.toggleUserStatus(userId, isActive);
-        return ResponseEntity.ok(user);
-    }
-    
-    @PatchMapping("/{userId}/escalation")
-    @Operation(summary = "Set user escalation", description = "Sets the escalation user for a specific user")
-    public ResponseEntity<WorkflowUserDto> setEscalation(
-            @Parameter(description = "User ID") @PathVariable Long userId,
-            @Parameter(description = "Escalation user ID") @RequestParam(required = false) Long escalationToUserId) {
-        WorkflowUserDto user = userService.setEscalation(userId, escalationToUserId);
-        return ResponseEntity.ok(user);
     }
 }

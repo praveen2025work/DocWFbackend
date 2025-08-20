@@ -17,6 +17,11 @@ public interface WorkflowExecutionService {
     WorkflowInstanceDto startWorkflow(Long workflowId, Long startedByUserId);
     
     /**
+     * Start a new workflow instance with calendar validation
+     */
+    WorkflowInstanceDto startWorkflowWithCalendar(Long workflowId, Long startedByUserId, Long calendarId);
+    
+    /**
      * Get workflow instance by ID
      */
     Optional<WorkflowInstanceDto> getWorkflowInstance(Long instanceId);
@@ -153,6 +158,16 @@ public interface WorkflowExecutionService {
      * Get tasks needing attention
      */
     List<WorkflowInstanceTaskDto> getTasksNeedingAttention();
+    
+    /**
+     * Check if workflow can execute on a specific date based on calendar
+     */
+    boolean canExecuteWorkflowOnDate(Long workflowId, Long calendarId, java.time.LocalDate date);
+    
+    /**
+     * Get next valid execution date for a workflow based on calendar
+     */
+    java.time.LocalDate getNextValidExecutionDate(Long workflowId, Long calendarId, java.time.LocalDate fromDate);
     
     /**
      * Get workflow instance statistics

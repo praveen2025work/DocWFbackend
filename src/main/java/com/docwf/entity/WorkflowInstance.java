@@ -44,6 +44,10 @@ public class WorkflowInstance {
     @JoinColumn(name = "ESCALATED_TO")
     private WorkflowUser escalatedTo;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CALENDAR_ID")
+    private WorkflowCalendar calendar;
+    
     // Relationships
     @OneToMany(mappedBy = "workflowInstance", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WorkflowInstanceRole> instanceRoles = new ArrayList<>();
@@ -123,6 +127,14 @@ public class WorkflowInstance {
     
     public void setEscalatedTo(WorkflowUser escalatedTo) {
         this.escalatedTo = escalatedTo;
+    }
+    
+    public WorkflowCalendar getCalendar() {
+        return calendar;
+    }
+    
+    public void setCalendar(WorkflowCalendar calendar) {
+        this.calendar = calendar;
     }
     
     public List<WorkflowInstanceRole> getInstanceRoles() {
