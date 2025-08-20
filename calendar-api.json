@@ -1,0 +1,1009 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DocWF Calendar & Scheduling API",
+    "description": "APIs for managing workflow scheduling, due dates, reminders, and calendar integration",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DocWF Development Team",
+      "email": "dev@docwf.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.docwf.com",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Calendar Management",
+      "description": "APIs for managing calendar events and scheduling"
+    },
+    {
+      "name": "Workflow Scheduling",
+      "description": "APIs for scheduling workflows and tasks"
+    },
+    {
+      "name": "Reminders & Notifications",
+      "description": "APIs for managing reminders and notifications"
+    },
+    {
+      "name": "Due Date Management",
+      "description": "APIs for managing due dates and time constraints"
+    }
+  ],
+  "paths": {
+    "/api/calendar/workflows": {
+      "get": {
+        "tags": ["Workflow Scheduling"],
+        "summary": "Get Scheduled Workflows",
+        "description": "Retrieves all scheduled workflows with their calendar information",
+        "operationId": "getScheduledWorkflows",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Start date for the range (ISO 8601 format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-08-19"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "End date for the range (ISO 8601 format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-08-26"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by workflow status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "OVERDUE"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved scheduled workflows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduledWorkflowDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/workflows/{workflowId}/schedule": {
+      "post": {
+        "tags": ["Workflow Scheduling"],
+        "summary": "Schedule Workflow",
+        "description": "Schedules a workflow to start at a specific date and time",
+        "operationId": "scheduleWorkflow",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "description": "ID of the workflow to schedule",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowScheduleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Workflow scheduled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledWorkflowDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid schedule data"
+          },
+          "404": {
+            "description": "Workflow not found"
+          },
+          "409": {
+            "description": "Workflow already scheduled"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/workflows/{workflowId}/schedule": {
+      "put": {
+        "tags": ["Workflow Scheduling"],
+        "summary": "Update Workflow Schedule",
+        "description": "Updates the schedule for an existing scheduled workflow",
+        "operationId": "updateWorkflowSchedule",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "description": "ID of the workflow",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowScheduleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Workflow schedule updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledWorkflowDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid schedule data"
+          },
+          "404": {
+            "description": "Workflow or schedule not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/workflows/{workflowId}/schedule": {
+      "delete": {
+        "tags": ["Workflow Scheduling"],
+        "summary": "Cancel Workflow Schedule",
+        "description": "Cancels a scheduled workflow",
+        "operationId": "cancelWorkflowSchedule",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "description": "ID of the workflow",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Workflow schedule cancelled successfully"
+          },
+          "404": {
+            "description": "Workflow or schedule not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/tasks": {
+      "get": {
+        "tags": ["Calendar Management"],
+        "summary": "Get Scheduled Tasks",
+        "description": "Retrieves all scheduled tasks with their calendar information",
+        "operationId": "getScheduledTasks",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Start date for the range (ISO 8601 format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-08-19"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "End date for the range (ISO 8601 format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-08-26"
+          },
+          {
+            "name": "assignedTo",
+            "in": "query",
+            "description": "Filter by assigned user ID",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved scheduled tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduledTaskDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/tasks/{taskId}/due-date": {
+      "put": {
+        "tags": ["Due Date Management"],
+        "summary": "Update Task Due Date",
+        "description": "Updates the due date for a specific task",
+        "operationId": "updateTaskDueDate",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "ID of the task",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskDueDateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Task due date updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid due date data"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/reminders": {
+      "get": {
+        "tags": ["Reminders & Notifications"],
+        "summary": "Get Reminders",
+        "description": "Retrieves all active reminders for the current user",
+        "operationId": "getReminders",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by reminder type",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["TASK_DUE", "WORKFLOW_OVERDUE", "ESCALATION", "CUSTOM"]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by reminder status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "SENT", "ACKNOWLEDGED", "DISMISSED"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved reminders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReminderDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Reminders & Notifications"],
+        "summary": "Create Reminder",
+        "description": "Creates a new reminder for a specific event",
+        "operationId": "createReminder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Reminder created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid reminder data"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/reminders/{reminderId}": {
+      "put": {
+        "tags": ["Reminders & Notifications"],
+        "summary": "Update Reminder",
+        "description": "Updates an existing reminder",
+        "operationId": "updateReminder",
+        "parameters": [
+          {
+            "name": "reminderId",
+            "in": "path",
+            "description": "ID of the reminder",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Reminder updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid reminder data"
+          },
+          "404": {
+            "description": "Reminder not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Reminders & Notifications"],
+        "summary": "Delete Reminder",
+        "description": "Deletes a reminder",
+        "operationId": "deleteReminder",
+        "parameters": [
+          {
+            "name": "reminderId",
+            "in": "path",
+            "description": "ID of the reminder",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Reminder deleted successfully"
+          },
+          "404": {
+            "description": "Reminder not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/overdue": {
+      "get": {
+        "tags": ["Due Date Management"],
+        "summary": "Get Overdue Items",
+        "description": "Retrieves all overdue workflows and tasks",
+        "operationId": "getOverdueItems",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by item type",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["WORKFLOW", "TASK", "ALL"]
+            },
+            "example": "ALL"
+          },
+          {
+            "name": "daysOverdue",
+            "in": "query",
+            "description": "Filter by days overdue",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "example": 7
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved overdue items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverdueItemsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/availability": {
+      "get": {
+        "tags": ["Calendar Management"],
+        "summary": "Check User Availability",
+        "description": "Checks user availability for a specific time period",
+        "operationId": "checkUserAvailability",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "ID of the user to check",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Start date for availability check (ISO 8601 format)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-08-19"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "End date for availability check (ISO 8601 format)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-08-26"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved user availability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAvailabilityDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date range"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/calendar/export": {
+      "post": {
+        "tags": ["Calendar Management"],
+        "summary": "Export Calendar",
+        "description": "Exports calendar data in various formats (ICS, CSV, etc.)",
+        "operationId": "exportCalendar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarExportDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Calendar exported successfully",
+            "content": {
+              "text/calendar": {
+                "schema": {
+                  "type": "string",
+                  "description": "ICS calendar file content"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "description": "CSV calendar file content"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid export parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ScheduledWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the schedule"
+          },
+          "workflowId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the workflow"
+          },
+          "workflowName": {
+            "type": "string",
+            "description": "Name of the workflow"
+          },
+          "scheduledStartDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Scheduled start date and time"
+          },
+          "scheduledEndDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Expected end date and time"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["ONCE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+            "description": "Frequency of the schedule"
+          },
+          "isActive": {
+            "type": "string",
+            "enum": ["Y", "N"],
+            "description": "Whether the schedule is active"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Username of the user who created the schedule"
+          }
+        }
+      },
+      "WorkflowScheduleDto": {
+        "type": "object",
+        "properties": {
+          "scheduledStartDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Scheduled start date and time",
+            "example": "2025-08-20T09:00:00Z"
+          },
+          "scheduledEndDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Expected end date and time"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["ONCE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+            "description": "Frequency of the schedule",
+            "example": "WEEKLY"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone for the schedule",
+            "example": "America/New_York"
+          },
+          "reminderMinutes": {
+            "type": "integer",
+            "description": "Minutes before start time to send reminder",
+            "example": 15
+          }
+        },
+        "required": ["scheduledStartDate", "frequency"]
+      },
+      "ScheduledTaskDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the task"
+          },
+          "taskName": {
+            "type": "string",
+            "description": "Name of the task"
+          },
+          "workflowName": {
+            "type": "string",
+            "description": "Name of the parent workflow"
+          },
+          "assignedTo": {
+            "type": "string",
+            "description": "Username of the assigned user"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Due date and time for the task"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"],
+            "description": "Priority level of the task"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "OVERDUE"],
+            "description": "Current status of the task"
+          }
+        }
+      },
+      "TaskDueDateDto": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "New due date and time for the task",
+            "example": "2025-08-25T17:00:00Z"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for the due date change",
+            "example": "Client requested extension"
+          },
+          "updatedBy": {
+            "type": "string",
+            "description": "Username of the user updating the due date"
+          }
+        },
+        "required": ["dueDate", "updatedBy"]
+      },
+      "ReminderDto": {
+        "type": "object",
+        "properties": {
+          "reminderId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the reminder"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["TASK_DUE", "WORKFLOW_OVERDUE", "ESCALATION", "CUSTOM"],
+            "description": "Type of reminder"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the reminder"
+          },
+          "message": {
+            "type": "string",
+            "description": "Reminder message"
+          },
+          "reminderDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When to send the reminder"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "SENT", "ACKNOWLEDGED", "DISMISSED"],
+            "description": "Current status of the reminder"
+          },
+          "recipientId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the user to receive the reminder"
+          },
+          "relatedEntityType": {
+            "type": "string",
+            "enum": ["WORKFLOW", "TASK", "USER"],
+            "description": "Type of entity this reminder relates to"
+          },
+          "relatedEntityId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the related entity"
+          }
+        },
+        "required": ["type", "title", "message", "reminderDate", "recipientId"]
+      },
+      "OverdueItemsDto": {
+        "type": "object",
+        "properties": {
+          "overdueWorkflows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledWorkflowDto"
+            },
+            "description": "List of overdue workflows"
+          },
+          "overdueTasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledTaskDto"
+            },
+            "description": "List of overdue tasks"
+          },
+          "totalOverdue": {
+            "type": "integer",
+            "description": "Total number of overdue items"
+          },
+          "criticalOverdue": {
+            "type": "integer",
+            "description": "Number of critically overdue items (>7 days)"
+          }
+        }
+      },
+      "UserAvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the user"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username of the user"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date of availability check"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "End date of availability check"
+          },
+          "availableHours": {
+            "type": "integer",
+            "description": "Total available hours in the period"
+          },
+          "scheduledHours": {
+            "type": "integer",
+            "description": "Total scheduled hours in the period"
+          },
+          "availablePercentage": {
+            "type": "number",
+            "format": "float",
+            "description": "Percentage of time available"
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeConflictDto"
+            },
+            "description": "List of time conflicts"
+          }
+        }
+      },
+      "TimeConflictDto": {
+        "type": "object",
+        "properties": {
+          "conflictType": {
+            "type": "string",
+            "enum": ["OVERLAP", "OVERTIME", "UNAVAILABLE"],
+            "description": "Type of time conflict"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start time of the conflict"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End time of the conflict"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the conflict"
+          },
+          "entityType": {
+            "type": "string",
+            "enum": ["WORKFLOW", "TASK", "MEETING"],
+            "description": "Type of entity causing the conflict"
+          },
+          "entityId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the entity causing the conflict"
+          }
+        }
+      },
+      "CalendarExportDto": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["ICS", "CSV", "JSON"],
+            "description": "Export format",
+            "example": "ICS"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date for export range",
+            "example": "2025-08-19"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "End date for export range",
+            "example": "2025-08-26"
+          },
+          "includeWorkflows": {
+            "type": "boolean",
+            "description": "Include workflow events",
+            "example": true
+          },
+          "includeTasks": {
+            "type": "boolean",
+            "description": "Include task events",
+            "example": true
+          },
+          "includeReminders": {
+            "type": "boolean",
+            "description": "Include reminder events",
+            "example": false
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone for export",
+            "example": "America/New_York"
+          }
+        },
+        "required": ["format", "startDate", "endDate"]
+      }
+    }
+  }
+}

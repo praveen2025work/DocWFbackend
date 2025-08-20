@@ -33,6 +33,16 @@ public class WorkflowExecutionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(instance);
     }
     
+    @PostMapping("/workflows/{workflowId}/start-with-calendar")
+    @Operation(summary = "Start workflow instance with calendar validation", description = "Starts a new workflow instance with calendar date validation")
+    public ResponseEntity<WorkflowInstanceDto> startWorkflowWithCalendar(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Parameter(description = "User ID who started the workflow") @RequestParam Long startedByUserId,
+            @Parameter(description = "Calendar ID for date validation") @RequestParam(required = false) Long calendarId) {
+        WorkflowInstanceDto instance = executionService.startWorkflowWithCalendar(workflowId, startedByUserId, calendarId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(instance);
+    }
+    
     @GetMapping("/instances/{instanceId}")
     @Operation(summary = "Get workflow instance", description = "Retrieves a workflow instance by ID")
     public ResponseEntity<WorkflowInstanceDto> getWorkflowInstance(
@@ -251,5 +261,26 @@ public class WorkflowExecutionController {
     public ResponseEntity<Void> triggerWorkflowEscalations() {
         executionService.triggerWorkflowEscalations();
         return ResponseEntity.ok().build();
+    }
+    
+    // Calendar Integration Endpoints
+    @GetMapping("/workflows/{workflowId}/calendar/{calendarId}/can-execute")
+    @Operation(summary = "Check workflow execution on date", description = "Checks if a workflow can execute on a specific date based on calendar")
+    public ResponseEntity<Boolean> canExecuteWorkflowOnDate(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Parameter(description = "Date to check") @RequestParam java.time.LocalDate date) {
+        boolean canExecute = executionService.canExecuteWorkflowOnDate(workflowId, calendarId, date);
+        return ResponseEntity.ok(canExecute);
+    }
+    
+    @GetMapping("/workflows/{workflowId}/calendar/{calendarId}/next-valid-date")
+    @Operation(summary = "Get next valid execution date", description = "Finds the next valid date for workflow execution based on calendar")
+    public ResponseEntity<java.time.LocalDate> getNextValidExecutionDate(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Parameter(description = "Date to start from") @RequestParam java.time.LocalDate fromDate) {
+        java.time.LocalDate nextValidDate = executionService.getNextValidExecutionDate(workflowId, calendarId, fromDate);
+        return ResponseEntity.ok(nextValidDate);
     }
 }

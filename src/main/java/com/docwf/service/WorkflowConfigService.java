@@ -4,6 +4,8 @@ import com.docwf.dto.WorkflowConfigDto;
 import com.docwf.dto.WorkflowConfigRoleDto;
 import com.docwf.dto.WorkflowConfigTaskDto;
 import com.docwf.dto.WorkflowConfigParamDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,9 +32,16 @@ public interface WorkflowConfigService {
     List<WorkflowConfigDto> getAllActiveWorkflows();
     
     /**
-     * Get all workflows
+     * Get all workflows with pagination and optional filtering
      */
-    List<WorkflowConfigDto> getAllWorkflows();
+    Page<WorkflowConfigDto> getAllWorkflows(String isActive, Pageable pageable);
+    
+    /**
+     * Search workflows using multiple criteria with pagination
+     */
+    Page<WorkflowConfigDto> searchWorkflows(String name, String description, String isActive, 
+                                          String createdBy, Integer minDueTime, Integer maxDueTime,
+                                          String createdAfter, String createdBefore, Pageable pageable);
     
     /**
      * Update workflow
@@ -47,7 +56,7 @@ public interface WorkflowConfigService {
     /**
      * Get workflows by user assignment
      */
-    List<WorkflowConfigDto> getWorkflowsByUserId(Long userId);
+    List<WorkflowConfigDto> getWorkflowsByUserId(Long workflowId);
     
     /**
      * Get workflows by role assignment
@@ -93,13 +102,13 @@ public interface WorkflowConfigService {
     /**
      * Remove role from workflow
      */
-    void removeRoleFromWorkflow(Long workflowId, Long configRoleId);
+    void removeRoleFromWorkflow(Long workflowId, Long roleId);
     
     // Workflow Task Management
     /**
-     * Create task in workflow
+     * Add task to workflow
      */
-    WorkflowConfigTaskDto createTask(Long workflowId, WorkflowConfigTaskDto taskDto);
+    WorkflowConfigTaskDto addTask(Long workflowId, WorkflowConfigTaskDto taskDto);
     
     /**
      * Get workflow tasks

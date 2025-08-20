@@ -10,6 +10,7 @@ import com.docwf.entity.*;
 import com.docwf.exception.WorkflowException;
 import com.docwf.repository.*;
 import com.docwf.service.WorkflowExecutionService;
+import com.docwf.service.WorkflowCalendarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,9 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     
     @Autowired
     private TaskInstanceDecisionOutcomeRepository decisionOutcomeRepository;
+    
+    @Autowired
+    private WorkflowCalendarService calendarService;
     
     @Override
     public WorkflowInstanceDto startWorkflow(Long workflowId, Long startedByUserId) {
@@ -538,5 +542,46 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         workload.calculateWorkloadPercentage();
         
         return workload;
+    }
+    
+    // Calendar Integration Methods
+    @Override
+    public WorkflowInstanceDto startWorkflowWithCalendar(Long workflowId, Long startedByUserId, Long calendarId) {
+        // Validate calendar exists and date is valid
+        if (calendarId != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (!calendarService.canExecuteWorkflow(calendarId, now.toLocalDate())) {
+                throw new WorkflowException("Workflow cannot execute on this date according to calendar: " + calendarId);
+            }
+        }
+        
+        // Start workflow normally
+        WorkflowInstanceDto instance = startWorkflow(workflowId, startedByUserId);
+        
+        // If calendar is provided, associate it with the instance
+        if (calendarId != null) {
+            // Note: This would require updating the instance with calendar ID
+            // For now, we'll just validate the calendar
+        }
+        
+        return instance;
+    }
+    
+    @Override
+    public boolean canExecuteWorkflowOnDate(Long workflowId, Long calendarId, java.time.LocalDate date) {
+        if (calendarId == null) {
+            return true; // No calendar restriction
+        }
+        
+        return calendarService.canExecuteWorkflow(calendarId, date);
+    }
+    
+    @Override
+    public java.time.LocalDate getNextValidExecutionDate(Long workflowId, Long calendarId, java.time.LocalDate fromDate) {
+        if (calendarId == null) {
+            return fromDate.plusDays(1); // No calendar restriction
+        }
+        
+        return calendarService.getNextValidDate(calendarId, fromDate);
     }
 }
