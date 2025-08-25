@@ -2,6 +2,7 @@ package com.docwf.service;
 
 import com.docwf.dto.WorkflowCalendarDto;
 import com.docwf.dto.WorkflowCalendarDayDto;
+import com.docwf.dto.CreateCalendarWithDaysDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -12,6 +13,8 @@ import java.util.Optional;
 public interface WorkflowCalendarService {
     
     WorkflowCalendarDto createCalendar(WorkflowCalendarDto calendarDto);
+    
+    WorkflowCalendarDto createCalendarWithDays(CreateCalendarWithDaysDto calendarWithDaysDto);
     
     Optional<WorkflowCalendarDto> getCalendarById(Long calendarId);
     

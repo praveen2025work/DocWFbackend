@@ -20,6 +20,10 @@ public class WorkflowInstanceDto {
     
     private Long escalatedTo;
     
+    // Calendar mapping
+    private Long calendarId;
+    private String calendarName;
+    
     // Related data
     private String workflowName;
     private String startedByUsername;
@@ -32,6 +36,13 @@ public class WorkflowInstanceDto {
     public WorkflowInstanceDto(Long workflowId, Long startedBy) {
         this.workflowId = workflowId;
         this.startedBy = startedBy;
+        this.status = InstanceStatus.PENDING;
+    }
+    
+    public WorkflowInstanceDto(Long workflowId, Long startedBy, Long calendarId) {
+        this.workflowId = workflowId;
+        this.startedBy = startedBy;
+        this.calendarId = calendarId;
         this.status = InstanceStatus.PENDING;
     }
     
@@ -92,6 +103,22 @@ public class WorkflowInstanceDto {
         this.escalatedTo = escalatedTo;
     }
     
+    public Long getCalendarId() {
+        return calendarId;
+    }
+    
+    public void setCalendarId(Long calendarId) {
+        this.calendarId = calendarId;
+    }
+    
+    public String getCalendarName() {
+        return calendarName;
+    }
+    
+    public void setCalendarName(String calendarName) {
+        this.calendarName = calendarName;
+    }
+    
     public String getWorkflowName() {
         return workflowName;
     }
@@ -131,6 +158,7 @@ public class WorkflowInstanceDto {
                 ", workflowId=" + workflowId +
                 ", status=" + status +
                 ", startedBy=" + startedBy +
+                ", calendarId=" + calendarId +
                 '}';
     }
 }

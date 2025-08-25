@@ -6,6 +6,199 @@
     "description": "Comprehensive REST API for managing workflows, tasks, and workflow executions"
   },
   "endpoints": {
+    "calendar": {
+      "create_calendar_with_days": {
+        "method": "POST",
+        "url": "/api/calendar/with-days",
+        "description": "Create calendar with calendar days in the same API call",
+        "request_body": {
+          "calendarName": "US Business Days 2025",
+          "description": "Excludes US holidays and weekends",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "YEARLY",
+          "createdBy": "admin@company.com",
+          "calendarDays": [
+            {
+              "dayDate": "2025-01-01",
+              "dayType": "HOLIDAY",
+              "note": "New Year's Day"
+            },
+            {
+              "dayDate": "2025-01-20",
+              "dayType": "HOLIDAY",
+              "note": "Martin Luther King Jr. Day"
+            },
+            {
+              "dayDate": "2025-07-04",
+              "dayType": "HOLIDAY",
+              "note": "Independence Day"
+            },
+            {
+              "dayDate": "2025-12-25",
+              "dayType": "HOLIDAY",
+              "note": "Christmas Day"
+            }
+          ]
+        },
+        "response_example": {
+          "calendarId": 1,
+          "calendarName": "US Business Days 2025",
+          "description": "Excludes US holidays and weekends",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "YEARLY",
+          "createdBy": "admin@company.com",
+          "createdAt": "2024-12-20T10:00:00",
+          "updatedBy": null,
+          "updatedAt": null,
+          "calendarDays": [
+            {
+              "calendarDayId": 1,
+              "calendarId": 1,
+              "dayDate": "2025-01-01",
+              "dayType": "HOLIDAY",
+              "note": "New Year's Day"
+            }
+          ]
+        }
+      },
+      "create_monthly_financial_calendar": {
+        "method": "POST",
+        "url": "/api/calendar/with-days",
+        "description": "Create calendar with specific run dates for monthly processing",
+        "request_body": {
+          "calendarName": "Monthly Financial Close",
+          "description": "Only runs on month-end business days",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "MONTHLY",
+          "createdBy": "finance@company.com",
+          "calendarDays": [
+            {
+              "dayDate": "2025-01-31",
+              "dayType": "RUNDAY",
+              "note": "January month-end close"
+            },
+            {
+              "dayDate": "2025-02-28",
+              "dayType": "RUNDAY",
+              "note": "February month-end close"
+            },
+            {
+              "dayDate": "2025-03-31",
+              "dayType": "RUNDAY",
+              "note": "March month-end close"
+            }
+          ]
+        }
+      },
+      "validate_calendar_date": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/can-execute",
+        "description": "Check if a specific date is valid for workflow execution",
+        "query_params": {
+          "date": "2025-01-02"
+        },
+        "response_example": true
+      },
+      "get_next_valid_date": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/next-valid-date",
+        "description": "Get the next valid date for workflow execution",
+        "query_params": {
+          "fromDate": "2025-01-01"
+        },
+        "response_example": "2025-01-02"
+      },
+      "get_valid_dates_range": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/valid-dates",
+        "description": "Get all valid dates within a date range",
+        "query_params": {
+          "startDate": "2025-01-01",
+          "endDate": "2025-01-31"
+        },
+        "response_example": [
+          "2025-01-02",
+          "2025-01-03",
+          "2025-01-06",
+          "2025-01-07",
+          "2025-01-08",
+          "2025-01-09",
+          "2025-01-10",
+          "2025-01-13",
+          "2025-01-14",
+          "2025-01-15",
+          "2025-01-16",
+          "2025-01-17",
+          "2025-01-20",
+          "2025-01-21",
+          "2025-01-22",
+          "2025-01-23",
+          "2025-01-24",
+          "2025-01-27",
+          "2025-01-28",
+          "2025-01-29",
+          "2025-01-30",
+          "2025-01-31"
+        ]
+      }
+    },
+    "workflow_execution": {
+      "start_workflow_with_calendar": {
+        "method": "POST",
+        "url": "/api/execution/workflows/start-with-calendar",
+        "description": "Start workflow instance with calendar validation",
+        "request_body": {
+          "workflowId": 123,
+          "startedBy": 456,
+          "calendarId": 1,
+          "triggeredBy": "system_scheduler",
+          "scheduledStartTime": "2025-01-02T09:00:00"
+        },
+        "response_example": {
+          "instanceId": 789,
+          "workflowId": 123,
+          "status": "PENDING",
+          "startedBy": 456,
+          "startedOn": "2024-12-20T10:00:00",
+          "completedOn": null,
+          "escalatedTo": null,
+          "calendarId": 1,
+          "calendarName": "US Business Days 2025",
+          "workflowName": "Financial Close Process",
+          "startedByUsername": "john.doe",
+          "escalatedToUsername": null,
+          "instanceTasks": [
+            {
+              "instanceTaskId": 1001,
+              "instanceId": 789,
+              "taskId": 2001,
+              "status": "PENDING",
+              "assignedTo": 456,
+              "startedOn": "2024-12-20T10:00:00",
+              "completedOn": null,
+              "decisionOutcome": null,
+              "assignedToUsername": "john.doe",
+              "taskName": "Collect Financial Data",
+              "taskType": "FILE_UPLOAD"
+            }
+          ]
+        }
+      },
+      "start_workflow_without_calendar": {
+        "method": "POST",
+        "url": "/api/execution/workflows/start-with-calendar",
+        "description": "Start workflow instance without calendar restrictions",
+        "request_body": {
+          "workflowId": 124,
+          "startedBy": 456,
+          "triggeredBy": "manual",
+          "scheduledStartTime": null
+        }
+      }
+    },
     "users": {
       "get_all_users": {
         "method": "GET",
@@ -195,46 +388,84 @@
         }
       }
     },
-    "calendars": {
-      "get_all_calendars": {
-        "method": "GET",
-        "url": "/api/calendars",
-        "description": "Retrieve all calendars with pagination",
-        "query_params": {
-          "page": "0",
-          "size": "10",
-          "recurrence": "MONTHLY"
-        }
-      },
-      "create_calendar": {
-        "method": "POST",
-        "url": "/api/calendars",
-        "description": "Create a new calendar",
-        "request_body": {
-          "calendarName": "Business Calendar",
-          "description": "Standard business days calendar",
-          "startDate": "2025-01-01",
-          "endDate": "2025-12-31",
-          "recurrence": "MONTHLY",
-          "createdBy": "system"
-        }
-      },
-      "get_calendar_days": {
-        "method": "GET",
-        "url": "/api/calendars/1/days",
-        "description": "Get all days for a calendar"
-      },
-      "add_calendar_day": {
-        "method": "POST",
-        "url": "/api/calendars/1/days",
-        "description": "Add a day to calendar",
-        "request_body": {
-          "dayDate": "2025-01-01",
-          "dayType": "RUNDAY",
-          "note": "New Year's Day - Business Closed"
-        }
-      }
-    },
+         "calendars": {
+       "get_all_calendars": {
+         "method": "GET",
+         "url": "/api/calendars",
+         "description": "Retrieve all calendars with pagination",
+         "query_params": {
+           "page": "0",
+           "size": "10",
+           "recurrence": "YEARLY"
+         }
+       },
+       "create_calendar": {
+         "method": "POST",
+         "url": "/api/calendars",
+         "description": "Create a new calendar",
+         "request_body": {
+           "calendarName": "US Business Days 2025",
+           "description": "Excludes US holidays and weekends",
+           "startDate": "2025-01-01",
+           "endDate": "2025-12-31",
+           "recurrence": "YEARLY",
+           "createdBy": "system"
+         }
+       },
+       "get_calendar_days": {
+         "method": "GET",
+         "url": "/api/calendars/1/days",
+         "description": "Get all days for a calendar"
+       },
+       "add_calendar_day": {
+         "method": "POST",
+         "url": "/api/calendars/1/days",
+         "description": "Add a day to calendar",
+         "request_body": {
+           "dayDate": "2025-01-01",
+           "dayType": "HOLIDAY",
+           "note": "New Year's Day"
+         }
+       },
+       "add_calendar_days_batch": {
+         "method": "POST",
+         "url": "/api/calendars/1/days/batch",
+         "description": "Add multiple days to calendar in batch",
+         "request_body": [
+           {
+             "dayDate": "2025-01-01",
+             "dayType": "HOLIDAY",
+             "note": "New Year's Day"
+           },
+           {
+             "dayDate": "2025-01-20",
+             "dayType": "HOLIDAY",
+             "note": "Martin Luther King Jr. Day"
+           },
+           {
+             "dayDate": "2025-07-04",
+             "dayType": "HOLIDAY",
+             "note": "Independence Day"
+           }
+         ]
+       },
+       "validate_date": {
+         "method": "GET",
+         "url": "/api/calendars/1/validate-date",
+         "description": "Check if a specific date is valid for workflow execution",
+         "query_params": {
+           "date": "2025-01-02"
+         }
+       },
+       "can_execute_workflow": {
+         "method": "GET",
+         "url": "/api/calendars/1/can-execute",
+         "description": "Check if a workflow can execute on a specific date",
+         "query_params": {
+           "date": "2025-01-02"
+         }
+       }
+     },
     "files": {
       "upload_file": {
         "method": "POST",
@@ -265,14 +496,23 @@
       }
     },
     "execution": {
-      "start_workflow": {
-        "method": "POST",
-        "url": "/api/execution/workflows/1/start",
-        "description": "Start a new workflow instance",
-        "query_params": {
-          "startedByUserId": "1"
-        }
-      },
+             "start_workflow": {
+         "method": "POST",
+         "url": "/api/execution/workflows/1/start",
+         "description": "Start a new workflow instance",
+         "query_params": {
+           "startedByUserId": "1"
+         }
+       },
+       "start_workflow_with_calendar": {
+         "method": "POST",
+         "url": "/api/execution/workflows/1/start-with-calendar",
+         "description": "Start workflow with calendar validation",
+         "query_params": {
+           "startedByUserId": "1",
+           "calendarId": "1"
+         }
+       },
       "get_workflow_instances": {
         "method": "GET",
         "url": "/api/execution/workflows/1/instances",
@@ -317,34 +557,196 @@
       "get_user_dashboard": {
         "method": "GET",
         "url": "/api/dashboard/user",
-        "description": "Get user dashboard data",
+        "description": "Get comprehensive user dashboard data with workflows, tasks, workload, and statistics",
         "query_params": {
           "userId": "1"
+        },
+        "response_example": {
+          "userId": 1,
+          "username": "alice",
+          "userRole": "Preparer",
+          "summary": {
+            "totalTasks": 5,
+            "pendingTasks": 2,
+            "completedTasks": 3,
+            "overdueTasks": 0,
+            "totalWorkflows": 3,
+            "activeWorkflows": 2,
+            "notifications": 1,
+            "taskCompletionRate": 60.0
+          },
+          "myTasks": [
+            {
+              "instanceTaskId": 1,
+              "taskName": "Upload Raw Data",
+              "status": "PENDING",
+              "assignedToUsername": "alice"
+            }
+          ],
+          "myWorkflows": [
+            {
+              "instanceId": 1,
+              "workflowName": "Monthly Finance Workflow",
+              "status": "IN_PROGRESS"
+            }
+          ],
+          "workload": {
+            "userId": 1,
+            "currentWorkload": 2,
+            "maxCapacity": 5,
+            "utilization": 40.0
+          }
         }
       },
-      "get_admin_dashboard": {
+      "get_user_workflows": {
         "method": "GET",
-        "url": "/api/dashboard/admin",
-        "description": "Get admin dashboard data",
+        "url": "/api/dashboard/workflows",
+        "description": "Get all workflows the user is participating in with status filtering",
         "query_params": {
-          "adminId": "1"
+          "userId": "1",
+          "status": "IN_PROGRESS"
+        }
+      },
+      "get_user_tasks": {
+        "method": "GET",
+        "url": "/api/dashboard/tasks",
+        "description": "Get all tasks assigned to the authenticated user with status and priority filtering",
+        "query_params": {
+          "userId": "1",
+          "status": "PENDING",
+          "priority": "HIGH"
         }
       },
       "get_user_workload": {
         "method": "GET",
         "url": "/api/dashboard/workload",
-        "description": "Get user workload summary",
+        "description": "Get user workload summary with capacity and utilization metrics",
         "query_params": {
           "userId": "1"
+        }
+      },
+      "get_user_activities": {
+        "method": "GET",
+        "url": "/api/dashboard/activities",
+        "description": "Get recent activities and actions for the authenticated user",
+        "query_params": {
+          "userId": "1",
+          "limit": "10"
         }
       },
       "get_user_notifications": {
         "method": "GET",
         "url": "/api/dashboard/notifications",
-        "description": "Get user notifications",
+        "description": "Get all notifications for the authenticated user with status filtering",
         "query_params": {
           "userId": "1",
           "status": "UNREAD"
+        }
+      },
+      "mark_notification_read": {
+        "method": "PATCH",
+        "url": "/api/dashboard/notifications/1/read",
+        "description": "Mark a notification as read for the authenticated user"
+      },
+      "get_user_calendar": {
+        "method": "GET",
+        "url": "/api/dashboard/calendar",
+        "description": "Get calendar view for the authenticated user with date range filtering",
+        "query_params": {
+          "userId": "1",
+          "startDate": "2025-01-01",
+          "endDate": "2025-01-31"
+        }
+      },
+      "get_user_performance": {
+        "method": "GET",
+        "url": "/api/dashboard/performance",
+        "description": "Get performance metrics for the authenticated user by period",
+        "query_params": {
+          "userId": "1",
+          "period": "MONTHLY"
+        }
+      },
+      "get_user_roles": {
+        "method": "GET",
+        "url": "/api/dashboard/roles",
+        "description": "Get all roles assigned to the authenticated user",
+        "query_params": {
+          "userId": "1"
+        }
+      },
+      "get_user_permissions": {
+        "method": "GET",
+        "url": "/api/dashboard/permissions",
+        "description": "Get all permissions for the authenticated user based on their roles",
+        "query_params": {
+          "userId": "1"
+        }
+      },
+      "get_user_escalation_hierarchy": {
+        "method": "GET",
+        "url": "/api/dashboard/escalation-hierarchy",
+        "description": "Get escalation hierarchy for the authenticated user",
+        "query_params": {
+          "userId": "1"
+        }
+      },
+      "get_user_team": {
+        "method": "GET",
+        "url": "/api/dashboard/team",
+        "description": "Get team information for the authenticated user",
+        "query_params": {
+          "userId": "1"
+        }
+      },
+      "get_user_preferences": {
+        "method": "GET",
+        "url": "/api/dashboard/preferences",
+        "description": "Get user preferences and settings",
+        "query_params": {
+          "userId": "1"
+        }
+      },
+      "update_user_preferences": {
+        "method": "PUT",
+        "url": "/api/dashboard/preferences",
+        "description": "Update user preferences and settings",
+        "query_params": {
+          "userId": "1"
+        },
+        "request_body": {
+          "theme": "DARK",
+          "language": "EN",
+          "timezone": "UTC",
+          "notifications": {
+            "email": true,
+            "sms": false,
+            "push": true
+          }
+        }
+      },
+      "get_process_owner_dashboard": {
+        "method": "GET",
+        "url": "/api/dashboard/process-owner",
+        "description": "Get process owner specific dashboard with escalation and management features",
+        "query_params": {
+          "processOwnerId": "1"
+        }
+      },
+      "get_manager_dashboard": {
+        "method": "GET",
+        "url": "/api/dashboard/manager",
+        "description": "Get manager dashboard with team overview and workflow monitoring",
+        "query_params": {
+          "managerId": "1"
+        }
+      },
+      "get_admin_dashboard": {
+        "method": "GET",
+        "url": "/api/dashboard/admin",
+        "description": "Get admin dashboard with system overview and administrative functions",
+        "query_params": {
+          "adminId": "1"
         }
       }
     },
@@ -352,18 +754,114 @@
       "get_process_owner_dashboard": {
         "method": "GET",
         "url": "/api/process-owners/dashboard",
-        "description": "Get process owner dashboard",
+        "description": "Get comprehensive process owner dashboard with workflow details available for execution",
         "query_params": {
           "processOwnerId": "1"
+        },
+        "response_example": {
+          "processOwnerId": 1,
+          "processOwnerName": "john.doe",
+          "summary": {
+            "totalWorkflows": 15,
+            "activeWorkflows": 8,
+            "pendingTasks": 12,
+            "escalatedItems": 3,
+            "completedToday": 5,
+            "completionRate": 75.0
+          },
+          "activeWorkflows": [
+            {
+              "instanceId": 1,
+              "workflowName": "Monthly Finance Workflow",
+              "status": "IN_PROGRESS"
+            }
+          ],
+          "pendingTasks": [
+            {
+              "instanceTaskId": 1,
+              "taskName": "Review Financial Data",
+              "status": "PENDING"
+            }
+          ],
+          "escalationQueue": [
+            {
+              "escalationId": 1,
+              "escalationType": "WORKFLOW",
+              "entityName": "Complex Financial Review",
+              "status": "PENDING"
+            }
+          ]
         }
+      },
+      "get_process_owner_workflows": {
+        "method": "GET",
+        "url": "/api/process-owners/workflows",
+        "description": "Get all workflows managed by the logged-in process owner with status and priority filtering",
+        "query_params": {
+          "status": "IN_PROGRESS",
+          "priority": "HIGH"
+        }
+      },
+      "get_process_owner_tasks": {
+        "method": "GET",
+        "url": "/api/process-owners/tasks",
+        "description": "Get all tasks managed by the logged-in process owner with status and priority filtering",
+        "query_params": {
+          "status": "PENDING",
+          "priority": "HIGH"
+        }
+      },
+      "get_workflows_needing_attention": {
+        "method": "GET",
+        "url": "/api/process-owners/workflows/attention-needed",
+        "description": "Get workflows that need process owner attention (escalated, overdue, or stuck)"
+      },
+      "get_overdue_workflows": {
+        "method": "GET",
+        "url": "/api/process-owners/workflows/overdue",
+        "description": "Get overdue workflows for the logged-in process owner"
+      },
+      "get_escalation_queue": {
+        "method": "GET",
+        "url": "/api/process-owners/escalation-queue",
+        "description": "Get escalation queue for the logged-in process owner"
+      },
+      "get_process_owner_stats": {
+        "method": "GET",
+        "url": "/api/process-owners/stats",
+        "description": "Get process owner statistics and metrics",
+        "query_params": {
+          "startDate": "2025-01-01",
+          "endDate": "2025-01-31"
+        }
+      },
+      "get_process_owner_team": {
+        "method": "GET",
+        "url": "/api/process-owners/team",
+        "description": "Get all team members under the logged-in process owner"
       },
       "get_process_owner_workload": {
         "method": "GET",
         "url": "/api/process-owners/workload",
-        "description": "Get process owner workload",
+        "description": "Get process owner workload summary"
+      },
+      "get_process_owner_performance": {
+        "method": "GET",
+        "url": "/api/process-owners/performance",
+        "description": "Get process owner performance metrics",
         "query_params": {
-          "processOwnerId": "1"
+          "period": "MONTHLY"
         }
+      },
+      "assign_workflow_to_process_owner": {
+        "method": "POST",
+        "url": "/api/process-owners/workflows/1/assign",
+        "description": "Assign workflow to the logged-in process owner"
+      },
+      "unassign_workflow_from_process_owner": {
+        "method": "DELETE",
+        "url": "/api/process-owners/workflows/1/unassign",
+        "description": "Remove workflow assignment from the logged-in process owner"
       },
       "reassign_task": {
         "method": "POST",
@@ -381,6 +879,15 @@
         "query_params": {
           "escalatedToUserId": "3",
           "reason": "Complex decision required"
+        }
+      },
+      "override_task_decision": {
+        "method": "POST",
+        "url": "/api/process-owners/tasks/1/override",
+        "description": "Process owner overrides a task decision with final authority",
+        "query_params": {
+          "decision": "APPROVED",
+          "reason": "Process owner override based on business rules"
         }
       }
     }

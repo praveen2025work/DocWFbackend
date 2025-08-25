@@ -2,6 +2,7 @@ package com.docwf.controller;
 
 import com.docwf.dto.WorkflowCalendarDto;
 import com.docwf.dto.WorkflowCalendarDayDto;
+import com.docwf.dto.CreateCalendarWithDaysDto;
 import com.docwf.service.WorkflowCalendarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +35,14 @@ public class WorkflowCalendarController {
     public ResponseEntity<WorkflowCalendarDto> createCalendar(
             @Valid @RequestBody WorkflowCalendarDto calendarDto) {
         WorkflowCalendarDto createdCalendar = calendarService.createCalendar(calendarDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCalendar);
+    }
+    
+    @PostMapping("/with-days")
+    @Operation(summary = "Create calendar with days", description = "Creates a new workflow calendar with calendar days in the same call")
+    public ResponseEntity<WorkflowCalendarDto> createCalendarWithDays(
+            @Valid @RequestBody CreateCalendarWithDaysDto calendarWithDaysDto) {
+        WorkflowCalendarDto createdCalendar = calendarService.createCalendarWithDays(calendarWithDaysDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCalendar);
     }
     
@@ -99,6 +108,8 @@ public class WorkflowCalendarController {
     public ResponseEntity<WorkflowCalendarDayDto> addCalendarDay(
             @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
             @Valid @RequestBody WorkflowCalendarDayDto dayDto) {
+        // Set the calendarId from the path variable
+        dayDto.setCalendarId(calendarId);
         WorkflowCalendarDayDto addedDay = calendarService.addCalendarDay(calendarId, dayDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(addedDay);
     }
@@ -108,6 +119,8 @@ public class WorkflowCalendarController {
     public ResponseEntity<List<WorkflowCalendarDayDto>> addCalendarDaysBatch(
             @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
             @Valid @RequestBody List<WorkflowCalendarDayDto> daysDto) {
+        // Set the calendarId for all days in the batch
+        daysDto.forEach(dayDto -> dayDto.setCalendarId(calendarId));
         List<WorkflowCalendarDayDto> addedDays = calendarService.addCalendarDaysBatch(calendarId, daysDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(addedDays);
     }

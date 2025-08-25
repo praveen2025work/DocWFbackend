@@ -2,6 +2,7 @@ package com.docwf.service.impl;
 
 import com.docwf.dto.WorkflowCalendarDto;
 import com.docwf.dto.WorkflowCalendarDayDto;
+import com.docwf.dto.CreateCalendarWithDaysDto;
 import com.docwf.entity.WorkflowCalendar;
 import com.docwf.entity.WorkflowCalendarDay;
 import com.docwf.exception.WorkflowException;
@@ -41,6 +42,40 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         );
         
         WorkflowCalendar savedCalendar = calendarRepository.save(calendar);
+        return convertToDto(savedCalendar);
+    }
+    
+    @Override
+    public WorkflowCalendarDto createCalendarWithDays(CreateCalendarWithDaysDto calendarWithDaysDto) {
+        // Create the calendar first
+        WorkflowCalendar calendar = new WorkflowCalendar(
+            calendarWithDaysDto.getCalendarName(),
+            calendarWithDaysDto.getDescription(),
+            calendarWithDaysDto.getStartDate(),
+            calendarWithDaysDto.getEndDate(),
+            calendarWithDaysDto.getRecurrence(),
+            calendarWithDaysDto.getCreatedBy()
+        );
+        
+        // Save the calendar to get the ID
+        WorkflowCalendar savedCalendar = calendarRepository.save(calendar);
+        
+        // Create and save all calendar days
+        List<WorkflowCalendarDay> calendarDays = calendarWithDaysDto.getCalendarDays().stream()
+            .map(dayInput -> new WorkflowCalendarDay(
+                savedCalendar,
+                dayInput.getDayDate(),
+                dayInput.getDayType(),
+                dayInput.getNote()
+            ))
+            .collect(Collectors.toList());
+        
+        // Save all calendar days
+        List<WorkflowCalendarDay> savedDays = calendarDayRepository.saveAll(calendarDays);
+        
+        // Add the days to the calendar entity
+        savedCalendar.setCalendarDays(savedDays);
+        
         return convertToDto(savedCalendar);
     }
     
@@ -246,7 +281,13 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
     @Override
     @Transactional(readOnly = true)
     public boolean canExecuteWorkflow(Long calendarId, LocalDate date) {
-        return isDateValid(calendarId, date);
+        Optional<WorkflowCalendar> calendarOpt = calendarRepository.findById(calendarId);
+        if (calendarOpt.isEmpty()) {
+            return false;
+        }
+        
+        WorkflowCalendar calendar = calendarOpt.get();
+        return calendar.canExecuteWorkflow(date);
     }
     
     @Override

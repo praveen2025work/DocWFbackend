@@ -6,6 +6,21 @@ import com.docwf.dto.TaskInstanceDecisionOutcomeDto;
 import com.docwf.dto.WorkflowProgressDto;
 import com.docwf.dto.WorkflowInstanceStatsDto;
 import com.docwf.dto.UserWorkloadDto;
+import com.docwf.dto.CreateWorkflowInstanceDto;
+import com.docwf.dto.ProcessOwnerDashboardDto;
+import com.docwf.dto.EscalationItemDto;
+import com.docwf.dto.ProcessOwnerStatsDto;
+import com.docwf.dto.UserDashboardDto;
+import com.docwf.dto.UserActivityDto;
+import com.docwf.dto.UserNotificationDto;
+import com.docwf.dto.UserCalendarDto;
+import com.docwf.dto.UserPerformanceDto;
+import com.docwf.dto.WorkflowRoleDto;
+import com.docwf.dto.UserPermissionDto;
+import com.docwf.dto.UserTeamDto;
+import com.docwf.dto.UserPreferencesDto;
+import com.docwf.dto.ManagerDashboardDto;
+import com.docwf.dto.AdminDashboardDto;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +35,11 @@ public interface WorkflowExecutionService {
      * Start a new workflow instance with calendar validation
      */
     WorkflowInstanceDto startWorkflowWithCalendar(Long workflowId, Long startedByUserId, Long calendarId);
+    
+    /**
+     * Start a new workflow instance with calendar using DTO
+     */
+    WorkflowInstanceDto startWorkflowWithCalendar(CreateWorkflowInstanceDto createInstanceDto);
     
     /**
      * Get workflow instance by ID
@@ -178,4 +198,109 @@ public interface WorkflowExecutionService {
      * Get user workload
      */
     UserWorkloadDto getUserWorkload(Long userId);
+    
+    // Process Owner specific methods
+    /**
+     * Get workflow instances managed by a process owner
+     */
+    List<WorkflowInstanceDto> getWorkflowInstancesByProcessOwner(Long processOwnerId, String status, String priority);
+    
+    /**
+     * Get tasks managed by a process owner
+     */
+    List<WorkflowInstanceTaskDto> getTasksByProcessOwner(Long processOwnerId, String status, String priority);
+    
+    /**
+     * Get workflow instances that need process owner attention
+     */
+    List<WorkflowInstanceDto> getWorkflowInstancesNeedingProcessOwnerAttention(Long processOwnerId);
+    
+    /**
+     * Get overdue workflows for a process owner
+     */
+    List<WorkflowInstanceDto> getOverdueWorkflowsForProcessOwner(Long processOwnerId);
+    
+    // Dashboard specific methods
+    /**
+     * Get process owner dashboard data
+     */
+    ProcessOwnerDashboardDto getProcessOwnerDashboard(Long processOwnerId);
+    
+    /**
+     * Get escalation queue for a process owner
+     */
+    List<EscalationItemDto> getEscalationQueueForProcessOwner(Long processOwnerId);
+    
+    /**
+     * Get process owner statistics for dashboard
+     */
+    ProcessOwnerStatsDto getProcessOwnerStatistics(Long processOwnerId);
+    
+    // User Dashboard specific methods
+    /**
+     * Get user dashboard data
+     */
+    UserDashboardDto getUserDashboard(Long userId);
+    
+    // Additional dashboard methods
+    /**
+     * Get user activities
+     */
+    List<UserActivityDto> getUserActivities(Long userId, Integer limit);
+    
+    /**
+     * Get user notifications
+     */
+    List<UserNotificationDto> getUserNotifications(Long userId, String status);
+    
+    /**
+     * Mark notification as read
+     */
+    UserNotificationDto markNotificationAsRead(Long notificationId);
+    
+    /**
+     * Get user calendar
+     */
+    UserCalendarDto getUserCalendar(Long userId, String startDate, String endDate);
+    
+    /**
+     * Get user performance metrics
+     */
+    UserPerformanceDto getUserPerformance(Long userId, String period);
+    
+    /**
+     * Get user roles
+     */
+    List<WorkflowRoleDto> getUserRoles(Long userId);
+    
+    /**
+     * Get user permissions
+     */
+    List<UserPermissionDto> getUserPermissions(Long userId);
+    
+    /**
+     * Get user team information
+     */
+    UserTeamDto getUserTeam(Long userId);
+    
+    /**
+     * Get user preferences
+     */
+    UserPreferencesDto getUserPreferences(Long userId);
+    
+    /**
+     * Update user preferences
+     */
+    UserPreferencesDto updateUserPreferences(Long userId, UserPreferencesDto preferences);
+    
+    // Manager and Admin Dashboard methods
+    /**
+     * Get manager dashboard data
+     */
+    ManagerDashboardDto getManagerDashboard(Long managerId);
+    
+    /**
+     * Get admin dashboard data
+     */
+    AdminDashboardDto getAdminDashboard(Long adminId);
 }

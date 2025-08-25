@@ -6,6 +6,21 @@ import com.docwf.dto.TaskInstanceDecisionOutcomeDto;
 import com.docwf.dto.WorkflowProgressDto;
 import com.docwf.dto.WorkflowInstanceStatsDto;
 import com.docwf.dto.UserWorkloadDto;
+import com.docwf.dto.CreateWorkflowInstanceDto;
+import com.docwf.dto.ProcessOwnerDashboardDto;
+import com.docwf.dto.EscalationItemDto;
+import com.docwf.dto.ProcessOwnerStatsDto;
+import com.docwf.dto.UserDashboardDto;
+import com.docwf.dto.UserActivityDto;
+import com.docwf.dto.UserNotificationDto;
+import com.docwf.dto.UserCalendarDto;
+import com.docwf.dto.UserPerformanceDto;
+import com.docwf.dto.WorkflowRoleDto;
+import com.docwf.dto.UserPermissionDto;
+import com.docwf.dto.UserTeamDto;
+import com.docwf.dto.UserPreferencesDto;
+import com.docwf.dto.ManagerDashboardDto;
+import com.docwf.dto.AdminDashboardDto;
 import com.docwf.entity.*;
 import com.docwf.exception.WorkflowException;
 import com.docwf.repository.*;
@@ -19,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 @Transactional
@@ -416,6 +432,12 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
             dto.setEscalatedTo(instance.getEscalatedTo().getUserId());
         }
         
+        // Set calendar information
+        if (instance.getCalendar() != null) {
+            dto.setCalendarId(instance.getCalendar().getCalendarId());
+            dto.setCalendarName(instance.getCalendar().getCalendarName());
+        }
+        
         dto.setWorkflowName(instance.getWorkflow().getName());
         dto.setStartedByUsername(instance.getStartedBy().getUsername());
         if (instance.getEscalatedTo() != null) {
@@ -568,6 +590,70 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     }
     
     @Override
+    public WorkflowInstanceDto startWorkflowWithCalendar(CreateWorkflowInstanceDto createInstanceDto) {
+        // Validate workflow exists and is active
+        WorkflowConfig workflow = workflowRepository.findById(createInstanceDto.getWorkflowId())
+                .orElseThrow(() -> new WorkflowException("Workflow not found with ID: " + createInstanceDto.getWorkflowId()));
+        
+        if (!"Y".equals(workflow.getIsActive())) {
+            throw new WorkflowException("Workflow is not active: " + createInstanceDto.getWorkflowId());
+        }
+        
+        // Validate user exists
+        WorkflowUser startedByUser = userRepository.findById(createInstanceDto.getStartedBy())
+                .orElseThrow(() -> new WorkflowException("User not found with ID: " + createInstanceDto.getStartedBy()));
+        
+        // Validate calendar if provided
+        WorkflowCalendar calendar = null;
+        if (createInstanceDto.getCalendarId() != null) {
+            calendar = calendarService.getCalendarById(createInstanceDto.getCalendarId())
+                    .map(calendarDto -> {
+                        // Convert DTO to entity for association
+                        WorkflowCalendar cal = new WorkflowCalendar();
+                        cal.setCalendarId(calendarDto.getCalendarId());
+                        cal.setCalendarName(calendarDto.getCalendarName());
+                        return cal;
+                    })
+                    .orElseThrow(() -> new WorkflowException("Calendar not found with ID: " + createInstanceDto.getCalendarId()));
+            
+            // Check if workflow can execute on current date according to calendar
+            LocalDateTime now = LocalDateTime.now();
+            if (!calendarService.canExecuteWorkflow(createInstanceDto.getCalendarId(), now.toLocalDate())) {
+                throw new WorkflowException("Workflow cannot execute on this date according to calendar: " + createInstanceDto.getCalendarId());
+            }
+        }
+        
+        // Create workflow instance
+        WorkflowInstance instance = new WorkflowInstance();
+        instance.setWorkflow(workflow);
+        instance.setStatus(WorkflowInstance.InstanceStatus.PENDING);
+        instance.setStartedBy(startedByUser);
+        instance.setStartedOn(LocalDateTime.now());
+        instance.setCalendar(calendar); // Associate calendar with instance
+        
+        WorkflowInstance savedInstance = instanceRepository.save(instance);
+        
+        // Create instance tasks for all workflow tasks
+        List<WorkflowConfigTask> configTasks = configTaskRepository.findByWorkflowWorkflowIdOrderBySequenceOrder(createInstanceDto.getWorkflowId());
+        for (WorkflowConfigTask configTask : configTasks) {
+            WorkflowInstanceTask instanceTask = new WorkflowInstanceTask();
+            instanceTask.setWorkflowInstance(savedInstance);
+            instanceTask.setTask(configTask);
+            instanceTask.setStatus(WorkflowInstanceTask.TaskInstanceStatus.PENDING);
+            instanceTask.setStartedOn(LocalDateTime.now());
+            
+            // Assign first task to the user who started the workflow
+            if (configTask.getSequenceOrder() == 1) {
+                instanceTask.setAssignedTo(startedByUser);
+            }
+            
+            instanceTaskRepository.save(instanceTask);
+        }
+        
+        return convertToInstanceDto(savedInstance);
+    }
+    
+    @Override
     public boolean canExecuteWorkflowOnDate(Long workflowId, Long calendarId, java.time.LocalDate date) {
         if (calendarId == null) {
             return true; // No calendar restriction
@@ -583,5 +669,356 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         }
         
         return calendarService.getNextValidDate(calendarId, fromDate);
+    }
+    
+    // Process Owner specific method implementations
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowInstanceDto> getWorkflowInstancesByProcessOwner(Long processOwnerId, String status, String priority) {
+        WorkflowInstance.InstanceStatus instanceStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                instanceStatus = WorkflowInstance.InstanceStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Invalid status, return empty list
+                return new ArrayList<>();
+            }
+        }
+        
+        List<WorkflowInstance> instances = instanceRepository.findByProcessOwnerRole(processOwnerId, instanceStatus);
+        
+        // Note: Priority filtering removed as priority field doesn't exist in entities
+        // TODO: Add priority field to WorkflowConfig entity if needed
+        
+        return instances.stream()
+                .map(this::convertToInstanceDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowInstanceTaskDto> getTasksByProcessOwner(Long processOwnerId, String status, String priority) {
+        WorkflowInstanceTask.TaskInstanceStatus taskStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                taskStatus = WorkflowInstanceTask.TaskInstanceStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Invalid status, return empty list
+                return new ArrayList<>();
+            }
+        }
+        
+        List<WorkflowInstanceTask> tasks = instanceTaskRepository.findTasksByProcessOwnerRole(processOwnerId, taskStatus);
+        
+        // Note: Priority filtering removed as priority field doesn't exist in entities
+        // TODO: Add priority field to WorkflowConfigTask entity if needed
+        
+        return tasks.stream()
+                .map(this::convertToInstanceTaskDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowInstanceDto> getWorkflowInstancesNeedingProcessOwnerAttention(Long processOwnerId) {
+        List<WorkflowInstance> instances = instanceRepository.findInstancesNeedingProcessOwnerAttention(processOwnerId);
+        return instances.stream()
+                .map(this::convertToInstanceDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowInstanceDto> getOverdueWorkflowsForProcessOwner(Long processOwnerId) {
+        // Define overdue threshold (e.g., 7 days)
+        LocalDateTime overdueThreshold = LocalDateTime.now().minusDays(7);
+        List<WorkflowInstance> instances = instanceRepository.findOverdueInstancesForProcessOwner(processOwnerId, overdueThreshold);
+        return instances.stream()
+                .map(this::convertToInstanceDto)
+                .collect(Collectors.toList());
+    }
+    
+    // Dashboard specific method implementations
+    @Override
+    @Transactional(readOnly = true)
+    public ProcessOwnerDashboardDto getProcessOwnerDashboard(Long processOwnerId) {
+        // Get user information
+        WorkflowUser user = userRepository.findById(processOwnerId)
+                .orElseThrow(() -> new WorkflowException("User not found with ID: " + processOwnerId));
+        
+        // Create dashboard DTO
+        ProcessOwnerDashboardDto dashboard = new ProcessOwnerDashboardDto(processOwnerId, user.getUsername());
+        
+        // Get active workflows (PENDING and IN_PROGRESS)
+        List<WorkflowInstance> activeWorkflows = instanceRepository.findByProcessOwnerRole(processOwnerId, null);
+        activeWorkflows = activeWorkflows.stream()
+                .filter(instance -> instance.getStatus() == WorkflowInstance.InstanceStatus.PENDING || 
+                                  instance.getStatus() == WorkflowInstance.InstanceStatus.IN_PROGRESS)
+                .collect(Collectors.toList());
+        
+        // Limit to recent workflows for dashboard
+        List<WorkflowInstanceDto> activeWorkflowDtos = activeWorkflows.stream()
+                .sorted((w1, w2) -> w2.getStartedOn().compareTo(w1.getStartedOn()))
+                .limit(10) // Show only 10 most recent active workflows
+                .map(this::convertToInstanceDto)
+                .collect(Collectors.toList());
+        
+        dashboard.setActiveWorkflows(activeWorkflowDtos);
+        
+        // Get pending tasks
+        List<WorkflowInstanceTask> pendingTasks = instanceTaskRepository.findPendingTasksByProcessOwnerForDashboard(processOwnerId);
+        List<WorkflowInstanceTaskDto> pendingTaskDtos = pendingTasks.stream()
+                .limit(10) // Show only 10 most recent pending tasks
+                .map(this::convertToInstanceTaskDto)
+                .collect(Collectors.toList());
+        
+        dashboard.setPendingTasks(pendingTaskDtos);
+        
+        // Get escalation queue
+        List<EscalationItemDto> escalationQueue = getEscalationQueueForProcessOwner(processOwnerId);
+        dashboard.setEscalationQueue(escalationQueue);
+        
+        // Get statistics
+        ProcessOwnerStatsDto stats = getProcessOwnerStatistics(processOwnerId);
+        dashboard.setRecentStats(List.of(stats)); // Wrap in list as expected by DTO
+        
+        // Create dashboard summary
+        ProcessOwnerDashboardDto.DashboardSummaryDto summary = new ProcessOwnerDashboardDto.DashboardSummaryDto();
+        summary.setTotalWorkflows((int) instanceRepository.countTotalWorkflowsByProcessOwner(processOwnerId));
+        summary.setActiveWorkflows((int) instanceRepository.countActiveWorkflowsByProcessOwner(processOwnerId));
+        summary.setPendingTasks((int) instanceTaskRepository.countPendingTasksByProcessOwner(processOwnerId));
+        summary.setEscalatedItems((int) instanceRepository.countEscalatedWorkflowsByProcessOwner(processOwnerId));
+        summary.setCompletedToday((int) instanceRepository.countCompletedWorkflowsTodayByProcessOwner(processOwnerId));
+        
+        // Calculate completion rate
+        long totalWorkflows = instanceRepository.countTotalWorkflowsByProcessOwner(processOwnerId);
+        if (totalWorkflows > 0) {
+            long completedWorkflows = instanceRepository.countByStatus(WorkflowInstance.InstanceStatus.COMPLETED);
+            summary.setCompletionRate((double) completedWorkflows / totalWorkflows * 100);
+        } else {
+            summary.setCompletionRate(0.0);
+        }
+        
+        dashboard.setSummary(summary);
+        
+        return dashboard;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<EscalationItemDto> getEscalationQueueForProcessOwner(Long processOwnerId) {
+        // Get escalated workflows for this process owner
+        List<WorkflowInstance> escalatedInstances = instanceRepository.findByProcessOwnerRole(processOwnerId, null);
+        escalatedInstances = escalatedInstances.stream()
+                .filter(instance -> instance.getEscalatedTo() != null)
+                .collect(Collectors.toList());
+        
+        List<EscalationItemDto> escalationItems = new ArrayList<>();
+        
+        for (WorkflowInstance instance : escalatedInstances) {
+            EscalationItemDto escalationItem = new EscalationItemDto();
+            escalationItem.setEscalationId(instance.getInstanceId());
+            escalationItem.setEscalationType("WORKFLOW");
+            escalationItem.setEntityId(instance.getInstanceId());
+            escalationItem.setEntityName(instance.getWorkflow().getName());
+            escalationItem.setEscalatedToUserId(instance.getEscalatedTo().getUserId());
+            escalationItem.setEscalatedToUsername(instance.getEscalatedTo().getUsername());
+            escalationItem.setEscalatedAt(instance.getStartedOn()); // Using startedOn as placeholder
+            escalationItem.setStatus("PENDING");
+            escalationItem.setPriority("MEDIUM"); // Default priority
+            
+            escalationItems.add(escalationItem);
+        }
+        
+        return escalationItems;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public ProcessOwnerStatsDto getProcessOwnerStatistics(Long processOwnerId) {
+        // Get user information
+        WorkflowUser user = userRepository.findById(processOwnerId)
+                .orElseThrow(() -> new WorkflowException("User not found with ID: " + processOwnerId));
+        
+        // Create stats DTO
+        ProcessOwnerStatsDto stats = new ProcessOwnerStatsDto();
+        stats.setProcessOwnerId(processOwnerId);
+        stats.setProcessOwnerName(user.getUsername());
+        
+        // Get counts
+        long totalWorkflows = instanceRepository.countTotalWorkflowsByProcessOwner(processOwnerId);
+        long activeWorkflows = instanceRepository.countActiveWorkflowsByProcessOwner(processOwnerId);
+        long pendingTasks = instanceTaskRepository.countPendingTasksByProcessOwner(processOwnerId);
+        long escalatedItems = instanceRepository.countEscalatedWorkflowsByProcessOwner(processOwnerId);
+        long completedToday = instanceRepository.countCompletedWorkflowsTodayByProcessOwner(processOwnerId);
+        
+        // Set stats
+        stats.setTotalWorkflows((int) totalWorkflows);
+        stats.setActiveWorkflows((int) activeWorkflows);
+        stats.setPendingTasks((int) pendingTasks);
+        stats.setEscalatedWorkflows((int) escalatedItems);
+        stats.setCompletedWorkflows((int) completedToday);
+        
+        // Calculate completion rate
+        if (totalWorkflows > 0) {
+            long completedWorkflows = instanceRepository.countByStatus(WorkflowInstance.InstanceStatus.COMPLETED);
+            stats.setWorkflowCompletionRate((double) completedWorkflows / totalWorkflows * 100);
+        } else {
+            stats.setWorkflowCompletionRate(0.0);
+        }
+        
+        return stats;
+    }
+    
+    // User Dashboard specific method implementations
+    @Override
+    @Transactional(readOnly = true)
+    public UserDashboardDto getUserDashboard(Long userId) {
+        // Get user information
+        WorkflowUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new WorkflowException("User not found with ID: " + userId));
+        
+        // Create dashboard DTO
+        UserDashboardDto dashboard = new UserDashboardDto();
+        dashboard.setUserId(userId);
+        dashboard.setUsername(user.getUsername());
+        
+        // Get user's workflows
+        List<WorkflowInstance> userWorkflows = instanceRepository.findWorkflowsByUserParticipation(userId, null);
+        List<WorkflowInstanceDto> workflowDtos = userWorkflows.stream()
+                .sorted((w1, w2) -> w2.getStartedOn().compareTo(w1.getStartedOn()))
+                .limit(10) // Show only 10 most recent workflows
+                .map(this::convertToInstanceDto)
+                .collect(Collectors.toList());
+        
+        dashboard.setMyWorkflows(workflowDtos);
+        
+        // Get user's tasks
+        List<WorkflowInstanceTask> userTasks = instanceTaskRepository.findRecentTasksByUserForDashboard(userId);
+        List<WorkflowInstanceTaskDto> taskDtos = userTasks.stream()
+                .limit(10) // Show only 10 most recent tasks
+                .map(this::convertToInstanceTaskDto)
+                .collect(Collectors.toList());
+        
+        dashboard.setMyTasks(taskDtos);
+        
+        // Get user's workload
+        UserWorkloadDto workload = getUserWorkload(userId);
+        dashboard.setWorkload(workload);
+        
+        // Set dashboard summary
+        UserDashboardDto.DashboardSummaryDto summary = new UserDashboardDto.DashboardSummaryDto();
+        summary.setTotalWorkflows((int) instanceRepository.countTotalWorkflowsByUser(userId));
+        summary.setActiveWorkflows((int) instanceRepository.countActiveWorkflowsByUser(userId));
+        summary.setTotalTasks((int) instanceTaskRepository.countTotalTasksByUser(userId));
+        summary.setPendingTasks((int) instanceTaskRepository.countPendingTasksByUser(userId));
+        summary.setCompletedTasks((int) instanceTaskRepository.countCompletedTasksTodayByUser(userId));
+        
+        // Calculate completion rates
+        long totalWorkflows = instanceRepository.countTotalWorkflowsByUser(userId);
+        if (totalWorkflows > 0) {
+            long completedWorkflows = instanceRepository.countByStatus(WorkflowInstance.InstanceStatus.COMPLETED);
+            summary.setTaskCompletionRate((double) completedWorkflows / totalWorkflows * 100);
+        } else {
+            summary.setTaskCompletionRate(0.0);
+        }
+        
+        long totalTasks = instanceTaskRepository.countTotalTasksByUser(userId);
+        if (totalTasks > 0) {
+            long completedTasks = instanceTaskRepository.countByStatus(WorkflowInstanceTask.TaskInstanceStatus.COMPLETED);
+            summary.setTaskCompletionRate((double) completedTasks / totalTasks * 100);
+        } else {
+            summary.setTaskCompletionRate(0.0);
+        }
+        
+        dashboard.setSummary(summary);
+        
+        return dashboard;
+    }
+    
+    // Additional dashboard method implementations (placeholder implementations)
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserActivityDto> getUserActivities(Long userId, Integer limit) {
+        // TODO: Implement user activities tracking
+        return new ArrayList<>();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserNotificationDto> getUserNotifications(Long userId, String status) {
+        // TODO: Implement user notifications
+        return new ArrayList<>();
+    }
+    
+    @Override
+    @Transactional
+    public UserNotificationDto markNotificationAsRead(Long notificationId) {
+        // TODO: Implement mark notification as read
+        return new UserNotificationDto();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public UserCalendarDto getUserCalendar(Long userId, String startDate, String endDate) {
+        // TODO: Implement user calendar
+        return new UserCalendarDto();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public UserPerformanceDto getUserPerformance(Long userId, String period) {
+        // TODO: Implement user performance metrics
+        return new UserPerformanceDto();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowRoleDto> getUserRoles(Long userId) {
+        // TODO: Implement user roles
+        return new ArrayList<>();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserPermissionDto> getUserPermissions(Long userId) {
+        // TODO: Implement user permissions
+        return new ArrayList<>();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public UserTeamDto getUserTeam(Long userId) {
+        // TODO: Implement user team information
+        return new UserTeamDto();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public UserPreferencesDto getUserPreferences(Long userId) {
+        // TODO: Implement user preferences
+        return new UserPreferencesDto();
+    }
+    
+    @Override
+    @Transactional
+    public UserPreferencesDto updateUserPreferences(Long userId, UserPreferencesDto preferences) {
+        // TODO: Implement update user preferences
+        return preferences;
+    }
+    
+    // Manager and Admin Dashboard method implementations (placeholder implementations)
+    @Override
+    @Transactional(readOnly = true)
+    public ManagerDashboardDto getManagerDashboard(Long managerId) {
+        // TODO: Implement manager dashboard
+        return new ManagerDashboardDto();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public AdminDashboardDto getAdminDashboard(Long adminId) {
+        // TODO: Implement admin dashboard
+        return new AdminDashboardDto();
     }
 }

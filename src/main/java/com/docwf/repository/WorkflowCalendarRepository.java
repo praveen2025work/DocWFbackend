@@ -17,8 +17,6 @@ public interface WorkflowCalendarRepository extends JpaRepository<WorkflowCalend
     
     Optional<WorkflowCalendar> findByCalendarName(String calendarName);
     
-    List<WorkflowCalendar> findByIsActive(String isActive);
-    
     @Query("SELECT c FROM WorkflowCalendar c WHERE c.startDate <= :date AND c.endDate >= :date")
     List<WorkflowCalendar> findCalendarsForDate(@Param("date") LocalDate date);
     

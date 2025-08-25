@@ -88,4 +88,126 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
      */
     @Query("SELECT wi FROM WorkflowInstance wi WHERE wi.workflow.workflowId = :workflowId ORDER BY wi.startedOn DESC")
     Optional<WorkflowInstance> findLatestInstanceByWorkflowId(@Param("workflowId") Long workflowId);
+    
+    // Process Owner specific queries
+    /**
+     * Find workflow instances where the user has a process owner role
+     */
+    @Query("SELECT DISTINCT wi FROM WorkflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND (:status IS NULL OR wi.status = :status)")
+    List<WorkflowInstance> findByProcessOwnerRole(@Param("processOwnerId") Long processOwnerId, @Param("status") InstanceStatus status);
+    
+    /**
+     * Find workflow instances that need process owner attention (escalated, overdue, or stuck)
+     */
+    @Query("SELECT DISTINCT wi FROM WorkflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND (wi.status = 'IN_PROGRESS' OR wi.escalatedTo IS NOT NULL)")
+    List<WorkflowInstance> findInstancesNeedingProcessOwnerAttention(@Param("processOwnerId") Long processOwnerId);
+    
+    /**
+     * Find overdue workflow instances for a process owner
+     */
+    @Query("SELECT DISTINCT wi FROM WorkflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND wi.status = 'IN_PROGRESS' " +
+           "AND wi.startedOn < :overdueThreshold")
+    List<WorkflowInstance> findOverdueInstancesForProcessOwner(@Param("processOwnerId") Long processOwnerId, @Param("overdueThreshold") LocalDateTime overdueThreshold);
+    
+    // Dashboard specific queries
+    /**
+     * Count total workflows for a process owner
+     */
+    @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y'")
+    long countTotalWorkflowsByProcessOwner(@Param("processOwnerId") Long processOwnerId);
+    
+    /**
+     * Count active workflows for a process owner
+     */
+    @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND wi.status IN ('PENDING', 'IN_PROGRESS')")
+    long countActiveWorkflowsByProcessOwner(@Param("processOwnerId") Long processOwnerId);
+    
+    /**
+     * Count completed workflows today for a process owner
+     */
+    @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND wi.status = 'COMPLETED' " +
+           "AND DATE(wi.completedOn) = CURRENT_DATE")
+    long countCompletedWorkflowsTodayByProcessOwner(@Param("processOwnerId") Long processOwnerId);
+    
+    /**
+     * Count escalated workflows for a process owner
+     */
+    @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND wi.escalatedTo IS NOT NULL")
+    long countEscalatedWorkflowsByProcessOwner(@Param("processOwnerId") Long processOwnerId);
+    
+    // User Dashboard specific queries
+    /**
+     * Count total workflows for a user
+     */
+    @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
+           "WHERE wi.startedBy.userId = :userId")
+    long countTotalWorkflowsByUser(@Param("userId") Long userId);
+    
+    /**
+     * Count active workflows for a user
+     */
+    @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
+           "WHERE wi.startedBy.userId = :userId " +
+           "AND wi.status IN ('PENDING', 'IN_PROGRESS')")
+    long countActiveWorkflowsByUser(@Param("userId") Long userId);
+    
+    /**
+     * Count completed workflows today for a user
+     */
+    @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
+           "WHERE wi.startedBy.userId = :userId " +
+           "AND wi.status = 'COMPLETED' " +
+           "AND DATE(wi.completedOn) = CURRENT_DATE")
+    long countCompletedWorkflowsTodayByUser(@Param("userId") Long userId);
+    
+    /**
+     * Find workflows where user is participating (started by or assigned to)
+     */
+    @Query("SELECT DISTINCT wi FROM WorkflowInstance wi " +
+           "LEFT JOIN wi.instanceTasks wit " +
+           "WHERE wi.startedBy.userId = :userId " +
+           "OR wit.assignedTo.userId = :userId " +
+           "AND (:status IS NULL OR wi.status = :status)")
+    List<WorkflowInstance> findWorkflowsByUserParticipation(@Param("userId") Long userId, @Param("status") InstanceStatus status);
 }

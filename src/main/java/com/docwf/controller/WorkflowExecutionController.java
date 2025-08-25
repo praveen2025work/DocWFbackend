@@ -3,10 +3,12 @@ package com.docwf.controller;
 import com.docwf.dto.WorkflowInstanceDto;
 import com.docwf.dto.WorkflowInstanceTaskDto;
 import com.docwf.dto.TaskInstanceDecisionOutcomeDto;
+import com.docwf.dto.CreateWorkflowInstanceDto;
 import com.docwf.service.WorkflowExecutionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,13 +35,11 @@ public class WorkflowExecutionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(instance);
     }
     
-    @PostMapping("/workflows/{workflowId}/start-with-calendar")
-    @Operation(summary = "Start workflow instance with calendar validation", description = "Starts a new workflow instance with calendar date validation")
+    @PostMapping("/workflows/start-with-calendar")
+    @Operation(summary = "Start workflow instance with calendar", description = "Starts a new workflow instance with optional calendar mapping")
     public ResponseEntity<WorkflowInstanceDto> startWorkflowWithCalendar(
-            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
-            @Parameter(description = "User ID who started the workflow") @RequestParam Long startedByUserId,
-            @Parameter(description = "Calendar ID for date validation") @RequestParam(required = false) Long calendarId) {
-        WorkflowInstanceDto instance = executionService.startWorkflowWithCalendar(workflowId, startedByUserId, calendarId);
+            @Valid @RequestBody CreateWorkflowInstanceDto createInstanceDto) {
+        WorkflowInstanceDto instance = executionService.startWorkflowWithCalendar(createInstanceDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(instance);
     }
     

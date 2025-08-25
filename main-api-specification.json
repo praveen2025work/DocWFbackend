@@ -151,10 +151,13 @@
       "description": "Complete API specification for workflow execution and task management",
       "endpoints": [
         "Workflow instance management",
+        "Workflow creation with calendar mapping",
+        "Calendar-aware workflow execution",
         "Task assignment and execution",
         "Workflow progress monitoring",
         "Task escalation",
-        "Workflow statistics and reporting"
+        "Workflow statistics and reporting",
+        "Calendar validation for workflow execution"
       ]
     },
     "file-management": {
@@ -182,11 +185,15 @@
       "file": "calendar-api.json",
       "description": "Complete API specification for calendar and scheduling operations",
       "endpoints": [
-        "Workflow scheduling",
+        "Calendar creation with days in single API call",
+        "Calendar day management (HOLIDAY, RUNDAY)",
+        "Date validation and business rule enforcement",
+        "Workflow scheduling with calendar constraints",
         "Task due date management",
         "Reminder and notification system",
         "Calendar export and integration",
-        "User availability checking"
+        "User availability checking",
+        "Next/previous valid date calculation"
       ]
     }
   },

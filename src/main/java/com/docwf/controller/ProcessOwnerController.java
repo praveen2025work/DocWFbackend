@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,36 +34,58 @@ public class ProcessOwnerController {
      */
     @GetMapping("/dashboard")
     @Operation(summary = "Get Process Owner Dashboard", description = "Retrieves comprehensive dashboard for process owners with workflow overview and statistics")
-    public ResponseEntity<ProcessOwnerDashboardDto> getDashboard(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId) {
-        // TODO: Implement ProcessOwnerDashboardDto and service method
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ProcessOwnerDashboardDto> getDashboard() {
+        Long processOwnerId = getCurrentUserId();
+        ProcessOwnerDashboardDto dashboard = executionService.getProcessOwnerDashboard(processOwnerId);
+        return ResponseEntity.ok(dashboard);
     }
 
     /**
-     * Get all workflows managed by a process owner
+     * Get all workflows managed by the logged-in process owner
      */
     @GetMapping("/workflows")
-    @Operation(summary = "Get Process Owner Workflows", description = "Retrieves all workflows managed by a specific process owner")
+    @Operation(summary = "Get Process Owner Workflows", description = "Retrieves all workflows managed by the logged-in process owner")
     public ResponseEntity<List<WorkflowInstanceDto>> getProcessOwnerWorkflows(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId,
             @Parameter(description = "Filter by workflow status") @RequestParam(required = false) String status,
             @Parameter(description = "Filter by workflow priority") @RequestParam(required = false) String priority) {
-        // TODO: Implement service method to get workflows by process owner
-        return ResponseEntity.ok().build();
+        Long processOwnerId = getCurrentUserId();
+        List<WorkflowInstanceDto> workflows = executionService.getWorkflowInstancesByProcessOwner(processOwnerId, status, priority);
+        return ResponseEntity.ok(workflows);
     }
 
     /**
-     * Get all tasks managed by a process owner
+     * Get all tasks managed by the logged-in process owner
      */
     @GetMapping("/tasks")
-    @Operation(summary = "Get Process Owner Tasks", description = "Retrieves all tasks managed by a specific process owner")
+    @Operation(summary = "Get Process Owner Tasks", description = "Retrieves all tasks managed by the logged-in process owner")
     public ResponseEntity<List<WorkflowInstanceTaskDto>> getProcessOwnerTasks(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId,
             @Parameter(description = "Filter by task status") @RequestParam(required = false) String status,
             @Parameter(description = "Filter by task priority") @RequestParam(required = false) String priority) {
-        // TODO: Implement service method to get tasks by process owner
-        return ResponseEntity.ok().build();
+        Long processOwnerId = getCurrentUserId();
+        List<WorkflowInstanceTaskDto> tasks = executionService.getTasksByProcessOwner(processOwnerId, status, priority);
+        return ResponseEntity.ok(tasks);
+    }
+
+    /**
+     * Get workflows that need process owner attention
+     */
+    @GetMapping("/workflows/attention-needed")
+    @Operation(summary = "Get Workflows Needing Attention", description = "Retrieves workflows that need process owner attention (escalated, overdue, or stuck)")
+    public ResponseEntity<List<WorkflowInstanceDto>> getWorkflowsNeedingAttention() {
+        Long processOwnerId = getCurrentUserId();
+        List<WorkflowInstanceDto> workflows = executionService.getWorkflowInstancesNeedingProcessOwnerAttention(processOwnerId);
+        return ResponseEntity.ok(workflows);
+    }
+
+    /**
+     * Get overdue workflows for the logged-in process owner
+     */
+    @GetMapping("/workflows/overdue")
+    @Operation(summary = "Get Overdue Workflows", description = "Retrieves overdue workflows for the logged-in process owner")
+    public ResponseEntity<List<WorkflowInstanceDto>> getOverdueWorkflows() {
+        Long processOwnerId = getCurrentUserId();
+        List<WorkflowInstanceDto> workflows = executionService.getOverdueWorkflowsForProcessOwner(processOwnerId);
+        return ResponseEntity.ok(workflows);
     }
 
     /**
@@ -105,57 +129,57 @@ public class ProcessOwnerController {
     }
 
     /**
-     * Get escalation queue for process owner
+     * Get escalation queue for the logged-in process owner
      */
     @GetMapping("/escalation-queue")
-    @Operation(summary = "Get Escalation Queue", description = "Retrieves all items in the escalation queue for a process owner")
-    public ResponseEntity<List<EscalationItemDto>> getEscalationQueue(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId) {
-        // TODO: Implement escalation queue service method
-        return ResponseEntity.ok().build();
+    @Operation(summary = "Get Escalation Queue", description = "Retrieves all items in the escalation queue for the logged-in process owner")
+    public ResponseEntity<List<EscalationItemDto>> getEscalationQueue() {
+        Long processOwnerId = getCurrentUserId();
+        List<EscalationItemDto> escalationQueue = executionService.getEscalationQueueForProcessOwner(processOwnerId);
+        return ResponseEntity.ok(escalationQueue);
     }
 
     /**
      * Process owner statistics and metrics
      */
     @GetMapping("/stats")
-    @Operation(summary = "Get Process Owner Statistics", description = "Retrieves comprehensive statistics for a process owner")
+    @Operation(summary = "Get Process Owner Statistics", description = "Retrieves comprehensive statistics for the logged-in process owner")
     public ResponseEntity<ProcessOwnerStatsDto> getProcessOwnerStats(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId,
             @Parameter(description = "Start date for statistics (ISO 8601)") @RequestParam(required = false) String startDate,
             @Parameter(description = "End date for statistics (ISO 8601)") @RequestParam(required = false) String endDate) {
-        // TODO: Implement process owner statistics service method
-        return ResponseEntity.ok().build();
+        Long processOwnerId = getCurrentUserId();
+        ProcessOwnerStatsDto stats = executionService.getProcessOwnerStatistics(processOwnerId);
+        return ResponseEntity.ok(stats);
     }
 
     /**
      * Get process owner team members
      */
     @GetMapping("/team")
-    @Operation(summary = "Get Process Owner Team", description = "Retrieves all team members under a process owner")
-    public ResponseEntity<List<WorkflowUserDto>> getProcessOwnerTeam(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId) {
+    @Operation(summary = "Get Process Owner Team", description = "Retrieves all team members under the logged-in process owner")
+    public ResponseEntity<List<WorkflowUserDto>> getProcessOwnerTeam() {
+        Long processOwnerId = getCurrentUserId();
         // TODO: Implement team members service method
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Assign workflow to process owner
+     * Assign workflow to the logged-in process owner
      */
     @PostMapping("/workflows/{workflowId}/assign")
-    @Operation(summary = "Assign Workflow to Process Owner", description = "Assigns a workflow to a specific process owner")
+    @Operation(summary = "Assign Workflow to Process Owner", description = "Assigns a workflow to the logged-in process owner")
     public ResponseEntity<WorkflowInstanceDto> assignWorkflowToProcessOwner(
-            @Parameter(description = "Workflow instance ID") @PathVariable Long workflowId,
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId) {
+            @Parameter(description = "Workflow instance ID") @PathVariable Long workflowId) {
+        Long processOwnerId = getCurrentUserId();
         // TODO: Implement workflow assignment to process owner service method
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Remove workflow from process owner
+     * Remove workflow from the logged-in process owner
      */
     @DeleteMapping("/workflows/{workflowId}/unassign")
-    @Operation(summary = "Unassign Workflow from Process Owner", description = "Removes workflow assignment from a process owner")
+    @Operation(summary = "Unassign Workflow from Process Owner", description = "Removes workflow assignment from the logged-in process owner")
     public ResponseEntity<Void> unassignWorkflowFromProcessOwner(
             @Parameter(description = "Workflow instance ID") @PathVariable Long workflowId) {
         // TODO: Implement workflow unassignment service method
@@ -166,9 +190,9 @@ public class ProcessOwnerController {
      * Get process owner workload summary
      */
     @GetMapping("/workload")
-    @Operation(summary = "Get Process Owner Workload", description = "Retrieves workload summary for a process owner")
-    public ResponseEntity<ProcessOwnerWorkloadDto> getProcessOwnerWorkload(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId) {
+    @Operation(summary = "Get Process Owner Workload", description = "Retrieves workload summary for the logged-in process owner")
+    public ResponseEntity<ProcessOwnerWorkloadDto> getProcessOwnerWorkload() {
+        Long processOwnerId = getCurrentUserId();
         // TODO: Implement process owner workload service method
         return ResponseEntity.ok().build();
     }
@@ -177,11 +201,26 @@ public class ProcessOwnerController {
      * Get process owner performance metrics
      */
     @GetMapping("/performance")
-    @Operation(summary = "Get Process Owner Performance", description = "Retrieves performance metrics for a process owner")
+    @Operation(summary = "Get Process Owner Performance", description = "Retrieves performance metrics for the logged-in process owner")
     public ResponseEntity<ProcessOwnerPerformanceDto> getProcessOwnerPerformance(
-            @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId,
             @Parameter(description = "Performance period (WEEKLY, MONTHLY, QUARTERLY)") @RequestParam(defaultValue = "MONTHLY") String period) {
+        Long processOwnerId = getCurrentUserId();
         // TODO: Implement process owner performance service method
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Helper method to get the current logged-in user's ID
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
+            org.springframework.security.core.userdetails.UserDetails userDetails = 
+                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
+            // TODO: Extract user ID from UserDetails or implement proper user ID extraction
+            // For now, return a default value - this should be implemented based on your security setup
+            return 1L; // Placeholder - implement proper user ID extraction
+        }
+        throw new RuntimeException("User not authenticated");
     }
 }

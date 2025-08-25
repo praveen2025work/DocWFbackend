@@ -189,11 +189,12 @@ public class WorkflowCalendar {
     }
     
     public boolean isDateValid(LocalDate date) {
+        // Check if date is within calendar range
         if (date.isBefore(startDate) || date.isAfter(endDate)) {
             return false;
         }
         
-        // Check if it's a holiday
+        // Check if it's a holiday - holidays are always invalid
         boolean isHoliday = calendarDays.stream()
             .anyMatch(day -> day.getDayDate().equals(date) && "HOLIDAY".equals(day.getDayType()));
         
@@ -201,7 +202,7 @@ public class WorkflowCalendar {
             return false;
         }
         
-        // Check if it's a specific run day
+        // Check if it's a specific run day - run days are always valid
         boolean isRunDay = calendarDays.stream()
             .anyMatch(day -> day.getDayDate().equals(date) && "RUNDAY".equals(day.getDayType()));
         
@@ -209,12 +210,60 @@ public class WorkflowCalendar {
             return true;
         }
         
-        // If no specific run days defined, check if it's a weekend
+        // If no specific run days defined, apply default rules based on recurrence
         if (recurrence == null || "NONE".equals(recurrence)) {
+            // No recurrence: skip weekends
+            return !isWeekend(date);
+        } else if ("DAILY".equals(recurrence)) {
+            // Daily: all days except holidays
+            return true;
+        } else if ("WEEKLY".equals(recurrence)) {
+            // Weekly: skip weekends
+            return !isWeekend(date);
+        } else if ("MONTHLY".equals(recurrence)) {
+            // Monthly: skip weekends
+            return !isWeekend(date);
+        } else if ("YEARLY".equals(recurrence)) {
+            // Yearly: skip weekends
             return !isWeekend(date);
         }
         
-        return true;
+        // Default: skip weekends
+        return !isWeekend(date);
+    }
+    
+    /**
+     * Enhanced method to check if workflow can execute on a specific date
+     * This implements the business logic: 
+     * - If RUNDAY entries exist → workflow only runs on those dates
+     * - If no RUNDAY entries → workflow runs all days except holidays and weekends
+     */
+    public boolean canExecuteWorkflow(LocalDate date) {
+        // Check if date is within calendar range
+        if (date.isBefore(startDate) || date.isAfter(endDate)) {
+            return false;
+        }
+        
+        // Check if it's a holiday - holidays are always invalid
+        boolean isHoliday = calendarDays.stream()
+            .anyMatch(day -> day.getDayDate().equals(date) && "HOLIDAY".equals(day.getDayType()));
+        
+        if (isHoliday) {
+            return false;
+        }
+        
+        // Check if specific run days are defined
+        boolean hasRunDays = calendarDays.stream()
+            .anyMatch(day -> "RUNDAY".equals(day.getDayType()));
+        
+        if (hasRunDays) {
+            // If run days are defined, only run on those specific dates
+            return calendarDays.stream()
+                .anyMatch(day -> day.getDayDate().equals(date) && "RUNDAY".equals(day.getDayType()));
+        } else {
+            // If no run days defined, run on all days except holidays and weekends
+            return !isWeekend(date);
+        }
     }
     
     private boolean isWeekend(LocalDate date) {

@@ -38,6 +38,188 @@
     }
   ],
   "paths": {
+    "/api/calendar/with-days": {
+      "post": {
+        "tags": ["Calendar Management"],
+        "summary": "Create Calendar with Days",
+        "description": "Creates a new workflow calendar with all calendar days in a single API call, ensuring data consistency",
+        "operationId": "createCalendarWithDays",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarWithDaysDto"
+              },
+              "examples": {
+                "us_business_calendar": {
+                  "summary": "US Business Calendar 2025",
+                  "description": "Example of creating a US business calendar with holidays",
+                  "value": {
+                    "calendarName": "US Business Days 2025",
+                    "description": "Excludes US holidays and weekends",
+                    "startDate": "2025-01-01",
+                    "endDate": "2025-12-31",
+                    "recurrence": "YEARLY",
+                    "createdBy": "admin@company.com",
+                    "calendarDays": [
+                      {
+                        "dayDate": "2025-01-01",
+                        "dayType": "HOLIDAY",
+                        "note": "New Year's Day"
+                      },
+                      {
+                        "dayDate": "2025-01-20",
+                        "dayType": "HOLIDAY",
+                        "note": "Martin Luther King Jr. Day"
+                      },
+                      {
+                        "dayDate": "2025-02-17",
+                        "dayType": "HOLIDAY",
+                        "note": "Presidents' Day"
+                      },
+                      {
+                        "dayDate": "2025-05-26",
+                        "dayType": "HOLIDAY",
+                        "note": "Memorial Day"
+                      },
+                      {
+                        "dayDate": "2025-07-04",
+                        "dayType": "HOLIDAY",
+                        "note": "Independence Day"
+                      },
+                      {
+                        "dayDate": "2025-09-01",
+                        "dayType": "HOLIDAY",
+                        "note": "Labor Day"
+                      },
+                      {
+                        "dayDate": "2025-10-13",
+                        "dayType": "HOLIDAY",
+                        "note": "Columbus Day"
+                      },
+                      {
+                        "dayDate": "2025-11-11",
+                        "dayType": "HOLIDAY",
+                        "note": "Veterans Day"
+                      },
+                      {
+                        "dayDate": "2025-11-27",
+                        "dayType": "HOLIDAY",
+                        "note": "Thanksgiving Day"
+                      },
+                      {
+                        "dayDate": "2025-12-25",
+                        "dayType": "HOLIDAY",
+                        "note": "Christmas Day"
+                      }
+                    ]
+                  }
+                },
+                "monthly_financial_close": {
+                  "summary": "Monthly Financial Close Calendar",
+                  "description": "Example of creating a calendar with specific run dates for monthly processing",
+                  "value": {
+                    "calendarName": "Monthly Financial Close",
+                    "description": "Only runs on month-end business days",
+                    "startDate": "2025-01-01",
+                    "endDate": "2025-12-31",
+                    "recurrence": "MONTHLY",
+                    "createdBy": "finance@company.com",
+                    "calendarDays": [
+                      {
+                        "dayDate": "2025-01-31",
+                        "dayType": "RUNDAY",
+                        "note": "January month-end close"
+                      },
+                      {
+                        "dayDate": "2025-02-28",
+                        "dayType": "RUNDAY",
+                        "note": "February month-end close"
+                      },
+                      {
+                        "dayDate": "2025-03-31",
+                        "dayType": "RUNDAY",
+                        "note": "March month-end close"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Calendar created successfully with all days",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowCalendarDto"
+                },
+                "example": {
+                  "calendarId": 1,
+                  "calendarName": "US Business Days 2025",
+                  "description": "Excludes US holidays and weekends",
+                  "startDate": "2025-01-01",
+                  "endDate": "2025-12-31",
+                  "recurrence": "YEARLY",
+                  "createdBy": "admin@company.com",
+                  "createdAt": "2024-12-20T10:00:00",
+                  "updatedBy": null,
+                  "updatedAt": null,
+                  "calendarDays": [
+                    {
+                      "calendarDayId": 1,
+                      "calendarId": 1,
+                      "dayDate": "2025-01-01",
+                      "dayType": "HOLIDAY",
+                      "note": "New Year's Day"
+                    },
+                    {
+                      "calendarDayId": 2,
+                      "calendarId": 1,
+                      "dayDate": "2025-01-20",
+                      "dayType": "HOLIDAY",
+                      "note": "Martin Luther King Jr. Day"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "timestamp": "2024-12-20T10:00:00",
+                  "status": 400,
+                  "error": "Bad Request",
+                  "message": "Validation failed",
+                  "errors": [
+                    {
+                      "field": "calendarName",
+                      "message": "Calendar name is required"
+                    },
+                    {
+                      "field": "startDate",
+                      "message": "Start date is required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
     "/api/calendar/workflows": {
       "get": {
         "tags": ["Workflow Scheduling"],
@@ -1003,6 +1185,211 @@
           }
         },
         "required": ["format", "startDate", "endDate"]
+      },
+      "CreateCalendarWithDaysDto": {
+        "type": "object",
+        "description": "DTO for creating a calendar with calendar days in a single API call",
+        "properties": {
+          "calendarName": {
+            "type": "string",
+            "description": "Name of the calendar",
+            "example": "US Business Days 2025"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the calendar",
+            "example": "Excludes US holidays and weekends"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date of the calendar period",
+            "example": "2025-01-01"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "End date of the calendar period",
+            "example": "2025-12-31"
+          },
+          "recurrence": {
+            "type": "string",
+            "enum": ["NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+            "description": "Recurrence pattern for the calendar",
+            "example": "YEARLY"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Username or email of the user creating the calendar",
+            "example": "admin@company.com"
+          },
+          "calendarDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarDayInputDto"
+            },
+            "description": "List of calendar days to create",
+            "minItems": 1
+          }
+        },
+        "required": ["calendarName", "startDate", "endDate", "createdBy", "calendarDays"]
+      },
+      "CalendarDayInputDto": {
+        "type": "object",
+        "description": "DTO for calendar day input when creating calendar with days",
+        "properties": {
+          "dayDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of the calendar day",
+            "example": "2025-01-01"
+          },
+          "dayType": {
+            "type": "string",
+            "enum": ["HOLIDAY", "RUNDAY"],
+            "description": "Type of the calendar day",
+            "example": "HOLIDAY"
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note about the calendar day",
+            "example": "New Year's Day"
+          }
+        },
+        "required": ["dayDate", "dayType"]
+      },
+      "WorkflowCalendarDto": {
+        "type": "object",
+        "description": "DTO for workflow calendar with calendar days",
+        "properties": {
+          "calendarId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the calendar"
+          },
+          "calendarName": {
+            "type": "string",
+            "description": "Name of the calendar"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the calendar"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date of the calendar period"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "End date of the calendar period"
+          },
+          "recurrence": {
+            "type": "string",
+            "enum": ["NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+            "description": "Recurrence pattern for the calendar"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Username or email of the user who created the calendar"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the calendar was created"
+          },
+          "updatedBy": {
+            "type": "string",
+            "description": "Username or email of the user who last updated the calendar"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the calendar was last updated"
+          },
+          "calendarDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowCalendarDayDto"
+            },
+            "description": "List of calendar days associated with this calendar"
+          }
+        }
+      },
+      "WorkflowCalendarDayDto": {
+        "type": "object",
+        "description": "DTO for individual calendar day",
+        "properties": {
+          "calendarDayId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the calendar day"
+          },
+          "calendarId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the parent calendar"
+          },
+          "dayDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of the calendar day"
+          },
+          "dayType": {
+            "type": "string",
+            "enum": ["HOLIDAY", "RUNDAY"],
+            "description": "Type of the calendar day"
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note about the calendar day"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Standard error response format",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the error occurred"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "path": {
+            "type": "string",
+            "description": "Request path that caused the error"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Field name with validation error"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Validation error message"
+                }
+              }
+            },
+            "description": "Field-specific validation errors"
+          }
+        }
       }
     }
   }
