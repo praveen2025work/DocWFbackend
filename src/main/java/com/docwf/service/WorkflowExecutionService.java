@@ -26,6 +26,8 @@ import com.docwf.dto.ProcessOwnerWorkloadDto;
 import com.docwf.dto.ProcessOwnerPerformanceDto;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface WorkflowExecutionService {
     
@@ -341,4 +343,83 @@ public interface WorkflowExecutionService {
      * Get admin dashboard data
      */
     AdminDashboardDto getAdminDashboard(Long adminId);
+    
+    // User-specific search methods
+    
+    /**
+     * Search user tasks with multiple criteria
+     */
+    List<WorkflowInstanceTaskDto> searchUserTasks(Long userId, String status, String priority, 
+                                                 String startedAfter, String startedBefore, 
+                                                 String completedAfter, String completedBefore);
+    
+    /**
+     * Search user workflows with multiple criteria
+     */
+    List<WorkflowInstanceDto> searchUserWorkflows(Long userId, String status, 
+                                                 String startedAfter, String startedBefore, 
+                                                 String completedAfter, String completedBefore);
+    
+    /**
+     * Search user activities with multiple criteria
+     */
+    List<UserActivityDto> searchUserActivities(Long userId, String activityType, 
+                                              String startedAfter, String startedBefore, Integer limit);
+    
+    /**
+     * Search user notifications with multiple criteria
+     */
+    List<UserNotificationDto> searchUserNotifications(Long userId, String status, String type, 
+                                                     String createdAfter, String createdBefore);
+    
+    // Instance and task search methods
+    
+    /**
+     * Search workflow instances with multiple criteria
+     */
+    Page<WorkflowInstanceDto> searchInstances(Long workflowId, String status, Long startedBy,
+                                             String startedAfter, String startedBefore,
+                                             String completedAfter, String completedBefore,
+                                             Pageable pageable);
+    
+    /**
+     * Search workflow tasks with multiple criteria
+     */
+    Page<WorkflowInstanceTaskDto> searchTasks(Long instanceId, String status, Long assignedTo,
+                                             String startedAfter, String startedBefore,
+                                             String completedAfter, String completedBefore,
+                                             Pageable pageable);
+    
+    /**
+     * Get overdue workflow instances
+     */
+    List<WorkflowInstanceDto> getOverdueInstances(Integer thresholdHours);
+    
+    // Process Owner specific search methods
+    
+    /**
+     * Search process owner tasks with multiple criteria
+     */
+    List<WorkflowInstanceTaskDto> searchProcessOwnerTasks(Long processOwnerId, String status, String priority, Long assignedTo,
+                                                         String startedAfter, String startedBefore, 
+                                                         String completedAfter, String completedBefore);
+    
+    /**
+     * Search process owner workflows with multiple criteria
+     */
+    List<WorkflowInstanceDto> searchProcessOwnerWorkflows(Long processOwnerId, String status,
+                                                         String startedAfter, String startedBefore, 
+                                                         String completedAfter, String completedBefore);
+    
+    /**
+     * Search process owner team members with multiple criteria
+     */
+    List<WorkflowUserDto> searchProcessOwnerTeam(Long processOwnerId, String username, String firstName, String lastName,
+                                                 String isActive, String roleName);
+    
+    /**
+     * Search process owner escalations with multiple criteria
+     */
+    List<EscalationItemDto> searchProcessOwnerEscalations(Long processOwnerId, String status, String type,
+                                                          String escalatedAfter, String escalatedBefore);
 }

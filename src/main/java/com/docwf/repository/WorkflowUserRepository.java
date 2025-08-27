@@ -66,4 +66,28 @@ public interface WorkflowUserRepository extends JpaRepository<WorkflowUser, Long
      * Find users by active status with pagination
      */
     Page<WorkflowUser> findByIsActive(String isActive, Pageable pageable);
+    
+    /**
+     * Dynamic search for users with multiple criteria
+     */
+    @Query("SELECT u FROM WorkflowUser u WHERE " +
+           "(:username IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))) AND " +
+           "(:firstName IS NULL OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstName, '%'))) AND " +
+           "(:lastName IS NULL OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :lastName, '%'))) AND " +
+           "(:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
+           "(:isActive IS NULL OR u.isActive = :isActive) AND " +
+           "(:createdBy IS NULL OR LOWER(u.createdBy) LIKE LOWER(CONCAT('%', :createdBy, '%'))) AND " +
+           "(:escalationTo IS NULL OR u.escalationTo.userId = :escalationTo) AND " +
+           "(:createdAfter IS NULL OR u.createdOn >= :createdAfter) AND " +
+           "(:createdBefore IS NULL OR u.createdOn <= :createdBefore)")
+    Page<WorkflowUser> searchUsers(@Param("username") String username,
+                                   @Param("firstName") String firstName,
+                                   @Param("lastName") String lastName,
+                                   @Param("email") String email,
+                                   @Param("isActive") String isActive,
+                                   @Param("createdBy") String createdBy,
+                                   @Param("escalationTo") Long escalationTo,
+                                   @Param("createdAfter") java.time.LocalDateTime createdAfter,
+                                   @Param("createdBefore") java.time.LocalDateTime createdBefore,
+                                   Pageable pageable);
 }

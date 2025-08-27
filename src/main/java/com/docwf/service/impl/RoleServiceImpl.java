@@ -82,45 +82,26 @@ public class RoleServiceImpl implements RoleService {
     public Page<WorkflowRoleDto> searchRoles(String roleName, String isActive, String createdBy, 
                                            Long minRoleId, Long maxRoleId, String createdAfter, 
                                            String createdBefore, Pageable pageable) {
-        // Implement proper search logic with dynamic query building
-        if (roleName == null && isActive == null && createdBy == null && 
-            minRoleId == null && maxRoleId == null && createdAfter == null && createdBefore == null) {
-            // No search criteria, return all roles with pagination
-            return getAllRoles(isActive, pageable);
-        }
+        // Use repository method for better performance
+        java.time.LocalDateTime afterDate = null;
+        java.time.LocalDateTime beforeDate = null;
         
-        // Build dynamic search criteria
-        List<WorkflowRole> filteredRoles = roleRepository.findAll().stream()
-                .filter(role -> roleName == null || (role.getRoleName() != null && 
-                        role.getRoleName().toLowerCase().contains(roleName.toLowerCase())))
-                .filter(role -> isActive == null || (role.getIsActive() != null && 
-                        role.getIsActive().equals(isActive)))
-                .filter(role -> createdBy == null || (role.getCreatedBy() != null && 
-                        role.getCreatedBy().toLowerCase().contains(createdBy.toLowerCase())))
-                .filter(role -> minRoleId == null || (role.getRoleId() != null && 
-                        role.getRoleId() >= minRoleId))
-                .filter(role -> maxRoleId == null || (role.getRoleId() != null && 
-                        role.getRoleId() <= maxRoleId))
-                .filter(role -> createdAfter == null || (role.getCreatedOn() != null && 
-                        role.getCreatedOn().isAfter(LocalDateTime.parse(createdAfter))))
-                .filter(role -> createdBefore == null || (role.getCreatedOn() != null && 
-                        role.getCreatedOn().isBefore(LocalDateTime.parse(createdBefore))))
-                .collect(Collectors.toList());
-        
-        // Apply pagination manually since we're filtering in memory
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filteredRoles.size());
-        
-        if (start > filteredRoles.size()) {
+        try {
+            if (createdAfter != null) {
+                afterDate = java.time.LocalDateTime.parse(createdAfter);
+            }
+            if (createdBefore != null) {
+                beforeDate = java.time.LocalDateTime.parse(createdBefore);
+            }
+        } catch (Exception e) {
+            // If date parsing fails, return empty results
             return Page.empty(pageable);
         }
         
-        List<WorkflowRoleDto> pageContent = filteredRoles.subList(start, end)
-                .stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        Page<WorkflowRole> roles = roleRepository.searchRoles(
+                roleName, isActive, createdBy, minRoleId, maxRoleId, afterDate, beforeDate, pageable);
         
-        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredRoles.size());
+        return roles.map(this::convertToDto);
     }
     
     @Override

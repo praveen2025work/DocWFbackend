@@ -33,4 +33,26 @@ public interface WorkflowCalendarRepository extends JpaRepository<WorkflowCalend
      * Find calendars by recurrence with pagination
      */
     Page<WorkflowCalendar> findByRecurrence(String recurrence, Pageable pageable);
+    
+    /**
+     * Dynamic search for calendars with multiple criteria
+     */
+    @Query("SELECT c FROM WorkflowCalendar c WHERE " +
+           "(:calendarName IS NULL OR LOWER(c.calendarName) LIKE LOWER(CONCAT('%', :calendarName, '%'))) AND " +
+           "(:description IS NULL OR LOWER(c.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
+           "(:recurrence IS NULL OR c.recurrence = :recurrence) AND " +
+           "(:createdBy IS NULL OR LOWER(c.createdBy) LIKE LOWER(CONCAT('%', :createdBy, '%'))) AND " +
+           "(:startDate IS NULL OR c.startDate >= :startDate) AND " +
+           "(:endDate IS NULL OR c.endDate <= :endDate) AND " +
+           "(:createdAfter IS NULL OR c.createdAt >= :createdAfter) AND " +
+           "(:createdBefore IS NULL OR c.createdAt <= :createdBefore)")
+    Page<WorkflowCalendar> searchCalendars(@Param("calendarName") String calendarName,
+                                          @Param("description") String description,
+                                          @Param("recurrence") String recurrence,
+                                          @Param("createdBy") String createdBy,
+                                          @Param("startDate") java.time.LocalDate startDate,
+                                          @Param("endDate") java.time.LocalDate endDate,
+                                          @Param("createdAfter") java.time.LocalDateTime createdAfter,
+                                          @Param("createdBefore") java.time.LocalDateTime createdBefore,
+                                          Pageable pageable);
 }

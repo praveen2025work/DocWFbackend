@@ -101,32 +101,69 @@ public class UserDashboardController {
             @Parameter(description = "User ID") @RequestParam Long userId,
             @Parameter(description = "Filter by workflow status") @RequestParam(required = false) String status) {
         
-        // Convert status string to enum if provided
-        WorkflowInstance.InstanceStatus instanceStatus = null;
-        if (status != null && !status.isEmpty()) {
-            try {
-                instanceStatus = WorkflowInstance.InstanceStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                // Invalid status, return empty list
-                return ResponseEntity.ok(List.of());
-            }
-        }
+        List<WorkflowInstanceDto> workflows = executionService.getWorkflowInstancesByProcessOwner(userId, status, null);
+        return ResponseEntity.ok(workflows);
+    }
+    
+    // ===== SEARCH ENDPOINTS =====
+    
+    @GetMapping("/search/tasks")
+    @Operation(summary = "Search User Tasks", description = "Search user tasks with multiple criteria")
+    public ResponseEntity<List<WorkflowInstanceTaskDto>> searchUserTasks(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Task status") @RequestParam(required = false) String status,
+            @Parameter(description = "Priority") @RequestParam(required = false) String priority,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore) {
         
-        List<WorkflowInstance> workflows = instanceRepository.findWorkflowsByUserParticipation(userId, instanceStatus);
-        List<WorkflowInstanceDto> workflowDtos = workflows.stream()
-                .map(workflow -> {
-                    // Convert entity to DTO manually or use a mapper
-                    WorkflowInstanceDto dto = new WorkflowInstanceDto();
-                    dto.setInstanceId(workflow.getInstanceId());
-                    dto.setStatus(workflow.getStatus());
-                    dto.setStartedOn(workflow.getStartedOn());
-                    dto.setCompletedOn(workflow.getCompletedOn());
-                    // Set other fields as needed
-                    return dto;
-                })
-                .collect(java.util.stream.Collectors.toList());
+        List<WorkflowInstanceTaskDto> tasks = executionService.searchUserTasks(
+                userId, status, priority, startedAfter, startedBefore, completedAfter, completedBefore);
+        return ResponseEntity.ok(tasks);
+    }
+    
+    @GetMapping("/search/workflows")
+    @Operation(summary = "Search User Workflows", description = "Search user workflows with multiple criteria")
+    public ResponseEntity<List<WorkflowInstanceDto>> searchUserWorkflows(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Workflow status") @RequestParam(required = false) String status,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore) {
         
-        return ResponseEntity.ok(workflowDtos);
+        List<WorkflowInstanceDto> workflows = executionService.searchUserWorkflows(
+                userId, status, startedAfter, startedBefore, completedAfter, completedBefore);
+        return ResponseEntity.ok(workflows);
+    }
+    
+    @GetMapping("/search/activities")
+    @Operation(summary = "Search User Activities", description = "Search user activities with multiple criteria")
+    public ResponseEntity<List<UserActivityDto>> searchUserActivities(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Activity type") @RequestParam(required = false) String activityType,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Limit results") @RequestParam(defaultValue = "50") Integer limit) {
+        
+        List<UserActivityDto> activities = executionService.searchUserActivities(
+                userId, activityType, startedAfter, startedBefore, limit);
+        return ResponseEntity.ok(activities);
+    }
+    
+    @GetMapping("/search/notifications")
+    @Operation(summary = "Search User Notifications", description = "Search user notifications with multiple criteria")
+    public ResponseEntity<List<UserNotificationDto>> searchUserNotifications(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Notification status") @RequestParam(required = false) String status,
+            @Parameter(description = "Notification type") @RequestParam(required = false) String type,
+            @Parameter(description = "Created after date (ISO format)") @RequestParam(required = false) String createdAfter,
+            @Parameter(description = "Created before date (ISO format)") @RequestParam(required = false) String createdBefore) {
+        
+        List<UserNotificationDto> notifications = executionService.searchUserNotifications(
+                userId, status, type, createdAfter, createdBefore);
+        return ResponseEntity.ok(notifications);
     }
 
     /**

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstance, Long> {
@@ -33,6 +35,26 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
      * Find instances by workflow ID and multiple statuses
      */
     List<WorkflowInstance> findByWorkflowWorkflowIdAndStatusIn(Long workflowId, List<InstanceStatus> statuses);
+    
+    /**
+     * Dynamic search for workflow instances with multiple criteria
+     */
+    @Query("SELECT wi FROM WorkflowInstance wi WHERE " +
+           "(:workflowId IS NULL OR wi.workflow.workflowId = :workflowId) AND " +
+           "(:status IS NULL OR wi.status = :status) AND " +
+           "(:startedBy IS NULL OR wi.startedBy.userId = :startedBy) AND " +
+           "(:startedAfter IS NULL OR wi.startedOn >= :startedAfter) AND " +
+           "(:startedBefore IS NULL OR wi.startedOn <= :startedBefore) AND " +
+           "(:completedAfter IS NULL OR wi.completedOn >= :completedAfter) AND " +
+           "(:completedBefore IS NULL OR wi.completedOn <= :completedBefore)")
+    Page<WorkflowInstance> searchInstances(@Param("workflowId") Long workflowId,
+                                          @Param("status") InstanceStatus status,
+                                          @Param("startedBy") Long startedBy,
+                                          @Param("startedAfter") java.time.LocalDateTime startedAfter,
+                                          @Param("startedBefore") java.time.LocalDateTime startedBefore,
+                                          @Param("completedAfter") java.time.LocalDateTime completedAfter,
+                                          @Param("completedBefore") java.time.LocalDateTime completedBefore,
+                                          Pageable pageable);
     
     /**
      * Find instances started by a specific user
@@ -210,9 +232,9 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
      * Find workflows where user is participating (started by or assigned to)
      */
     @Query("SELECT DISTINCT wi FROM WorkflowInstance wi " +
-           "LEFT JOIN wi.instanceTasks wit " +
-           "WHERE wi.startedBy.userId = :userId " +
-           "OR wit.assignedTo.userId = :userId " +
+           "JOIN wi.instanceRoles wir " +
+           "WHERE wir.user.userId = :userId " +
+           "AND wir.isActive = 'Y' " +
            "AND (:status IS NULL OR wi.status = :status)")
     List<WorkflowInstance> findWorkflowsByUserParticipation(@Param("userId") Long userId, @Param("status") InstanceStatus status);
 }

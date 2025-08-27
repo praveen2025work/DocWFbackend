@@ -24,7 +24,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.nio.file.DirectoryStream;
 
 @RestController
 @RequestMapping("/api/files")
@@ -228,6 +231,122 @@ public class FileController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    
+    // ===== SEARCH ENDPOINTS =====
+    
+    @GetMapping("/search")
+    @Operation(summary = "Search files", description = "Search files using multiple criteria")
+    public ResponseEntity<List<FileInfo>> searchFiles(
+            @Parameter(description = "Filename pattern (partial match)") @RequestParam(required = false) String filename,
+            @Parameter(description = "File extension") @RequestParam(required = false) String extension,
+            @Parameter(description = "Minimum file size in bytes") @RequestParam(required = false) Long minSize,
+            @Parameter(description = "Maximum file size in bytes") @RequestParam(required = false) Long maxSize,
+            @Parameter(description = "Modified after date (ISO format)") @RequestParam(required = false) String modifiedAfter,
+            @Parameter(description = "Modified before date (ISO format)") @RequestParam(required = false) String modifiedBefore) {
+        
+        try {
+            List<FileInfo> files = searchFilesInDirectory(filename, extension, minSize, maxSize, modifiedAfter, modifiedBefore);
+            return ResponseEntity.ok(files);
+        } catch (Exception e) {
+            logger.error("Error searching files", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/search/consolidated")
+    @Operation(summary = "Search consolidated files", description = "Search consolidated files using multiple criteria")
+    public ResponseEntity<List<FileInfo>> searchConsolidatedFiles(
+            @Parameter(description = "Filename pattern (partial match)") @RequestParam(required = false) String filename,
+            @Parameter(description = "File extension") @RequestParam(required = false) String extension,
+            @Parameter(description = "Minimum file size in bytes") @RequestParam(required = false) Long minSize,
+            @Parameter(description = "Maximum file size in bytes") @RequestParam(required = false) Long maxSize,
+            @Parameter(description = "Modified after date (ISO format)") @RequestParam(required = false) String modifiedAfter,
+            @Parameter(description = "Modified before date (ISO format)") @RequestParam(required = false) String modifiedBefore) {
+        
+        try {
+            List<FileInfo> files = searchFilesInDirectory(filename, extension, minSize, maxSize, modifiedAfter, modifiedBefore, consolidatedDir);
+            return ResponseEntity.ok(files);
+        } catch (Exception e) {
+            logger.error("Error searching consolidated files", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Search files in a specific directory with multiple criteria
+     */
+    private List<FileInfo> searchFilesInDirectory(String filename, String extension, Long minSize, Long maxSize, 
+                                                 String modifiedAfter, String modifiedBefore) throws IOException {
+        return searchFilesInDirectory(filename, extension, minSize, maxSize, modifiedAfter, modifiedBefore, uploadDir);
+    }
+    
+    /**
+     * Search files in a specific directory with multiple criteria
+     */
+    private List<FileInfo> searchFilesInDirectory(String filename, String extension, Long minSize, Long maxSize, 
+                                                 String modifiedAfter, String modifiedBefore, String directory) throws IOException {
+        List<FileInfo> results = new ArrayList<>();
+        Path dirPath = Paths.get(directory);
+        
+        if (!Files.exists(dirPath)) {
+            return results;
+        }
+        
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath)) {
+            for (Path path : stream) {
+                if (Files.isRegularFile(path)) {
+                    FileInfo fileInfo = new FileInfo();
+                    fileInfo.setFilename(path.getFileName().toString());
+                    fileInfo.setSize(Files.size(path));
+                    fileInfo.setLastModified(Files.getLastModifiedTime(path).toInstant());
+                    fileInfo.setPath(path.toString());
+                    
+                    // Apply filters
+                    if (filename != null && !fileInfo.getFilename().toLowerCase().contains(filename.toLowerCase())) {
+                        continue;
+                    }
+                    
+                    if (extension != null && !fileInfo.getFilename().toLowerCase().endsWith(extension.toLowerCase())) {
+                        continue;
+                    }
+                    
+                    if (minSize != null && fileInfo.getSize() < minSize) {
+                        continue;
+                    }
+                    
+                    if (maxSize != null && fileInfo.getSize() > maxSize) {
+                        continue;
+                    }
+                    
+                    if (modifiedAfter != null) {
+                        try {
+                            java.time.LocalDateTime afterDate = java.time.LocalDateTime.parse(modifiedAfter);
+                            if (fileInfo.getLastModified().isBefore(afterDate.atZone(java.time.ZoneId.systemDefault()).toInstant())) {
+                                continue;
+                            }
+                        } catch (Exception e) {
+                            logger.warn("Invalid modifiedAfter date format: {}", modifiedAfter);
+                        }
+                    }
+                    
+                    if (modifiedBefore != null) {
+                        try {
+                            java.time.LocalDateTime beforeDate = java.time.LocalDateTime.parse(modifiedBefore);
+                            if (fileInfo.getLastModified().isAfter(beforeDate.atZone(java.time.ZoneId.systemDefault()).toInstant())) {
+                                continue;
+                            }
+                        } catch (Exception e) {
+                            logger.warn("Invalid modifiedBefore date format: {}", modifiedBefore);
+                        }
+                    }
+                    
+                    results.add(fileInfo);
+                }
+            }
+        }
+        
+        return results;
     }
     
     // Inner class for file information

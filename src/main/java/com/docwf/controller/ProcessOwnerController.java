@@ -232,4 +232,67 @@ public class ProcessOwnerController {
         }
         throw new RuntimeException("User not authenticated");
     }
+    
+    // ===== SEARCH ENDPOINTS =====
+    
+    @GetMapping("/search/tasks")
+    @Operation(summary = "Search Process Owner Tasks", description = "Search tasks managed by the process owner with multiple criteria")
+    public ResponseEntity<List<WorkflowInstanceTaskDto>> searchProcessOwnerTasks(
+            @Parameter(description = "Task status") @RequestParam(required = false) String status,
+            @Parameter(description = "Priority") @RequestParam(required = false) String priority,
+            @Parameter(description = "Assigned to user ID") @RequestParam(required = false) Long assignedTo,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore) {
+        
+        Long processOwnerId = getCurrentUserId();
+        List<WorkflowInstanceTaskDto> tasks = executionService.searchProcessOwnerTasks(
+                processOwnerId, status, priority, assignedTo, startedAfter, startedBefore, completedAfter, completedBefore);
+        return ResponseEntity.ok(tasks);
+    }
+    
+    @GetMapping("/search/workflows")
+    @Operation(summary = "Search Process Owner Workflows", description = "Search workflows managed by the process owner with multiple criteria")
+    public ResponseEntity<List<WorkflowInstanceDto>> searchProcessOwnerWorkflows(
+            @Parameter(description = "Workflow status") @RequestParam(required = false) String status,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore) {
+        
+        Long processOwnerId = getCurrentUserId();
+        List<WorkflowInstanceDto> workflows = executionService.searchProcessOwnerWorkflows(
+                processOwnerId, status, startedAfter, startedBefore, completedAfter, completedBefore);
+        return ResponseEntity.ok(workflows);
+    }
+    
+    @GetMapping("/search/team")
+    @Operation(summary = "Search Process Owner Team", description = "Search team members with multiple criteria")
+    public ResponseEntity<List<WorkflowUserDto>> searchProcessOwnerTeam(
+            @Parameter(description = "Username pattern") @RequestParam(required = false) String username,
+            @Parameter(description = "First name pattern") @RequestParam(required = false) String firstName,
+            @Parameter(description = "Last name pattern") @RequestParam(required = false) String lastName,
+            @Parameter(description = "Active status") @RequestParam(required = false) String isActive,
+            @Parameter(description = "Role name") @RequestParam(required = false) String roleName) {
+        
+        Long processOwnerId = getCurrentUserId();
+        List<WorkflowUserDto> teamMembers = executionService.searchProcessOwnerTeam(
+                processOwnerId, username, firstName, lastName, isActive, roleName);
+        return ResponseEntity.ok(teamMembers);
+    }
+    
+    @GetMapping("/search/escalations")
+    @Operation(summary = "Search Process Owner Escalations", description = "Search escalations with multiple criteria")
+    public ResponseEntity<List<EscalationItemDto>> searchProcessOwnerEscalations(
+            @Parameter(description = "Escalation status") @RequestParam(required = false) String status,
+            @Parameter(description = "Escalation type") @RequestParam(required = false) String type,
+            @Parameter(description = "Escalated after date (ISO format)") @RequestParam(required = false) String escalatedAfter,
+            @Parameter(description = "Escalated before date (ISO format)") @RequestParam(required = false) String escalatedBefore) {
+        
+        Long processOwnerId = getCurrentUserId();
+        List<EscalationItemDto> escalations = executionService.searchProcessOwnerEscalations(
+                processOwnerId, status, type, escalatedAfter, escalatedBefore);
+        return ResponseEntity.ok(escalations);
+    }
 }

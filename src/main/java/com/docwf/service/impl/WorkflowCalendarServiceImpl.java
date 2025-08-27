@@ -117,47 +117,34 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
     public Page<WorkflowCalendarDto> searchCalendars(String calendarName, String description, String recurrence, 
                                                     String createdBy, String startDate, String endDate, 
                                                     String createdAfter, String createdBefore, Pageable pageable) {
-        // Implement proper search logic with dynamic query building
-        if (calendarName == null && description == null && recurrence == null && createdBy == null && 
-            startDate == null && endDate == null && createdAfter == null && createdBefore == null) {
-            // No search criteria, return all calendars with pagination
-            return getAllCalendars(recurrence, pageable);
-        }
+        // Use repository method for better performance
+        java.time.LocalDate startDateObj = null;
+        java.time.LocalDate endDateObj = null;
+        java.time.LocalDateTime afterDate = null;
+        java.time.LocalDateTime beforeDate = null;
         
-        // Build dynamic search criteria
-        List<WorkflowCalendar> filteredCalendars = calendarRepository.findAll().stream()
-                .filter(calendar -> calendarName == null || (calendar.getCalendarName() != null && 
-                        calendar.getCalendarName().toLowerCase().contains(calendarName.toLowerCase())))
-                .filter(calendar -> description == null || (calendar.getDescription() != null && 
-                        calendar.getDescription().toLowerCase().contains(description.toLowerCase())))
-                .filter(calendar -> recurrence == null || (calendar.getRecurrence() != null && 
-                        calendar.getRecurrence().equals(recurrence)))
-                .filter(calendar -> createdBy == null || (calendar.getCreatedBy() != null && 
-                        calendar.getCreatedBy().toLowerCase().contains(createdBy.toLowerCase())))
-                .filter(calendar -> startDate == null || (calendar.getStartDate() != null && 
-                        calendar.getStartDate().isAfter(LocalDate.parse(startDate))))
-                .filter(calendar -> endDate == null || (calendar.getEndDate() != null && 
-                        calendar.getEndDate().isBefore(LocalDate.parse(endDate))))
-                .filter(calendar -> createdAfter == null || (calendar.getCreatedAt() != null && 
-                        calendar.getCreatedAt().isAfter(LocalDateTime.parse(createdAfter))))
-                .filter(calendar -> createdBefore == null || (calendar.getCreatedAt() != null && 
-                        calendar.getCreatedAt().isBefore(LocalDateTime.parse(createdBefore))))
-                .collect(Collectors.toList());
-        
-        // Apply pagination manually since we're filtering in memory
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filteredCalendars.size());
-        
-        if (start > filteredCalendars.size()) {
+        try {
+            if (startDate != null) {
+                startDateObj = java.time.LocalDate.parse(startDate);
+            }
+            if (endDate != null) {
+                endDateObj = java.time.LocalDate.parse(endDate);
+            }
+            if (createdAfter != null) {
+                afterDate = java.time.LocalDateTime.parse(createdAfter);
+            }
+            if (createdBefore != null) {
+                beforeDate = java.time.LocalDateTime.parse(createdBefore);
+            }
+        } catch (Exception e) {
+            // If date parsing fails, return empty results
             return Page.empty(pageable);
         }
         
-        List<WorkflowCalendarDto> pageContent = filteredCalendars.subList(start, end)
-                .stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        Page<WorkflowCalendar> calendars = calendarRepository.searchCalendars(
+                calendarName, description, recurrence, createdBy, startDateObj, endDateObj, afterDate, beforeDate, pageable);
         
-        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredCalendars.size());
+        return calendars.map(this::convertToDto);
     }
     
     @Override

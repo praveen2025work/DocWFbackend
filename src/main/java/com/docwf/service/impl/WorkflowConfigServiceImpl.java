@@ -105,47 +105,26 @@ public class WorkflowConfigServiceImpl implements WorkflowConfigService {
     public Page<WorkflowConfigDto> searchWorkflows(String name, String description, String isActive, 
                                                  String createdBy, Integer minDueTime, Integer maxDueTime,
                                                  String createdAfter, String createdBefore, Pageable pageable) {
-        // Implement proper search logic with dynamic query building
-        if (name == null && description == null && isActive == null && createdBy == null && 
-            minDueTime == null && maxDueTime == null && createdAfter == null && createdBefore == null) {
-            // No search criteria, return all workflows with pagination
-            return getAllWorkflows(isActive, pageable);
-        }
+        // Use repository method for better performance
+        java.time.LocalDateTime afterDate = null;
+        java.time.LocalDateTime beforeDate = null;
         
-        // Build dynamic search criteria
-        List<WorkflowConfig> filteredWorkflows = workflowRepository.findAll().stream()
-                .filter(workflow -> name == null || (workflow.getName() != null && 
-                        workflow.getName().toLowerCase().contains(name.toLowerCase())))
-                .filter(workflow -> description == null || (workflow.getDescription() != null && 
-                        workflow.getDescription().toLowerCase().contains(description.toLowerCase())))
-                .filter(workflow -> isActive == null || (workflow.getIsActive() != null && 
-                        workflow.getIsActive().equals(isActive)))
-                .filter(workflow -> createdBy == null || (workflow.getCreatedBy() != null && 
-                        workflow.getCreatedBy().toLowerCase().contains(createdBy.toLowerCase())))
-                .filter(workflow -> minDueTime == null || (workflow.getDueInMins() != null && 
-                        workflow.getDueInMins() >= minDueTime))
-                .filter(workflow -> maxDueTime == null || (workflow.getDueInMins() != null && 
-                        workflow.getDueInMins() <= maxDueTime))
-                .filter(workflow -> createdAfter == null || (workflow.getCreatedOn() != null && 
-                        workflow.getCreatedOn().isAfter(LocalDateTime.parse(createdAfter))))
-                .filter(workflow -> createdBefore == null || (workflow.getCreatedOn() != null && 
-                        workflow.getCreatedOn().isBefore(LocalDateTime.parse(createdBefore))))
-                .collect(Collectors.toList());
-        
-        // Apply pagination manually since we're filtering in memory
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filteredWorkflows.size());
-        
-        if (start > filteredWorkflows.size()) {
+        try {
+            if (createdAfter != null) {
+                afterDate = java.time.LocalDateTime.parse(createdAfter);
+            }
+            if (createdBefore != null) {
+                beforeDate = java.time.LocalDateTime.parse(createdBefore);
+            }
+        } catch (Exception e) {
+            // If date parsing fails, return empty results
             return Page.empty(pageable);
         }
         
-        List<WorkflowConfigDto> pageContent = filteredWorkflows.subList(start, end)
-                .stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        Page<WorkflowConfig> workflows = workflowRepository.searchWorkflows(
+                name, description, isActive, createdBy, minDueTime, maxDueTime, afterDate, beforeDate, pageable);
         
-        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredWorkflows.size());
+        return workflows.map(this::convertToDto);
     }
     
     @Override

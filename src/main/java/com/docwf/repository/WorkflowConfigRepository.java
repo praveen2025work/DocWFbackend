@@ -79,4 +79,26 @@ public interface WorkflowConfigRepository extends JpaRepository<WorkflowConfig, 
      * Find workflows by active status with pagination
      */
     Page<WorkflowConfig> findByIsActive(String isActive, Pageable pageable);
+    
+    /**
+     * Dynamic search for workflows with multiple criteria
+     */
+    @Query("SELECT w FROM WorkflowConfig w WHERE " +
+           "(:name IS NULL OR LOWER(w.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+           "(:description IS NULL OR LOWER(w.description) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
+           "(:isActive IS NULL OR w.isActive = :isActive) AND " +
+           "(:createdBy IS NULL OR LOWER(w.createdBy) LIKE LOWER(CONCAT('%', :createdBy, '%'))) AND " +
+           "(:minDueTime IS NULL OR w.dueInMins >= :minDueTime) AND " +
+           "(:maxDueTime IS NULL OR w.dueInMins <= :maxDueTime) AND " +
+           "(:createdAfter IS NULL OR w.createdOn >= :createdAfter) AND " +
+           "(:createdBefore IS NULL OR w.createdOn <= :createdBefore)")
+    Page<WorkflowConfig> searchWorkflows(@Param("name") String name,
+                                        @Param("description") String description,
+                                        @Param("isActive") String isActive,
+                                        @Param("createdBy") String createdBy,
+                                        @Param("minDueTime") Integer minDueTime,
+                                        @Param("maxDueTime") Integer maxDueTime,
+                                        @Param("createdAfter") java.time.LocalDateTime createdAfter,
+                                        @Param("createdBefore") java.time.LocalDateTime createdBefore,
+                                        Pageable pageable);
 }

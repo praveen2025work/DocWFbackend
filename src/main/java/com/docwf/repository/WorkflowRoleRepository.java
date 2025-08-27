@@ -50,4 +50,24 @@ public interface WorkflowRoleRepository extends JpaRepository<WorkflowRole, Long
      * Find roles by active status with pagination
      */
     Page<WorkflowRole> findByIsActive(String isActive, Pageable pageable);
+    
+    /**
+     * Dynamic search for roles with multiple criteria
+     */
+    @Query("SELECT r FROM WorkflowRole r WHERE " +
+           "(:roleName IS NULL OR LOWER(r.roleName) LIKE LOWER(CONCAT('%', :roleName, '%'))) AND " +
+           "(:isActive IS NULL OR r.isActive = :isActive) AND " +
+           "(:createdBy IS NULL OR LOWER(r.createdBy) LIKE LOWER(CONCAT('%', :createdBy, '%'))) AND " +
+           "(:minRoleId IS NULL OR r.roleId >= :minRoleId) AND " +
+           "(:maxRoleId IS NULL OR r.roleId <= :maxRoleId) AND " +
+           "(:createdAfter IS NULL OR r.createdOn >= :createdAfter) AND " +
+           "(:createdBefore IS NULL OR r.createdOn <= :createdBefore)")
+    Page<WorkflowRole> searchRoles(@Param("roleName") String roleName,
+                                   @Param("isActive") String isActive,
+                                   @Param("createdBy") String createdBy,
+                                   @Param("minRoleId") Long minRoleId,
+                                   @Param("maxRoleId") Long maxRoleId,
+                                   @Param("createdAfter") java.time.LocalDateTime createdAfter,
+                                   @Param("createdBefore") java.time.LocalDateTime createdBefore,
+                                   Pageable pageable);
 }
