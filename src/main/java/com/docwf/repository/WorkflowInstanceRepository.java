@@ -30,6 +30,11 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
     List<WorkflowInstance> findByWorkflowWorkflowIdAndStatus(Long workflowId, InstanceStatus status);
     
     /**
+     * Find instances by workflow ID and multiple statuses
+     */
+    List<WorkflowInstance> findByWorkflowWorkflowIdAndStatusIn(Long workflowId, List<InstanceStatus> statuses);
+    
+    /**
      * Find instances started by a specific user
      */
     List<WorkflowInstance> findByStartedByUserId(Long userId);

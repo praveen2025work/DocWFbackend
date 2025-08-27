@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import com.docwf.dto.WorkflowInstanceTaskDto;
 
 @Component
 public class WorkflowSchedulerJob {
@@ -57,7 +58,10 @@ public class WorkflowSchedulerJob {
             var overdueTasks = executionService.getOverdueTasks();
             if (!overdueTasks.isEmpty()) {
                 logger.info("Found {} overdue tasks", overdueTasks.size());
-                // TODO: Send notifications for overdue tasks
+                // Send notifications for overdue tasks
+                for (var task : overdueTasks) {
+                    sendOverdueTaskNotification(task);
+                }
             }
             logger.info("Completed overdue task check job");
         } catch (Exception e) {
@@ -75,11 +79,46 @@ public class WorkflowSchedulerJob {
             var attentionTasks = executionService.getTasksNeedingAttention();
             if (!attentionTasks.isEmpty()) {
                 logger.info("Found {} tasks needing attention", attentionTasks.size());
-                // TODO: Send notifications for tasks needing attention
+                // Send notifications for tasks needing attention
+                for (var task : attentionTasks) {
+                    sendAttentionTaskNotification(task);
+                }
             }
             logger.info("Completed tasks needing attention check job");
         } catch (Exception e) {
             logger.error("Error in tasks needing attention check job", e);
+        }
+    }
+    
+    /**
+     * Send notification for overdue task
+     */
+    private void sendOverdueTaskNotification(WorkflowInstanceTaskDto task) {
+        try {
+            logger.info("Sending overdue notification for task {} (instance: {})", 
+                task.getTaskName(), task.getInstanceId());
+            
+            // TODO: Integrate with actual notification service
+            // notificationService.sendOverdueTaskNotification(task);
+            
+        } catch (Exception e) {
+            logger.error("Error sending overdue task notification for task {}", task.getTaskId(), e);
+        }
+    }
+    
+    /**
+     * Send notification for task needing attention
+     */
+    private void sendAttentionTaskNotification(WorkflowInstanceTaskDto task) {
+        try {
+            logger.info("Sending attention notification for task {} (instance: {})", 
+                task.getTaskName(), task.getInstanceId());
+            
+            // TODO: Integrate with actual notification service
+            // notificationService.sendAttentionTaskNotification(task);
+            
+        } catch (Exception e) {
+            logger.error("Error sending attention task notification for task {}", task.getTaskId(), e);
         }
     }
 }

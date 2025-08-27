@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Service
 @Transactional
@@ -40,6 +41,9 @@ public class WorkflowConfigServiceImpl implements WorkflowConfigService {
     
     @Autowired
     private WorkflowUserRepository userRepository;
+    
+    @Autowired
+    private WorkflowInstanceRepository workflowInstanceRepository;
     
     @Override
     public WorkflowConfigDto createWorkflow(WorkflowConfigDto workflowDto) {
@@ -101,9 +105,47 @@ public class WorkflowConfigServiceImpl implements WorkflowConfigService {
     public Page<WorkflowConfigDto> searchWorkflows(String name, String description, String isActive, 
                                                  String createdBy, Integer minDueTime, Integer maxDueTime,
                                                  String createdAfter, String createdBefore, Pageable pageable) {
-        // For now, return all workflows with pagination
-        // TODO: Implement proper search logic
-        return getAllWorkflows(isActive, pageable);
+        // Implement proper search logic with dynamic query building
+        if (name == null && description == null && isActive == null && createdBy == null && 
+            minDueTime == null && maxDueTime == null && createdAfter == null && createdBefore == null) {
+            // No search criteria, return all workflows with pagination
+            return getAllWorkflows(isActive, pageable);
+        }
+        
+        // Build dynamic search criteria
+        List<WorkflowConfig> filteredWorkflows = workflowRepository.findAll().stream()
+                .filter(workflow -> name == null || (workflow.getName() != null && 
+                        workflow.getName().toLowerCase().contains(name.toLowerCase())))
+                .filter(workflow -> description == null || (workflow.getDescription() != null && 
+                        workflow.getDescription().toLowerCase().contains(description.toLowerCase())))
+                .filter(workflow -> isActive == null || (workflow.getIsActive() != null && 
+                        workflow.getIsActive().equals(isActive)))
+                .filter(workflow -> createdBy == null || (workflow.getCreatedBy() != null && 
+                        workflow.getCreatedBy().toLowerCase().contains(createdBy.toLowerCase())))
+                .filter(workflow -> minDueTime == null || (workflow.getDueInMins() != null && 
+                        workflow.getDueInMins() >= minDueTime))
+                .filter(workflow -> maxDueTime == null || (workflow.getDueInMins() != null && 
+                        workflow.getDueInMins() <= maxDueTime))
+                .filter(workflow -> createdAfter == null || (workflow.getCreatedOn() != null && 
+                        workflow.getCreatedOn().isAfter(LocalDateTime.parse(createdAfter))))
+                .filter(workflow -> createdBefore == null || (workflow.getCreatedOn() != null && 
+                        workflow.getCreatedOn().isBefore(LocalDateTime.parse(createdBefore))))
+                .collect(Collectors.toList());
+        
+        // Apply pagination manually since we're filtering in memory
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredWorkflows.size());
+        
+        if (start > filteredWorkflows.size()) {
+            return Page.empty(pageable);
+        }
+        
+        List<WorkflowConfigDto> pageContent = filteredWorkflows.subList(start, end)
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredWorkflows.size());
     }
     
     @Override
@@ -149,7 +191,14 @@ public class WorkflowConfigServiceImpl implements WorkflowConfigService {
                 .orElseThrow(() -> new WorkflowException("Workflow not found with ID: " + workflowId));
         
         // Check if workflow has running instances
-        // TODO: Add check for running instances
+        // Add check for running instances
+        List<WorkflowInstance> runningInstances = workflowInstanceRepository.findByWorkflowWorkflowIdAndStatusIn(
+                workflowId, Arrays.asList(WorkflowInstance.InstanceStatus.IN_PROGRESS, 
+                                      WorkflowInstance.InstanceStatus.PENDING));
+        
+        if (!runningInstances.isEmpty()) {
+            throw new WorkflowException("Cannot delete workflow. There are " + runningInstances.size() + " running instances.");
+        }
         
         workflowRepository.delete(workflow);
     }

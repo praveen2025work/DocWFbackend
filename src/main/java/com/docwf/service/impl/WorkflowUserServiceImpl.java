@@ -108,9 +108,50 @@ public class WorkflowUserServiceImpl implements WorkflowUserService {
     public Page<WorkflowUserDto> searchUsers(String username, String firstName, String lastName, String email, 
                                            String isActive, String createdBy, Long escalationTo, 
                                            String createdAfter, String createdBefore, Pageable pageable) {
-        // For now, return all users with pagination
-        // TODO: Implement proper search logic
-        return getAllUsers(isActive, pageable);
+        // Implement proper search logic with dynamic query building
+        if (username == null && firstName == null && lastName == null && email == null && 
+            isActive == null && createdBy == null && escalationTo == null && 
+            createdAfter == null && createdBefore == null) {
+            // No search criteria, return all users with pagination
+            return getAllUsers(isActive, pageable);
+        }
+        
+        // Build dynamic search criteria
+        List<WorkflowUser> filteredUsers = userRepository.findAll().stream()
+                .filter(user -> username == null || (user.getUsername() != null && 
+                        user.getUsername().toLowerCase().contains(username.toLowerCase())))
+                .filter(user -> firstName == null || (user.getFirstName() != null && 
+                        user.getFirstName().toLowerCase().contains(firstName.toLowerCase())))
+                .filter(user -> lastName == null || (user.getLastName() != null && 
+                        user.getLastName().toLowerCase().contains(lastName.toLowerCase())))
+                .filter(user -> email == null || (user.getEmail() != null && 
+                        user.getEmail().toLowerCase().contains(email.toLowerCase())))
+                .filter(user -> isActive == null || (user.getIsActive() != null && 
+                        user.getIsActive().equals(isActive)))
+                .filter(user -> createdBy == null || (user.getCreatedBy() != null && 
+                        user.getCreatedBy().toLowerCase().contains(createdBy.toLowerCase())))
+                .filter(user -> escalationTo == null || (user.getEscalationTo() != null && 
+                        user.getEscalationTo().getUserId().equals(escalationTo)))
+                .filter(user -> createdAfter == null || (user.getCreatedOn() != null && 
+                        user.getCreatedOn().isAfter(LocalDateTime.parse(createdAfter))))
+                .filter(user -> createdBefore == null || (user.getCreatedOn() != null && 
+                        user.getCreatedOn().isBefore(LocalDateTime.parse(createdBefore))))
+                .collect(Collectors.toList());
+        
+        // Apply pagination manually since we're filtering in memory
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredUsers.size());
+        
+        if (start > filteredUsers.size()) {
+            return Page.empty(pageable);
+        }
+        
+        List<WorkflowUserDto> pageContent = filteredUsers.subList(start, end)
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredUsers.size());
     }
     
     @Override

@@ -106,13 +106,14 @@ public class ProcessOwnerController {
      * Reassign a task to a different user
      */
     @PostMapping("/tasks/{taskId}/reassign")
-    @Operation(summary = "Reassign Task", description = "Process owner reassigns a task to a different user")
+    @Operation(summary = "Reassign Task", description = "Process owner reassigns a task to another user")
     public ResponseEntity<WorkflowInstanceTaskDto> reassignTask(
             @Parameter(description = "Task instance ID") @PathVariable Long taskId,
             @Parameter(description = "User ID to reassign task to") @RequestParam Long newUserId,
             @Parameter(description = "Reassignment reason") @RequestParam(required = false) String reason) {
-        // TODO: Implement task reassignment service method
-        return ResponseEntity.ok().build();
+        // Implement task reassignment service method
+        WorkflowInstanceTaskDto reassignedTask = executionService.reassignTask(taskId, newUserId, reason);
+        return ResponseEntity.ok(reassignedTask);
     }
 
     /**
@@ -124,8 +125,9 @@ public class ProcessOwnerController {
             @Parameter(description = "Task instance ID") @PathVariable Long taskId,
             @Parameter(description = "Override decision") @RequestParam String decision,
             @Parameter(description = "Override reason") @RequestParam String reason) {
-        // TODO: Implement task decision override service method
-        return ResponseEntity.ok().build();
+        // Implement task decision override service method
+        WorkflowInstanceTaskDto overriddenTask = executionService.overrideTaskDecision(taskId, decision, reason);
+        return ResponseEntity.ok(overriddenTask);
     }
 
     /**
@@ -159,8 +161,9 @@ public class ProcessOwnerController {
     @Operation(summary = "Get Process Owner Team", description = "Retrieves all team members under the logged-in process owner")
     public ResponseEntity<List<WorkflowUserDto>> getProcessOwnerTeam() {
         Long processOwnerId = getCurrentUserId();
-        // TODO: Implement team members service method
-        return ResponseEntity.ok().build();
+        // Implement team members service method
+        List<WorkflowUserDto> teamMembers = executionService.getProcessOwnerTeam(processOwnerId);
+        return ResponseEntity.ok(teamMembers);
     }
 
     /**
@@ -171,8 +174,9 @@ public class ProcessOwnerController {
     public ResponseEntity<WorkflowInstanceDto> assignWorkflowToProcessOwner(
             @Parameter(description = "Workflow instance ID") @PathVariable Long workflowId) {
         Long processOwnerId = getCurrentUserId();
-        // TODO: Implement workflow assignment to process owner service method
-        return ResponseEntity.ok().build();
+        // Implement workflow assignment to process owner service method
+        WorkflowInstanceDto assignedWorkflow = executionService.assignWorkflowToProcessOwner(workflowId, processOwnerId);
+        return ResponseEntity.ok(assignedWorkflow);
     }
 
     /**
@@ -182,7 +186,9 @@ public class ProcessOwnerController {
     @Operation(summary = "Unassign Workflow from Process Owner", description = "Removes workflow assignment from the logged-in process owner")
     public ResponseEntity<Void> unassignWorkflowFromProcessOwner(
             @Parameter(description = "Workflow instance ID") @PathVariable Long workflowId) {
-        // TODO: Implement workflow unassignment service method
+        Long processOwnerId = getCurrentUserId();
+        // Implement workflow unassignment service method
+        executionService.unassignWorkflowFromProcessOwner(workflowId, processOwnerId);
         return ResponseEntity.noContent().build();
     }
 
@@ -193,8 +199,9 @@ public class ProcessOwnerController {
     @Operation(summary = "Get Process Owner Workload", description = "Retrieves workload summary for the logged-in process owner")
     public ResponseEntity<ProcessOwnerWorkloadDto> getProcessOwnerWorkload() {
         Long processOwnerId = getCurrentUserId();
-        // TODO: Implement process owner workload service method
-        return ResponseEntity.ok().build();
+        // Implement process owner workload service method
+        ProcessOwnerWorkloadDto workload = executionService.getProcessOwnerWorkload(processOwnerId);
+        return ResponseEntity.ok(workload);
     }
 
     /**
@@ -205,8 +212,9 @@ public class ProcessOwnerController {
     public ResponseEntity<ProcessOwnerPerformanceDto> getProcessOwnerPerformance(
             @Parameter(description = "Performance period (WEEKLY, MONTHLY, QUARTERLY)") @RequestParam(defaultValue = "MONTHLY") String period) {
         Long processOwnerId = getCurrentUserId();
-        // TODO: Implement process owner performance service method
-        return ResponseEntity.ok().build();
+        // Implement process owner performance service method
+        ProcessOwnerPerformanceDto performance = executionService.getProcessOwnerPerformance(processOwnerId, period);
+        return ResponseEntity.ok(performance);
     }
 
     /**
@@ -217,8 +225,9 @@ public class ProcessOwnerController {
         if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
             org.springframework.security.core.userdetails.UserDetails userDetails = 
                 (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
-            // TODO: Extract user ID from UserDetails or implement proper user ID extraction
+            // Extract user ID from UserDetails or implement proper user ID extraction
             // For now, return a default value - this should be implemented based on your security setup
+            // TODO: Implement proper user ID extraction from UserDetails
             return 1L; // Placeholder - implement proper user ID extraction
         }
         throw new RuntimeException("User not authenticated");

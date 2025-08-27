@@ -2,7 +2,11 @@ package com.docwf.service.impl;
 
 import com.docwf.dto.WorkflowRoleDto;
 import com.docwf.entity.WorkflowRole;
+import com.docwf.entity.WorkflowUser;
+import com.docwf.entity.WorkflowConfigRole;
 import com.docwf.repository.WorkflowRoleRepository;
+import com.docwf.repository.WorkflowUserRepository;
+import com.docwf.repository.WorkflowConfigRoleRepository;
 import com.docwf.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,6 +25,12 @@ public class RoleServiceImpl implements RoleService {
     
     @Autowired
     private WorkflowRoleRepository roleRepository;
+    
+    @Autowired
+    private WorkflowUserRepository userRepository;
+    
+    @Autowired
+    private WorkflowConfigRoleRepository configRoleRepository;
     
     @Override
     public WorkflowRoleDto createRole(WorkflowRoleDto roleDto) {
@@ -72,9 +82,45 @@ public class RoleServiceImpl implements RoleService {
     public Page<WorkflowRoleDto> searchRoles(String roleName, String isActive, String createdBy, 
                                            Long minRoleId, Long maxRoleId, String createdAfter, 
                                            String createdBefore, Pageable pageable) {
-        // For now, return all roles with pagination
-        // TODO: Implement proper search logic
-        return getAllRoles(isActive, pageable);
+        // Implement proper search logic with dynamic query building
+        if (roleName == null && isActive == null && createdBy == null && 
+            minRoleId == null && maxRoleId == null && createdAfter == null && createdBefore == null) {
+            // No search criteria, return all roles with pagination
+            return getAllRoles(isActive, pageable);
+        }
+        
+        // Build dynamic search criteria
+        List<WorkflowRole> filteredRoles = roleRepository.findAll().stream()
+                .filter(role -> roleName == null || (role.getRoleName() != null && 
+                        role.getRoleName().toLowerCase().contains(roleName.toLowerCase())))
+                .filter(role -> isActive == null || (role.getIsActive() != null && 
+                        role.getIsActive().equals(isActive)))
+                .filter(role -> createdBy == null || (role.getCreatedBy() != null && 
+                        role.getCreatedBy().toLowerCase().contains(createdBy.toLowerCase())))
+                .filter(role -> minRoleId == null || (role.getRoleId() != null && 
+                        role.getRoleId() >= minRoleId))
+                .filter(role -> maxRoleId == null || (role.getRoleId() != null && 
+                        role.getRoleId() <= maxRoleId))
+                .filter(role -> createdAfter == null || (role.getCreatedOn() != null && 
+                        role.getCreatedOn().isAfter(LocalDateTime.parse(createdAfter))))
+                .filter(role -> createdBefore == null || (role.getCreatedOn() != null && 
+                        role.getCreatedOn().isBefore(LocalDateTime.parse(createdBefore))))
+                .collect(Collectors.toList());
+        
+        // Apply pagination manually since we're filtering in memory
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredRoles.size());
+        
+        if (start > filteredRoles.size()) {
+            return Page.empty(pageable);
+        }
+        
+        List<WorkflowRoleDto> pageContent = filteredRoles.subList(start, end)
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredRoles.size());
     }
     
     @Override
@@ -139,22 +185,51 @@ public class RoleServiceImpl implements RoleService {
     
     @Override
     public void assignRoleToUser(Long roleId, Long userId) {
-        // This would need to be implemented based on the user-role relationship
-        // For now, just checking if role exists
-        if (!roleRepository.existsById(roleId)) {
-            throw new RuntimeException("Role not found with ID: " + roleId);
+        // Implement user-role assignment logic
+        WorkflowRole role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
+        
+        WorkflowUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        
+        // For general role assignments, we'll create a system-level workflow assignment
+        // This is a simplified approach - in a real system, you might have a separate UserRole entity
+        
+        // Check if assignment already exists (using null workflowId for system-level assignments)
+        WorkflowConfigRole existingAssignment = configRoleRepository
+                .findByWorkflowWorkflowIdAndRoleRoleIdAndUserUserId(null, roleId, userId);
+        
+        if (existingAssignment != null) {
+            throw new RuntimeException("User already has this role assigned");
         }
-        // TODO: Implement user-role assignment logic
+        
+        // Create new role assignment (system-level, no specific workflow)
+        WorkflowConfigRole roleAssignment = new WorkflowConfigRole();
+        // Note: We can't set workflow to null due to @NotNull constraint
+        // This approach needs to be revised based on your actual requirements
+        // For now, we'll throw an exception indicating this needs a different approach
+        throw new RuntimeException("General user-role assignment not supported with current entity structure. " +
+                "Consider creating a separate UserRole entity or using workflow-specific assignments.");
     }
     
     @Override
     public void unassignRoleFromUser(Long roleId, Long userId) {
-        // This would need to be implemented based on the user-role relationship
-        // For now, just checking if role exists
-        if (!roleRepository.existsById(roleId)) {
-            throw new RuntimeException("Role not found with ID: " + roleId);
+        // Implement user-role unassignment logic
+        WorkflowRole role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
+        
+        WorkflowUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        
+        // Find and remove existing assignment (system-level)
+        WorkflowConfigRole existingAssignment = configRoleRepository
+                .findByWorkflowWorkflowIdAndRoleRoleIdAndUserUserId(null, roleId, userId);
+        
+        if (existingAssignment != null) {
+            configRoleRepository.delete(existingAssignment);
+        } else {
+            throw new RuntimeException("User does not have this role assigned");
         }
-        // TODO: Implement user-role unassignment logic
     }
     
     private WorkflowRoleDto convertToDto(WorkflowRole role) {

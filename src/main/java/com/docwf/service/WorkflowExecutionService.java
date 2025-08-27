@@ -21,6 +21,9 @@ import com.docwf.dto.UserTeamDto;
 import com.docwf.dto.UserPreferencesDto;
 import com.docwf.dto.ManagerDashboardDto;
 import com.docwf.dto.AdminDashboardDto;
+import com.docwf.dto.WorkflowUserDto;
+import com.docwf.dto.ProcessOwnerWorkloadDto;
+import com.docwf.dto.ProcessOwnerPerformanceDto;
 import java.util.List;
 import java.util.Optional;
 
@@ -232,9 +235,44 @@ public interface WorkflowExecutionService {
     List<EscalationItemDto> getEscalationQueueForProcessOwner(Long processOwnerId);
     
     /**
-     * Get process owner statistics for dashboard
+     * Get process owner statistics
      */
     ProcessOwnerStatsDto getProcessOwnerStatistics(Long processOwnerId);
+    
+    /**
+     * Reassign a task to another user
+     */
+    WorkflowInstanceTaskDto reassignTask(Long taskId, Long newUserId, String reason);
+    
+    /**
+     * Override task decision with process owner authority
+     */
+    WorkflowInstanceTaskDto overrideTaskDecision(Long taskId, String decision, String reason);
+    
+    /**
+     * Get process owner team members
+     */
+    List<WorkflowUserDto> getProcessOwnerTeam(Long processOwnerId);
+    
+    /**
+     * Assign workflow to process owner
+     */
+    WorkflowInstanceDto assignWorkflowToProcessOwner(Long workflowId, Long processOwnerId);
+    
+    /**
+     * Unassign workflow from process owner
+     */
+    void unassignWorkflowFromProcessOwner(Long workflowId, Long processOwnerId);
+    
+    /**
+     * Get process owner workload
+     */
+    ProcessOwnerWorkloadDto getProcessOwnerWorkload(Long processOwnerId);
+    
+    /**
+     * Get process owner performance metrics
+     */
+    ProcessOwnerPerformanceDto getProcessOwnerPerformance(Long processOwnerId, String period);
     
     // User Dashboard specific methods
     /**

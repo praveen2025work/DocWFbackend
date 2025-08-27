@@ -212,4 +212,46 @@ public interface WorkflowInstanceTaskRepository extends JpaRepository<WorkflowIn
      * Count tasks by status
      */
     long countByStatus(TaskInstanceStatus status);
+    
+    /**
+     * Find tasks by assigned user ID and date range
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit WHERE wit.assignedTo.userId = :userId " +
+           "AND ((wit.startedOn BETWEEN :startDate AND :endDate) OR " +
+           "(wit.completedOn BETWEEN :startDate AND :endDate) OR " +
+           "(:startDate BETWEEN wit.startedOn AND wit.completedOn))")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndDateRange(@Param("userId") Long userId, 
+                                                                 @Param("startDate") LocalDateTime startDate, 
+                                                                 @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Find tasks by assigned user ID and status
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit WHERE wit.assignedTo.userId = :userId AND wit.status = :status")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndStatus(@Param("userId") Long userId, @Param("status") TaskInstanceStatus status);
+    
+    /**
+     * Find tasks by assigned user ID and priority
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit JOIN wit.task t WHERE wit.assignedTo.userId = :userId AND t.priority = :priority")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndPriority(@Param("userId") Long userId, @Param("priority") String priority);
+    
+    /**
+     * Find tasks by assigned user ID, status and priority
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit JOIN wit.task t WHERE wit.assignedTo.userId = :userId " +
+           "AND wit.status = :status AND t.priority = :priority")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndStatusAndPriority(@Param("userId") Long userId, 
+                                                                        @Param("status") TaskInstanceStatus status, 
+                                                                        @Param("priority") String priority);
+    
+    /**
+     * Find conflicting tasks for a user in a time range
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit WHERE wit.assignedTo.userId = :userId " +
+           "AND wit.status IN ('PENDING', 'IN_PROGRESS') " +
+           "AND NOT (wit.completedOn <= :startTime OR wit.startedOn >= :endTime)")
+    List<WorkflowInstanceTask> findConflictingTasks(@Param("userId") Long userId, 
+                                                   @Param("startTime") LocalDateTime startTime, 
+                                                   @Param("endTime") LocalDateTime endTime);
 }
