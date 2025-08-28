@@ -228,4 +228,67 @@ public class WorkflowCalendarController {
         List<WorkflowCalendarDayDto> runDays = calendarService.getRunDaysInRange(calendarId, startDate, endDate);
         return ResponseEntity.ok(runDays);
     }
+    
+    // ===== ADDITIONAL ENDPOINTS TO MATCH SAMPLE_REQUESTS.JSON =====
+    
+    @GetMapping("/calendars")
+    @Operation(summary = "Get all calendars", description = "Retrieves all calendars with optional filtering and pagination")
+    public ResponseEntity<Page<WorkflowCalendarDto>> getAllCalendarsPlural(
+            @Parameter(description = "Filter by recurrence type") @RequestParam(required = false) String recurrence,
+            Pageable pageable) {
+        Page<WorkflowCalendarDto> calendars = calendarService.getAllCalendars(recurrence, pageable);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @PostMapping("/calendars")
+    @Operation(summary = "Create new calendar", description = "Creates a new workflow calendar")
+    public ResponseEntity<WorkflowCalendarDto> createCalendarPlural(
+            @Valid @RequestBody WorkflowCalendarDto calendarDto) {
+        WorkflowCalendarDto createdCalendar = calendarService.createCalendar(calendarDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCalendar);
+    }
+    
+    @GetMapping("/calendars/{calendarId}/days")
+    @Operation(summary = "Get all days for a calendar", description = "Retrieves all calendar days for a specific calendar")
+    public ResponseEntity<List<WorkflowCalendarDayDto>> getCalendarDaysPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        List<WorkflowCalendarDayDto> days = calendarService.getCalendarDays(calendarId);
+        return ResponseEntity.ok(days);
+    }
+    
+    @PostMapping("/calendars/{calendarId}/days")
+    @Operation(summary = "Add a day to calendar", description = "Adds a single day to a calendar")
+    public ResponseEntity<WorkflowCalendarDayDto> addCalendarDayPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Valid @RequestBody WorkflowCalendarDayDto dayDto) {
+        WorkflowCalendarDayDto createdDay = calendarService.addCalendarDay(calendarId, dayDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdDay);
+    }
+    
+    @PostMapping("/calendars/{calendarId}/days/batch")
+    @Operation(summary = "Add multiple days to calendar in batch", description = "Adds multiple calendar days in a single operation")
+    public ResponseEntity<List<WorkflowCalendarDayDto>> addCalendarDaysBatchPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Valid @RequestBody List<WorkflowCalendarDayDto> daysDto) {
+        List<WorkflowCalendarDayDto> createdDays = calendarService.addCalendarDaysBatch(calendarId, daysDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdDays);
+    }
+    
+    @GetMapping("/calendars/{calendarId}/validate-date")
+    @Operation(summary = "Check if a specific date is valid for workflow execution", description = "Validates a date against calendar rules")
+    public ResponseEntity<Boolean> validateDatePlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Parameter(description = "Date to validate") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        boolean isValid = calendarService.isDateValid(calendarId, date);
+        return ResponseEntity.ok(isValid);
+    }
+    
+    @GetMapping("/calendars/{calendarId}/can-execute")
+    @Operation(summary = "Check if a workflow can execute on a specific date", description = "Determines if workflow execution is allowed on a given date")
+    public ResponseEntity<Boolean> canExecuteWorkflowPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Parameter(description = "Date to check") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        boolean canExecute = calendarService.canExecuteWorkflow(calendarId, date);
+        return ResponseEntity.ok(canExecute);
+    }
 }

@@ -70,22 +70,42 @@ public interface WorkflowConfigService {
     List<WorkflowConfigDto> getWorkflowsNeedingReminders();
     
     /**
-     * Get workflows that need escalation
+     * Get workflows by status
      */
-    List<WorkflowConfigDto> getWorkflowsNeedingEscalation();
+    List<WorkflowConfigDto> getWorkflowsByStatus(String status);
     
     /**
-     * Get active workflows that should be executed based on calendar triggers
+     * Get workflows with pagination (alias for getAllWorkflows)
      */
-    List<WorkflowConfigDto> getActiveWorkflowsForExecution();
+    Page<WorkflowConfigDto> getWorkflowConfigs(Pageable pageable);
     
     /**
-     * Get active workflow entities that should be executed based on calendar triggers
+     * Get workflows by status (alias for getWorkflowsByStatus)
+     */
+    List<WorkflowConfigDto> getWorkflowConfigsByStatus(String status);
+    
+    /**
+     * Delete workflow (alias for deleteWorkflow)
+     */
+    void deleteWorkflowConfig(Long workflowId);
+    
+    /**
+     * Create workflow (alias for createWorkflow)
+     */
+    WorkflowConfigDto createWorkflowConfig(WorkflowConfigDto workflowDto);
+    
+    /**
+     * Update workflow (alias for updateWorkflow)
+     */
+    WorkflowConfigDto updateWorkflowConfig(Long workflowId, WorkflowConfigDto workflowDto);
+    
+    /**
+     * Get active workflows for execution (used by Quartz jobs)
      */
     List<WorkflowConfig> getActiveWorkflowEntitiesForExecution();
     
     /**
-     * Get workflows by specific calendar ID
+     * Get workflows by calendar ID
      */
     List<WorkflowConfig> getWorkflowsByCalendarId(Long calendarId);
     

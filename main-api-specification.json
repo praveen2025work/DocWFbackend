@@ -160,6 +160,20 @@
         "Calendar validation for workflow execution"
       ]
     },
+    "complex-workflow-execution": {
+      "file": "complex-workflow-execution-api.json",
+      "description": "Complete API specification for complex workflow execution with file dependencies and decision routing",
+      "endpoints": [
+        "Task execution with file dependencies",
+        "File consolidation with user selection",
+        "Decision-based workflow routing",
+        "Task revisitation and revision",
+        "File dependency validation",
+        "Consolidation preview and auto-consolidation",
+        "Decision routing options and outcomes",
+        "Revision history and capability checking"
+      ]
+    },
     "file-management": {
       "file": "file-management-api.json",
       "description": "Complete API specification for file operations",
