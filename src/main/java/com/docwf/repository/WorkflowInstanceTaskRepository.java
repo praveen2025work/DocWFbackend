@@ -197,8 +197,11 @@ public interface WorkflowInstanceTaskRepository extends JpaRepository<WorkflowIn
     @Query("SELECT COUNT(DISTINCT wit) FROM WorkflowInstanceTask wit " +
            "WHERE wit.assignedTo.userId = :userId " +
            "AND wit.status = 'COMPLETED' " +
-           "AND DATE(wit.completedOn) = CURRENT_DATE")
-    long countCompletedTasksTodayByUser(@Param("userId") Long userId);
+           "AND wit.completedOn >= :startOfDay " +
+           "AND wit.completedOn < :endOfDay")
+    long countCompletedTasksTodayByUser(@Param("userId") Long userId, 
+                                       @Param("startOfDay") LocalDateTime startOfDay,
+                                       @Param("endOfDay") LocalDateTime endOfDay);
     
     /**
      * Find recent tasks for a user (limited for dashboard)
@@ -233,14 +236,14 @@ public interface WorkflowInstanceTaskRepository extends JpaRepository<WorkflowIn
     /**
      * Find tasks by assigned user ID and priority
      */
-    @Query("SELECT wit FROM WorkflowInstanceTask wit JOIN wit.task t WHERE wit.assignedTo.userId = :userId AND t.priority = :priority")
+    @Query("SELECT wit FROM WorkflowInstanceTask wit JOIN wit.task t WHERE wit.assignedTo.userId = :userId AND t.taskPriority = :priority")
     List<WorkflowInstanceTask> findByAssignedToUserIdAndPriority(@Param("userId") Long userId, @Param("priority") String priority);
     
     /**
      * Find tasks by assigned user ID, status and priority
      */
     @Query("SELECT wit FROM WorkflowInstanceTask wit JOIN wit.task t WHERE wit.assignedTo.userId = :userId " +
-           "AND wit.status = :status AND t.priority = :priority")
+           "AND wit.status = :status AND t.taskPriority = :priority")
     List<WorkflowInstanceTask> findByAssignedToUserIdAndStatusAndPriority(@Param("userId") Long userId, 
                                                                         @Param("status") TaskInstanceStatus status, 
                                                                         @Param("priority") String priority);

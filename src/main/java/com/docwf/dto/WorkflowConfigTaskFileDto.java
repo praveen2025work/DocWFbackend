@@ -13,22 +13,31 @@ public class WorkflowConfigTaskFileDto {
     
     private String filePath;
     
-    private Integer fileVersion;
+    private String fileLocation;  // Physical storage location
+    
+    private String fileTypeRegex;  // File type pattern (e.g., "*.*", "*.xls", "*.pdf")
     
     private ActionType actionType;
     
-    private Long parentFileId;
+    private String fileDescription;
     
-    private String consolidatedFlag;
+    private String isRequired;  // Y/N
     
-    private String decisionOutcome;
+    private String fileStatus;  // PENDING, IN_PROGRESS, COMPLETED, REJECTED
+    
+    private String keepFileVersions;  // Y/N
+    
+    private String retainForCurrentPeriod;  // Y/N
+    
+    private String fileCommentary;  // Additional comments about the file
     
     private String createdBy;
     
-    private LocalDateTime createdAt;
+    private LocalDateTime createdOn;
     
-    // Related data
-    private String parentFileName;
+    private String updatedBy;
+    
+    private LocalDateTime updatedOn;
     
     // Constructors
     public WorkflowConfigTaskFileDto() {}
@@ -36,6 +45,14 @@ public class WorkflowConfigTaskFileDto {
     public WorkflowConfigTaskFileDto(String fileName, String filePath, ActionType actionType, String createdBy) {
         this.fileName = fileName;
         this.filePath = filePath;
+        this.actionType = actionType;
+        this.createdBy = createdBy;
+    }
+    
+    public WorkflowConfigTaskFileDto(String fileName, String filePath, String fileLocation, ActionType actionType, String createdBy) {
+        this.fileName = fileName;
+        this.filePath = filePath;
+        this.fileLocation = fileLocation;
         this.actionType = actionType;
         this.createdBy = createdBy;
     }
@@ -73,12 +90,20 @@ public class WorkflowConfigTaskFileDto {
         this.filePath = filePath;
     }
     
-    public Integer getFileVersion() {
-        return fileVersion;
+    public String getFileLocation() {
+        return fileLocation;
     }
     
-    public void setFileVersion(Integer fileVersion) {
-        this.fileVersion = fileVersion;
+    public void setFileLocation(String fileLocation) {
+        this.fileLocation = fileLocation;
+    }
+    
+    public String getFileTypeRegex() {
+        return fileTypeRegex;
+    }
+    
+    public void setFileTypeRegex(String fileTypeRegex) {
+        this.fileTypeRegex = fileTypeRegex;
     }
     
     public ActionType getActionType() {
@@ -89,28 +114,52 @@ public class WorkflowConfigTaskFileDto {
         this.actionType = actionType;
     }
     
-    public Long getParentFileId() {
-        return parentFileId;
+    public String getFileDescription() {
+        return fileDescription;
     }
     
-    public void setParentFileId(Long parentFileId) {
-        this.parentFileId = parentFileId;
+    public void setFileDescription(String fileDescription) {
+        this.fileDescription = fileDescription;
     }
     
-    public String getConsolidatedFlag() {
-        return consolidatedFlag;
+    public String getIsRequired() {
+        return isRequired;
     }
     
-    public void setConsolidatedFlag(String consolidatedFlag) {
-        this.consolidatedFlag = consolidatedFlag;
+    public void setIsRequired(String isRequired) {
+        this.isRequired = isRequired;
     }
     
-    public String getDecisionOutcome() {
-        return decisionOutcome;
+    public String getFileStatus() {
+        return fileStatus;
     }
     
-    public void setDecisionOutcome(String decisionOutcome) {
-        this.decisionOutcome = decisionOutcome;
+    public void setFileStatus(String fileStatus) {
+        this.fileStatus = fileStatus;
+    }
+    
+    public String getKeepFileVersions() {
+        return keepFileVersions;
+    }
+    
+    public void setKeepFileVersions(String keepFileVersions) {
+        this.keepFileVersions = keepFileVersions;
+    }
+    
+    public String getRetainForCurrentPeriod() {
+        return retainForCurrentPeriod;
+    }
+    
+    public void setRetainForCurrentPeriod(String retainForCurrentPeriod) {
+        this.retainForCurrentPeriod = retainForCurrentPeriod;
+    }
+    
+    public String getFileCommentary() {
+        return fileCommentary;
+    }
+    
+    public void setFileCommentary(String fileCommentary) {
+        this.fileCommentary = fileCommentary;
     }
     
     public String getCreatedBy() {
@@ -121,20 +170,57 @@ public class WorkflowConfigTaskFileDto {
         this.createdBy = createdBy;
     }
     
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreatedOn() {
+        return createdOn;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreatedOn(LocalDateTime createdOn) {
+        this.createdOn = createdOn;
     }
     
-    public String getParentFileName() {
-        return parentFileName;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
     
-    public void setParentFileName(String parentFileName) {
-        this.parentFileName = parentFileName;
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+    
+    public LocalDateTime getUpdatedOn() {
+        return updatedOn;
+    }
+    
+    public void setUpdatedOn(LocalDateTime updatedOn) {
+        this.updatedOn = updatedOn;
+    }
+    
+    // Helper methods
+    public boolean isRequired() {
+        return "Y".equals(isRequired);
+    }
+    
+    public boolean keepFileVersions() {
+        return "Y".equals(keepFileVersions);
+    }
+    
+    public boolean retainForCurrentPeriod() {
+        return "Y".equals(retainForCurrentPeriod);
+    }
+    
+    public boolean isPending() {
+        return "PENDING".equals(fileStatus);
+    }
+    
+    public boolean isInProgress() {
+        return "IN_PROGRESS".equals(fileStatus);
+    }
+    
+    public boolean isCompleted() {
+        return "COMPLETED".equals(fileStatus);
+    }
+    
+    public boolean isRejected() {
+        return "REJECTED".equals(fileStatus);
     }
     
     @Override
@@ -143,8 +229,11 @@ public class WorkflowConfigTaskFileDto {
                 "fileId=" + fileId +
                 ", fileName='" + fileName + '\'' +
                 ", filePath='" + filePath + '\'' +
+                ", fileLocation='" + fileLocation + '\'' +
+                ", fileTypeRegex='" + fileTypeRegex + '\'' +
                 ", actionType=" + actionType +
-                ", fileVersion=" + fileVersion +
+                ", fileStatus='" + fileStatus + '\'' +
+                ", isRequired='" + isRequired + '\'' +
                 '}';
     }
 }

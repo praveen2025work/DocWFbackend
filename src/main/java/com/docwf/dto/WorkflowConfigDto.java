@@ -23,7 +23,9 @@ public class WorkflowConfigDto {
     private Integer dueInMins;
     
     @NotNull(message = "Active status is required")
-    private String isActive;
+    private String isActive;  // Y/N
+    
+    private Long calendarId;  // Reference to the assigned calendar for this workflow
     
     private String createdBy;
     
@@ -110,6 +112,14 @@ public class WorkflowConfigDto {
     
     public void setIsActive(String isActive) {
         this.isActive = isActive;
+    }
+    
+    public Long getCalendarId() {
+        return calendarId;
+    }
+    
+    public void setCalendarId(Long calendarId) {
+        this.calendarId = calendarId;
     }
     
     public String getCreatedBy() {

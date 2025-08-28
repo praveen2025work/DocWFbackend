@@ -188,8 +188,11 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
            "AND wr.roleName = 'PROCESS_OWNER' " +
            "AND wir.isActive = 'Y' " +
            "AND wi.status = 'COMPLETED' " +
-           "AND DATE(wi.completedOn) = CURRENT_DATE")
-    long countCompletedWorkflowsTodayByProcessOwner(@Param("processOwnerId") Long processOwnerId);
+           "AND wi.completedOn >= :startOfDay " +
+           "AND wi.completedOn < :endOfDay")
+    long countCompletedWorkflowsTodayByProcessOwner(@Param("processOwnerId") Long processOwnerId,
+                                                   @Param("startOfDay") LocalDateTime startOfDay,
+                                                   @Param("endOfDay") LocalDateTime endOfDay);
     
     /**
      * Count escalated workflows for a process owner
@@ -225,8 +228,11 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
     @Query("SELECT COUNT(DISTINCT wi) FROM WorkflowInstance wi " +
            "WHERE wi.startedBy.userId = :userId " +
            "AND wi.status = 'COMPLETED' " +
-           "AND DATE(wi.completedOn) = CURRENT_DATE")
-    long countCompletedWorkflowsTodayByUser(@Param("userId") Long userId);
+           "AND wi.completedOn >= :startOfDay " +
+           "AND wi.completedOn < :endOfDay")
+    long countCompletedWorkflowsTodayByUser(@Param("userId") Long userId, 
+                                           @Param("startOfDay") LocalDateTime startOfDay, 
+                                           @Param("endOfDay") LocalDateTime endOfDay);
     
     /**
      * Find workflows where user is participating (started by or assigned to)

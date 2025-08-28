@@ -40,6 +40,9 @@ import java.util.stream.Collectors;
 import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.time.LocalDate;
 
 @Service
 @Transactional
@@ -1059,7 +1062,11 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         summary.setActiveWorkflows((int) instanceRepository.countActiveWorkflowsByProcessOwner(processOwnerId));
         summary.setPendingTasks((int) instanceTaskRepository.countPendingTasksByProcessOwner(processOwnerId));
         summary.setEscalatedItems((int) instanceRepository.countEscalatedWorkflowsByProcessOwner(processOwnerId));
-        summary.setCompletedToday((int) instanceRepository.countCompletedWorkflowsTodayByProcessOwner(processOwnerId));
+        // Get start and end of current day
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        
+        summary.setCompletedToday((int) instanceRepository.countCompletedWorkflowsTodayByProcessOwner(processOwnerId, startOfDay, endOfDay));
         
         // Calculate completion rate
         long totalWorkflows = instanceRepository.countTotalWorkflowsByProcessOwner(processOwnerId);
@@ -1121,7 +1128,9 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         long activeWorkflows = instanceRepository.countActiveWorkflowsByProcessOwner(processOwnerId);
         long pendingTasks = instanceTaskRepository.countPendingTasksByProcessOwner(processOwnerId);
         long escalatedItems = instanceRepository.countEscalatedWorkflowsByProcessOwner(processOwnerId);
-        long completedToday = instanceRepository.countCompletedWorkflowsTodayByProcessOwner(processOwnerId);
+        long completedToday = instanceRepository.countCompletedWorkflowsTodayByProcessOwner(processOwnerId,
+            LocalDateTime.now().toLocalDate().atStartOfDay(),
+            LocalDateTime.now().toLocalDate().atTime(23, 59, 59));
         
         // Set stats
         stats.setTotalWorkflows((int) totalWorkflows);
@@ -1184,7 +1193,11 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         summary.setActiveWorkflows((int) instanceRepository.countActiveWorkflowsByUser(userId));
         summary.setTotalTasks((int) instanceTaskRepository.countTotalTasksByUser(userId));
         summary.setPendingTasks((int) instanceTaskRepository.countPendingTasksByUser(userId));
-        summary.setCompletedTasks((int) instanceTaskRepository.countCompletedTasksTodayByUser(userId));
+        // Get start and end of current day
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        
+        summary.setCompletedTasks((int) instanceTaskRepository.countCompletedTasksTodayByUser(userId, startOfDay, endOfDay));
         
         // Calculate completion rates
         long totalWorkflows = instanceRepository.countTotalWorkflowsByUser(userId);
@@ -1339,5 +1352,153 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         
         // Placeholder implementation - return empty DTO
         return new AdminDashboardDto();
+    }
+
+    @Override
+    public List<EscalationItemDto> searchProcessOwnerEscalations(Long processOwnerId, String status, String type,
+                                                               String escalatedAfter, String escalatedBefore) {
+        logger.debug("Searching process owner escalations for processOwnerId: {}, status: {}, type: {}", 
+                    processOwnerId, status, type);
+        
+        try {
+            // Get all workflow instances where the user is the process owner
+            List<WorkflowInstance> instances = instanceRepository.findByWorkflowWorkflowIdAndStatusIn(
+                processOwnerId, List.of(WorkflowInstance.InstanceStatus.FAILED, WorkflowInstance.InstanceStatus.CANCELLED));
+            
+            List<EscalationItemDto> escalations = new ArrayList<>();
+            
+            for (WorkflowInstance instance : instances) {
+                // Filter by status if specified
+                if (status != null && !status.isEmpty() && !status.equals(instance.getStatus().toString())) {
+                    continue;
+                }
+                
+                // Filter by type if specified (escalation type)
+                if (type != null && !type.isEmpty()) {
+                    // Add type filtering logic here based on your escalation type field
+                    // For now, we'll include all escalated instances
+                }
+                
+                // Filter by escalation date if specified
+                if (escalatedAfter != null && !escalatedAfter.isEmpty()) {
+                    LocalDateTime escalatedAfterDate = LocalDateTime.parse(escalatedAfter);
+                    if (instance.getEscalatedTo() != null && instance.getStartedOn().isBefore(escalatedAfterDate)) {
+                        continue;
+                    }
+                }
+                
+                if (escalatedBefore != null && !escalatedBefore.isEmpty()) {
+                    LocalDateTime escalatedBeforeDate = LocalDateTime.parse(escalatedBefore);
+                    if (instance.getEscalatedTo() != null && instance.getStartedOn().isAfter(escalatedBeforeDate)) {
+                        continue;
+                    }
+                }
+                
+                // Create escalation item DTO
+                EscalationItemDto escalation = new EscalationItemDto();
+                escalation.setEntityId(instance.getInstanceId());
+                escalation.setEntityName(instance.getWorkflow().getName());
+                escalation.setStatus(instance.getStatus().toString());
+                escalation.setEscalatedToUserId(instance.getEscalatedTo() != null ? instance.getEscalatedTo().getUserId() : null);
+                escalation.setEscalatedAt(instance.getStartedOn());
+                escalation.setEscalationReason("Process owner escalation required");
+                
+                escalations.add(escalation);
+            }
+            
+            logger.debug("Found {} escalations for process owner {}", escalations.size(), processOwnerId);
+            return escalations;
+            
+        } catch (Exception e) {
+            logger.error("Error searching process owner escalations for processOwnerId: {}", processOwnerId, e);
+            throw new WorkflowException("Failed to search process owner escalations: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<UserNotificationDto> searchUserNotifications(Long userId, String status, String type,
+                                                           String createdAfter, String createdBefore) {
+        logger.debug("Searching user notifications for userId: {}, status: {}, type: {}", userId, status, type);
+        // TODO: Implement user notification search
+        return new ArrayList<>();
+    }
+
+    @Override
+    public Page<WorkflowInstanceDto> searchInstances(Long workflowId, String status, Long startedBy,
+                                                    String startedAfter, String startedBefore,
+                                                    String completedAfter, String completedBefore,
+                                                    Pageable pageable) {
+        logger.debug("Searching workflow instances with criteria");
+        // TODO: Implement workflow instance search with pagination
+        return Page.empty(pageable);
+    }
+
+    @Override
+    public List<WorkflowInstanceDto> getOverdueInstances(Integer thresholdHours) {
+        logger.debug("Getting overdue workflow instances with threshold: {} hours", thresholdHours);
+        // TODO: Implement overdue instances retrieval
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<WorkflowInstanceTaskDto> searchProcessOwnerTasks(Long processOwnerId, String status, String priority, Long assignedTo,
+                                                                String startedAfter, String startedBefore,
+                                                                String completedAfter, String completedBefore) {
+        logger.debug("Searching process owner tasks for processOwnerId: {}", processOwnerId);
+        // TODO: Implement process owner task search
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<WorkflowUserDto> searchProcessOwnerTeam(Long processOwnerId, String username, String firstName, String lastName,
+                                                        String isActive, String roleName) {
+        logger.debug("Searching process owner team for processOwnerId: {}", processOwnerId);
+        // TODO: Implement process owner team search
+        return new ArrayList<>();
+    }
+
+    @Override
+    public Page<WorkflowInstanceTaskDto> searchTasks(Long instanceId, String status, Long assignedTo,
+                                                     String startedAfter, String startedBefore,
+                                                     String completedAfter, String completedBefore,
+                                                     Pageable pageable) {
+        logger.debug("Searching workflow tasks with criteria");
+        // TODO: Implement workflow task search with pagination
+        return Page.empty(pageable);
+    }
+
+    @Override
+    public List<WorkflowInstanceDto> searchProcessOwnerWorkflows(Long processOwnerId, String status,
+                                                                String startedAfter, String startedBefore,
+                                                                String completedAfter, String completedBefore) {
+        logger.debug("Searching process owner workflows for processOwnerId: {}", processOwnerId);
+        // TODO: Implement process owner workflow search
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<WorkflowInstanceTaskDto> searchUserTasks(Long userId, String status, String priority,
+                                                        String startedAfter, String startedBefore,
+                                                        String completedAfter, String completedBefore) {
+        logger.debug("Searching user tasks for userId: {}", userId);
+        // TODO: Implement user task search
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<UserActivityDto> searchUserActivities(Long userId, String activityType,
+                                                     String startedAfter, String startedBefore, Integer limit) {
+        logger.debug("Searching user activities for userId: {}", userId);
+        // TODO: Implement user activity search
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<WorkflowInstanceDto> searchUserWorkflows(Long userId, String status,
+                                                        String startedAfter, String startedBefore,
+                                                        String completedAfter, String completedBefore) {
+        logger.debug("Searching user workflows for userId: {}", userId);
+        // TODO: Implement user workflow search
+        return new ArrayList<>();
     }
 }

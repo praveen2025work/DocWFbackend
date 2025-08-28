@@ -220,6 +220,30 @@ public class WorkflowConfigServiceImpl implements WorkflowConfigService {
     
     @Override
     @Transactional(readOnly = true)
+    public List<WorkflowConfigDto> getActiveWorkflowsForExecution() {
+        // Get active workflows that have calendar assignments and are ready for execution
+        return workflowRepository.findActiveWorkflowsForExecution()
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowConfig> getActiveWorkflowEntitiesForExecution() {
+        // Get active workflows that have calendar assignments and are ready for execution
+        return workflowRepository.findActiveWorkflowsForExecution();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowConfig> getWorkflowsByCalendarId(Long calendarId) {
+        // Get workflows assigned to a specific calendar
+        return workflowRepository.findByCalendarIdAndIsActive(calendarId, "Y");
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public boolean workflowNameExists(String name) {
         return workflowRepository.existsByName(name);
     }

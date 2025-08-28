@@ -76,6 +76,18 @@ public interface WorkflowConfigRepository extends JpaRepository<WorkflowConfig, 
     List<WorkflowConfig> findWorkflowsNeedingEscalation();
     
     /**
+     * Find active workflows that have calendar assignments for execution
+     */
+    @Query("SELECT wc FROM WorkflowConfig wc WHERE wc.isActive = 'Y' AND wc.calendarId IS NOT NULL")
+    List<WorkflowConfig> findActiveWorkflowsForExecution();
+    
+    /**
+     * Find workflows by specific calendar ID and active status
+     */
+    @Query("SELECT wc FROM WorkflowConfig wc WHERE wc.calendarId = :calendarId AND wc.isActive = :isActive")
+    List<WorkflowConfig> findByCalendarIdAndIsActive(@Param("calendarId") Long calendarId, @Param("isActive") String isActive);
+    
+    /**
      * Find workflows by active status with pagination
      */
     Page<WorkflowConfig> findByIsActive(String isActive, Pageable pageable);

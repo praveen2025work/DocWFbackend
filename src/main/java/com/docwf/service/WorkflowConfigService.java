@@ -4,6 +4,7 @@ import com.docwf.dto.WorkflowConfigDto;
 import com.docwf.dto.WorkflowConfigRoleDto;
 import com.docwf.dto.WorkflowConfigTaskDto;
 import com.docwf.dto.WorkflowConfigParamDto;
+import com.docwf.entity.WorkflowConfig;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -72,6 +73,21 @@ public interface WorkflowConfigService {
      * Get workflows that need escalation
      */
     List<WorkflowConfigDto> getWorkflowsNeedingEscalation();
+    
+    /**
+     * Get active workflows that should be executed based on calendar triggers
+     */
+    List<WorkflowConfigDto> getActiveWorkflowsForExecution();
+    
+    /**
+     * Get active workflow entities that should be executed based on calendar triggers
+     */
+    List<WorkflowConfig> getActiveWorkflowEntitiesForExecution();
+    
+    /**
+     * Get workflows by specific calendar ID
+     */
+    List<WorkflowConfig> getWorkflowsByCalendarId(Long calendarId);
     
     /**
      * Check if workflow name exists
