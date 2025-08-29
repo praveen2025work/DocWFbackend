@@ -143,8 +143,11 @@ public class ComplexWorkflowExecutionController {
     @GetMapping("/instances/{instanceId}/file-dependency-tree")
     @Operation(summary = "Get file dependency tree", description = "Get file dependency tree for a workflow instance")
     public ResponseEntity<Object> getFileDependencyTree(
-            @Parameter(description = "Instance ID") @PathVariable Long instanceId) {
+            @Parameter(description = "Instance ID") @PathVariable Long instanceId,
+            @Parameter(description = "Response format") @RequestHeader(value = "Accept", defaultValue = "application/json") String acceptHeader) {
         Object dependencyTree = complexWorkflowExecutionService.getFileDependencyTree(instanceId);
-        return ResponseEntity.ok(dependencyTree);
+        return ResponseEntity.ok()
+                .header("Content-Type", acceptHeader)
+                .body(dependencyTree);
     }
 }

@@ -221,6 +221,12 @@ public class ProcessOwnerController {
      * Helper method to get the current logged-in user's ID
      */
     private Long getCurrentUserId() {
+        // Since security is disabled for development, return a default user ID
+        // TODO: Implement proper user ID extraction when security is enabled
+        return 1L; // Default to Alice (user ID 1) for testing purposes
+        
+        // Original security-based implementation (commented out for now):
+        /*
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
             org.springframework.security.core.userdetails.UserDetails userDetails = 
@@ -231,6 +237,7 @@ public class ProcessOwnerController {
             return 1L; // Placeholder - implement proper user ID extraction
         }
         throw new RuntimeException("User not authenticated");
+        */
     }
     
     // ===== SEARCH ENDPOINTS =====

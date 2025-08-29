@@ -33,12 +33,16 @@ public class UserDashboardController {
     private WorkflowInstanceRepository instanceRepository;
 
     /**
-     * Get user dashboard based on user's role
+     * Get user dashboard data
      */
     @GetMapping("/user")
-    @Operation(summary = "Get User Dashboard", description = "Retrieves role-based dashboard for the authenticated user")
+    @Operation(summary = "Get User Dashboard", description = "Retrieves comprehensive dashboard for the specified user")
     public ResponseEntity<UserDashboardDto> getUserDashboard(
-            @Parameter(description = "User ID") @RequestParam Long userId) {
+            @Parameter(description = "User ID") @RequestParam(required = false) Long userId) {
+        // If no userId provided, use default user (Alice) for testing purposes
+        if (userId == null) {
+            userId = 1L; // Default to Alice (user ID 1) for testing
+        }
         UserDashboardDto dashboard = executionService.getUserDashboard(userId);
         return ResponseEntity.ok(dashboard);
     }
