@@ -72,6 +72,10 @@ public class WorkflowInstanceTaskFileDto {
         this.fileVersion = fileVersion;
     }
     
+    public void setVersion(Integer version) {
+        this.fileVersion = version;
+    }
+    
     public ActionType getActionType() {
         return actionType;
     }

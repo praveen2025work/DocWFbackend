@@ -25,6 +25,9 @@ public class WorkflowUserDto {
     @NotNull(message = "Active status is required")
     private String isActive;
     
+    @NotNull(message = "Admin status is required")
+    private String isAdmin;
+    
     private String createdBy;
     
     private LocalDateTime createdOn;
@@ -99,6 +102,14 @@ public class WorkflowUserDto {
     
     public void setIsActive(String isActive) {
         this.isActive = isActive;
+    }
+    
+    public String getIsAdmin() {
+        return isAdmin;
+    }
+    
+    public void setIsAdmin(String isAdmin) {
+        this.isAdmin = isAdmin;
     }
     
     public String getCreatedBy() {

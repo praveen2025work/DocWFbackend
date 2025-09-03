@@ -9,6 +9,8 @@ public class WorkflowConfigTaskFileDto {
     
     private Long taskId;
     
+    private Long parentFileId;  // Reference to parent file for UPDATE/CONSOLIDATE actions
+    
     private String fileName;
     
     private String filePath;

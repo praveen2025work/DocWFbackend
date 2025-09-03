@@ -44,6 +44,10 @@ public class WorkflowUser {
     @Column(name = "IS_ACTIVE", length = 1, nullable = false)
     private String isActive = "Y";
     
+    @NotNull
+    @Column(name = "IS_ADMIN", length = 1, nullable = false)
+    private String isAdmin = "N";
+    
     @NotBlank
     @Column(name = "CREATED_BY", length = 100, nullable = false)
     private String createdBy;
@@ -125,6 +129,14 @@ public class WorkflowUser {
     
     public void setIsActive(String isActive) {
         this.isActive = isActive;
+    }
+    
+    public String getIsAdmin() {
+        return isAdmin;
+    }
+    
+    public void setIsAdmin(String isAdmin) {
+        this.isAdmin = isAdmin;
     }
     
     public String getCreatedBy() {
