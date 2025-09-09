@@ -1,0 +1,390 @@
+{
+  "name": "Document Processing Workflow - Updated",
+  "description": "An updated comprehensive workflow for processing documents with enhanced file upload, review, consolidation, and approval steps",
+  "triggerType": "MANUAL",
+  "reminderBeforeDueMins": 45,
+  "minutesAfterDue": 20,
+  "escalationAfterMins": 90,
+  "isActive": "Y",
+  "updatedBy": "admin",
+  "workflowRoles": [
+    {
+      "roleId": 1,
+      "userId": 1,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 1,
+      "userId": 2,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 1,
+      "userId": 6,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 2,
+      "userId": 3,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 2,
+      "userId": 4,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 2,
+      "userId": 7,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 3,
+      "userId": 5,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 5,
+      "userId": 1,
+      "isActive": "Y"
+    }
+  ],
+  "tasks": [
+    {
+      "taskSequence": 1,
+      "name": "Upload Initial Documents - Enhanced",
+      "taskDescription": "Upload the initial set of documents for processing with enhanced validation",
+      "taskType": "FILE_UPLOAD",
+      "roleId": 1,
+      "sequenceOrder": 1,
+      "expectedCompletion": 90,
+      "escalationRules": "Escalate to team lead if not completed within 3 hours",
+      "fileRetentionDays": 45,
+      "taskFiles": [
+        {
+          "fileSequence": 1,
+          "fileName": "Financial_Report_Enhanced.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Enhanced main financial report document",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Primary financial data for the quarter with enhanced validation"
+        },
+        {
+          "fileSequence": 2,
+          "fileName": "Supporting_Data_Enhanced.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Enhanced supporting financial data",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Supporting data for financial analysis with additional metrics"
+        },
+        {
+          "fileSequence": 3,
+          "fileName": "Reference_Document_Enhanced.pdf",
+          "fileTypeRegex": "*.pdf",
+          "actionType": "UPLOAD",
+          "fileDescription": "Enhanced reference documentation",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Reference material for validation with updated guidelines"
+        },
+        {
+          "fileSequence": 4,
+          "fileName": "Compliance_Checklist.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "New compliance checklist document",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "New compliance checklist for enhanced validation"
+        }
+      ]
+    },
+    {
+      "taskSequence": 2,
+      "name": "Comprehensive Financial Review",
+      "taskDescription": "Comprehensive review and update of financial documents with enhanced validation",
+      "taskType": "FILE_UPDATE",
+      "roleId": 2,
+      "sequenceOrder": 2,
+      "expectedCompletion": 60,
+      "escalationRules": "Escalate to senior reviewer if not completed within 2 hours",
+      "fileRetentionDays": 45,
+      "parentTaskSequences": [1],
+      "taskFiles": [
+        {
+          "fileSequence": 5,
+          "fileName": "Financial_Report_Comprehensive_Review.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Comprehensively reviewed and updated financial report",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "updateOfFileSequence": 1,
+          "fileCommentary": "Financial report with comprehensive corrections and validations",
+          "dependencies": [
+            {
+              "fileSequence": 5,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            }
+          ]
+        },
+        {
+          "fileSequence": 6,
+          "fileName": "Reference_Document_Comprehensive_Update.pdf",
+          "fileTypeRegex": "*.pdf",
+          "actionType": "UPDATE",
+          "fileDescription": "Comprehensively updated reference documentation",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "updateOfFileSequence": 3,
+          "fileCommentary": "Updated reference material with comprehensive corrections",
+          "dependencies": [
+            {
+              "fileSequence": 6,
+              "parentFileSequence": 3,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "taskSequence": 3,
+      "name": "Advanced Data Processing",
+      "taskDescription": "Advanced processing and analysis of supporting data",
+      "taskType": "FILE_UPDATE",
+      "roleId": 2,
+      "sequenceOrder": 3,
+      "expectedCompletion": 45,
+      "escalationRules": "Escalate to team lead if not completed within 1.5 hours",
+      "fileRetentionDays": 45,
+      "parentTaskSequences": [1],
+      "taskFiles": [
+        {
+          "fileSequence": 7,
+          "fileName": "Supporting_Data_Advanced_Processing.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Advanced processed supporting data with comprehensive analysis",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "updateOfFileSequence": 2,
+          "fileCommentary": "Supporting data with advanced processing and comprehensive analysis",
+          "dependencies": [
+            {
+              "fileSequence": 7,
+              "parentFileSequence": 2,
+              "createdBy": "admin"
+            }
+          ]
+        },
+        {
+          "fileSequence": 8,
+          "fileName": "Compliance_Checklist_Validated.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Validated compliance checklist",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "updateOfFileSequence": 4,
+          "fileCommentary": "Compliance checklist with validation results",
+          "dependencies": [
+            {
+              "fileSequence": 8,
+              "parentFileSequence": 4,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "taskSequence": 4,
+      "name": "Advanced Report Consolidation",
+      "taskDescription": "Advanced consolidation of all processed documents into a comprehensive final report",
+      "taskType": "CONSOLIDATE_FILES",
+      "roleId": 2,
+      "sequenceOrder": 4,
+      "expectedCompletion": 120,
+      "escalationRules": "Escalate to manager if not completed within 4 hours",
+      "consolidationMode": "MANUAL",
+      "fileSelectionStrategy": "USER_SELECT",
+      "maxFileSelections": 8,
+      "minFileSelections": 4,
+      "fileRetentionDays": 90,
+      "parentTaskSequences": [2, 3],
+      "taskFiles": [
+        {
+          "fileSequence": 9,
+          "fileName": "Advanced_Final_Consolidated_Report.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "CONSOLIDATE",
+          "fileDescription": "Advanced final consolidated report combining all processed documents",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "consolidatedFrom": [1, 5, 6, 7, 8],
+          "fileCommentary": "Advanced final consolidated report ready for approval",
+          "dependencies": [
+            {
+              "fileSequence": 9,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 9,
+              "parentFileSequence": 5,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 9,
+              "parentFileSequence": 6,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 9,
+              "parentFileSequence": 7,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 9,
+              "parentFileSequence": 8,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "taskSequence": 5,
+      "name": "Enhanced Quality Approval Decision",
+      "taskDescription": "Enhanced quality approval decision based on consolidated report with additional criteria",
+      "taskType": "DECISION",
+      "roleId": 3,
+      "sequenceOrder": 5,
+      "expectedCompletion": 45,
+      "escalationRules": "Escalate to director if not completed within 1.5 hours",
+      "isDecisionTask": "Y",
+      "decisionType": "MULTI_CHOICE",
+      "decisionRequiresApproval": "Y",
+          "decisionApprovalRoleId": 3,
+      "revisionStrategy": "SELECTIVE",
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "fileRetentionDays": 120,
+      "parentTaskSequences": [4],
+      "taskFiles": [
+        {
+          "fileSequence": 10,
+          "fileName": "Enhanced_Approval_Decision_Report.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Enhanced decision report based on consolidated document",
+          "isRequired": "N",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "keepFileHistory": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fromTaskSequence": 4,
+          "fileCommentary": "Enhanced decision report based on consolidated file from step 4",
+          "dependencies": [
+            {
+              "fileSequence": 10,
+              "parentFileSequence": 9,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ],
+      "decisionOutcomes": [
+        {
+          "outcomeName": "Resubmit Document Preparation",
+          "targetTaskSequence": 1,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [1],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 1,
+          "revisionConditions": "Initial documents need to be re-uploaded with enhanced validation",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Resubmit Financial Review",
+          "targetTaskSequence": 2,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [2],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": "Financial review needs comprehensive corrections",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Resubmit Data Processing",
+          "targetTaskSequence": 3,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [3],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 3,
+          "revisionConditions": "Data processing needs advanced corrections",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Resubmit Consolidation",
+          "targetTaskSequence": 4,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [4],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 4,
+          "revisionConditions": "Consolidation needs to be redone with enhanced criteria",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Approve and Complete",
+          "targetTaskSequence": null,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 5,
+          "revisionConditions": "All documents and consolidation meet enhanced quality standards",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        }
+      ]
+    }
+  ]
+}

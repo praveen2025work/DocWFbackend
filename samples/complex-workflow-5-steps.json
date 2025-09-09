@@ -1,0 +1,314 @@
+{
+  "name": "Financial Data Processing Workflow",
+  "description": "Complex 5-step workflow for financial data processing with file uploads, updates, consolidation, and decision making",
+  "status": "ACTIVE",
+  "createdBy": "admin",
+  "tasks": [
+    {
+      "name": "Step 1: File Upload",
+      "taskType": "FILE_UPLOAD",
+      "roleId": 1,
+      "sequenceOrder": 1,
+      "taskSequence": 1,
+      "taskDescription": "Upload initial financial data files",
+      "allowNewFiles": "Y",
+      "fileSelectionMode": "USER_SELECT",
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "keepFileVersions": "Y",
+      "maxFileVersions": 5,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "createdBy": "admin",
+      "taskFiles": [
+        {
+          "fileName": "sales_data.xlsx",
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Raw sales data for processing",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileSequence": 1,
+          "createdBy": "admin",
+          "dependencies": []
+        },
+        {
+          "fileName": "expense_data.xlsx",
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Raw expense data for processing",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileSequence": 2,
+          "createdBy": "admin",
+          "dependencies": []
+        },
+        {
+          "fileName": "inventory_data.xlsx",
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Raw inventory data for processing",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileSequence": 3,
+          "createdBy": "admin",
+          "dependencies": []
+        }
+      ],
+      "decisionOutcomes": []
+    },
+    {
+      "name": "Step 2: Sales Data Update",
+      "taskType": "FILE_UPDATE",
+      "roleId": 2,
+      "sequenceOrder": 2,
+      "taskSequence": 2,
+      "parentTaskSequences": [1],
+      "taskDescription": "Update and validate sales data from Step 1",
+      "allowNewFiles": "N",
+      "fileSelectionMode": "AUTO_SELECT",
+      "sourceTaskIds": "1",
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 1,
+      "maxFileSelections": 1,
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "keepFileVersions": "Y",
+      "maxFileVersions": 3,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "createdBy": "admin",
+      "taskFiles": [
+        {
+          "fileName": "sales_data_validated.xlsx",
+          "filePath": "/data/validated/",
+          "fileLocation": "/s3/workflow-data/validated/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Validated and cleaned sales data",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileSequence": 1,
+          "createdBy": "admin",
+          "dependencies": [
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ],
+      "decisionOutcomes": []
+    },
+    {
+      "name": "Step 3: Expense Data Update",
+      "taskType": "FILE_UPDATE",
+      "roleId": 2,
+      "sequenceOrder": 3,
+      "taskSequence": 3,
+      "parentTaskSequences": [1],
+      "taskDescription": "Update and validate expense data from Step 1",
+      "allowNewFiles": "N",
+      "fileSelectionMode": "AUTO_SELECT",
+      "sourceTaskIds": "1",
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 1,
+      "maxFileSelections": 1,
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "keepFileVersions": "Y",
+      "maxFileVersions": 3,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "createdBy": "admin",
+      "taskFiles": [
+        {
+          "fileName": "expense_data_validated.xlsx",
+          "filePath": "/data/validated/",
+          "fileLocation": "/s3/workflow-data/validated/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Validated and cleaned expense data",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileSequence": 1,
+          "createdBy": "admin",
+          "dependencies": [
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 2,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ],
+      "decisionOutcomes": []
+    },
+    {
+      "name": "Step 4: Data Consolidation",
+      "taskType": "CONSOLIDATE_FILE",
+      "roleId": 3,
+      "sequenceOrder": 4,
+      "taskSequence": 4,
+      "parentTaskSequences": [1, 2, 3],
+      "taskDescription": "Consolidate data from all previous steps based on user selection",
+      "allowNewFiles": "N",
+      "fileSelectionMode": "USER_SELECT",
+      "sourceTaskIds": "1,2,3",
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 2,
+      "maxFileSelections": 4,
+      "consolidationMode": "MANUAL",
+      "consolidationRules": "{\"mergeStrategy\": \"APPEND\", \"validationRules\": [\"checkDataIntegrity\", \"validateTotals\"]}",
+      "taskPriority": "CRITICAL",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "keepFileVersions": "Y",
+      "maxFileVersions": 5,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "createdBy": "admin",
+      "taskFiles": [
+        {
+          "fileName": "consolidated_financial_report.xlsx",
+          "filePath": "/data/consolidated/",
+          "fileLocation": "/s3/workflow-data/consolidated/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "CONSOLIDATE",
+          "fileDescription": "Consolidated financial report from all data sources",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileSequence": 1,
+          "createdBy": "admin",
+          "dependencies": [
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ],
+      "decisionOutcomes": []
+    },
+    {
+      "name": "Step 5: Management Decision",
+      "taskType": "DECISION",
+      "roleId": 4,
+      "sequenceOrder": 5,
+      "taskSequence": 5,
+      "parentTaskSequences": [4],
+      "taskDescription": "Management review and decision on consolidated data",
+      "allowNewFiles": "N",
+      "isDecisionTask": "Y",
+      "decisionType": "MULTI_CHOICE",
+      "decisionRequiresApproval": "Y",
+      "decisionApprovalRoleId": 4,
+      "revisionStrategy": "SELECTIVE",
+      "revisionTaskMapping": "{\"revisionPaths\": [{\"outcome\": \"REVISE_SALES\", \"targetTasks\": [2]}, {\"outcome\": \"REVISE_EXPENSE\", \"targetTasks\": [3]}, {\"outcome\": \"REVISE_UPLOAD\", \"targetTasks\": [1]}, {\"outcome\": \"REVISE_CONSOLIDATION\", \"targetTasks\": [4]}]}",
+      "taskPriority": "CRITICAL",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "keepFileVersions": "Y",
+      "maxFileVersions": 3,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "createdBy": "admin",
+      "taskFiles": [],
+      "decisionOutcomes": [
+        {
+          "outcomeName": "APPROVE",
+          "targetTaskSequence": null,
+          "revisionType": "SINGLE",
+          "revisionTaskIds": "",
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 1,
+          "revisionConditions": "{\"condition\": \"dataValid\", \"action\": \"approve\"}",
+          "autoEscalate": "N",
+          "escalationRoleId": null,
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "REVISE_SALES",
+          "targetTaskSequence": 2,
+          "revisionType": "SINGLE",
+          "revisionTaskIds": "2",
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": "{\"condition\": \"salesDataInvalid\", \"action\": \"revise\"}",
+          "autoEscalate": "N",
+          "escalationRoleId": null,
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "REVISE_EXPENSE",
+          "targetTaskSequence": 3,
+          "revisionType": "SINGLE",
+          "revisionTaskIds": "3",
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": "{\"condition\": \"expenseDataInvalid\", \"action\": \"revise\"}",
+          "autoEscalate": "N",
+          "escalationRoleId": null,
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "REVISE_UPLOAD",
+          "targetTaskSequence": 1,
+          "revisionType": "CASCADE",
+          "revisionTaskIds": "1,2,3,4",
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 3,
+          "revisionConditions": "{\"condition\": \"sourceDataInvalid\", \"action\": \"reviseAll\"}",
+          "autoEscalate": "Y",
+          "escalationRoleId": 4,
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "REVISE_CONSOLIDATION",
+          "targetTaskSequence": 4,
+          "revisionType": "SINGLE",
+          "revisionTaskIds": "4",
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": "{\"condition\": \"consolidationInvalid\", \"action\": \"revise\"}",
+          "autoEscalate": "N",
+          "escalationRoleId": null,
+          "createdBy": "admin"
+        }
+      ]
+    }
+  ]
+}

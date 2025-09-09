@@ -78,4 +78,32 @@ public interface WorkflowCalendarService {
     LocalDate getNextValidDate(Long calendarId, LocalDate fromDate);
     
     LocalDate getPreviousValidDate(Long calendarId, LocalDate fromDate);
+    
+    // Cron and Region Management
+    List<WorkflowCalendarDto> getCalendarsByRegion(String region);
+    
+    List<WorkflowCalendarDto> getActiveCalendarsWithCron();
+    
+    List<WorkflowCalendarDto> getCalendarsByTimezone(String timezone);
+    
+    List<WorkflowCalendarDto> getCalendarsWithOffset(Integer offsetDays);
+    
+    // Calendar Entity Access (for internal use)
+    com.docwf.entity.WorkflowCalendar getCalendarEntityById(Long calendarId);
+    
+    List<Long> getWorkflowIdsForCalendar(Long calendarId);
+    
+    // Calendar Status Management
+    void activateCalendar(Long calendarId);
+    
+    void deactivateCalendar(Long calendarId);
+    
+    List<WorkflowCalendarDto> getActiveCalendars();
+    
+    List<WorkflowCalendarDto> getInactiveCalendars();
+    
+    // Cron Expression Validation
+    boolean isValidCronExpression(String cronExpression);
+    
+    String getCronDescription(String cronExpression);
 }

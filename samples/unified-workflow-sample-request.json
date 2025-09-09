@@ -1,0 +1,365 @@
+{
+  "name": "Sample Complex Workflow",
+  "description": "A complex workflow with file upload, update, consolidation, and decision steps",
+  "triggerType": "MANUAL",
+  "reminderBeforeDueMins": 30,
+  "minutesAfterDue": 15,
+  "escalationAfterMins": 60,
+  "isActive": "Y",
+  "createdBy": "admin",
+  "roles": [
+    {
+      "roleSequence": 1,
+      "roleName": "Preparer",
+      "roleDescription": "User responsible for preparing and uploading files",
+      "users": ["user1", "user2"]
+    },
+    {
+      "roleSequence": 2,
+      "roleName": "Reviewer",
+      "roleDescription": "User responsible for reviewing and updating files",
+      "users": ["user3", "user4"]
+    },
+    {
+      "roleSequence": 3,
+      "roleName": "Approver",
+      "roleDescription": "User responsible for making final decisions",
+      "users": ["user5"]
+    }
+  ],
+  "tasks": [
+    {
+      "taskSequence": 1,
+      "name": "Upload Base Files",
+      "taskDescription": "Upload the initial set of files for processing",
+      "taskType": "FILE_UPLOAD",
+      "roleSequence": 1,
+      "sequenceOrder": 1,
+      "expectedCompletion": 60,
+      "escalationRules": "Escalate to manager if not completed within 2 hours",
+      "canBeRevisited": "Y",
+      "maxRevisits": 3,
+      "fileSelectionMode": "USER_SELECT",
+      "allowNewFiles": "Y",
+      "canRunInParallel": "N",
+      "fileRetentionDays": 30,
+      "keepFileVersions": "Y",
+      "maxFileVersions": 5,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "taskFiles": [
+        {
+          "fileSequence": 1,
+          "fileName": "File1.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Primary data file",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Main input file for the process"
+        },
+        {
+          "fileSequence": 2,
+          "fileName": "File2.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Secondary data file",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Supporting data file"
+        },
+        {
+          "fileSequence": 3,
+          "fileName": "File3.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Reference data file",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Reference data for validation"
+        }
+      ]
+    },
+    {
+      "taskSequence": 2,
+      "name": "Update File 1 & 3",
+      "taskDescription": "Update the first and third files based on business requirements",
+      "taskType": "FILE_UPDATE",
+      "roleSequence": 2,
+      "sequenceOrder": 2,
+      "expectedCompletion": 45,
+      "escalationRules": "Escalate to senior reviewer if not completed within 1.5 hours",
+      "canBeRevisited": "Y",
+      "maxRevisits": 2,
+      "fileSelectionMode": "AUTO_SELECT",
+      "allowNewFiles": "N",
+      "canRunInParallel": "N",
+      "fileRetentionDays": 30,
+      "keepFileVersions": "Y",
+      "maxFileVersions": 3,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "parentTaskSequences": [1],
+      "taskFiles": [
+        {
+          "fileSequence": 4,
+          "fileName": "File1_Updated.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Updated version of File1",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "updateOfFileSequence": 1,
+          "fileCommentary": "Updated File1 with business corrections",
+          "dependencies": [
+            {
+              "fileSequence": 4,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            }
+          ]
+        },
+        {
+          "fileSequence": 5,
+          "fileName": "File3_Updated.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Updated version of File3",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "updateOfFileSequence": 3,
+          "fileCommentary": "Updated File3 with reference corrections",
+          "dependencies": [
+            {
+              "fileSequence": 5,
+              "parentFileSequence": 3,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "taskSequence": 3,
+      "name": "Update File 2",
+      "taskDescription": "Update the second file with additional processing",
+      "taskType": "FILE_UPDATE",
+      "roleSequence": 2,
+      "sequenceOrder": 3,
+      "expectedCompletion": 30,
+      "escalationRules": "Escalate to team lead if not completed within 1 hour",
+      "canBeRevisited": "Y",
+      "maxRevisits": 2,
+      "fileSelectionMode": "AUTO_SELECT",
+      "allowNewFiles": "N",
+      "canRunInParallel": "Y",
+      "parallelTaskSequences": [2],
+      "fileRetentionDays": 30,
+      "keepFileVersions": "Y",
+      "maxFileVersions": 3,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "parentTaskSequences": [1],
+      "taskFiles": [
+        {
+          "fileSequence": 6,
+          "fileName": "File2_Updated.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Updated version of File2",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "updateOfFileSequence": 2,
+          "fileCommentary": "Updated File2 with additional processing",
+          "dependencies": [
+            {
+              "fileSequence": 6,
+              "parentFileSequence": 2,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "taskSequence": 4,
+      "name": "Consolidate Files",
+      "taskDescription": "Consolidate all files into a single comprehensive report",
+      "taskType": "CONSOLIDATE_FILES",
+      "roleSequence": 2,
+      "sequenceOrder": 4,
+      "expectedCompletion": 90,
+      "escalationRules": "Escalate to manager if not completed within 3 hours",
+      "canBeRevisited": "Y",
+      "maxRevisits": 2,
+      "consolidationMode": "MANUAL",
+      "fileSelectionStrategy": "USER_SELECT",
+      "maxFileSelections": 5,
+      "minFileSelections": 3,
+      "allowNewFiles": "N",
+      "canRunInParallel": "N",
+      "fileRetentionDays": 60,
+      "keepFileVersions": "Y",
+      "maxFileVersions": 3,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "Y",
+      "parentTaskSequences": [2, 3],
+      "taskFiles": [
+        {
+          "fileSequence": 7,
+          "fileName": "Consolidated_Report.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "CONSOLIDATE",
+          "fileDescription": "Consolidated report combining all processed files",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "consolidatedFrom": [1, 4, 5, 6],
+          "fileCommentary": "Final consolidated report for review",
+          "dependencies": [
+            {
+              "fileSequence": 7,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 7,
+              "parentFileSequence": 4,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 7,
+              "parentFileSequence": 5,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 7,
+              "parentFileSequence": 6,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "taskSequence": 5,
+      "name": "Approval Decision",
+      "taskDescription": "Make final decision based on consolidated file",
+      "taskType": "DECISION",
+      "roleSequence": 3,
+      "sequenceOrder": 5,
+      "expectedCompletion": 30,
+      "escalationRules": "Escalate to director if not completed within 1 hour",
+      "canBeRevisited": "N",
+      "maxRevisits": 0,
+      "isDecisionTask": "Y",
+      "decisionType": "MULTI_CHOICE",
+      "decisionRequiresApproval": "Y",
+      "decisionApprovalRoleSequence": 3,
+      "revisionStrategy": "SELECTIVE",
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "allowNewFiles": "N",
+      "canRunInParallel": "N",
+      "fileRetentionDays": 90,
+      "keepFileVersions": "Y",
+      "maxFileVersions": 1,
+      "keepFileHistory": "Y",
+      "fileHistoryDetails": "N",
+      "parentTaskSequences": [4],
+      "taskFiles": [
+        {
+          "fileSequence": 8,
+          "fileName": "Decision_Review.xlsx",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Decision review file based on consolidated report",
+          "isRequired": "N",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "N",
+          "retainForCurrentPeriod": "Y",
+          "fromTaskSequence": 4,
+          "fileCommentary": "Decision review based on consolidated file from step 4",
+          "dependencies": [
+            {
+              "fileSequence": 8,
+              "parentFileSequence": 7,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ],
+      "decisionOutcomes": [
+        {
+          "outcomeName": "Resubmit Step 1",
+          "targetTaskSequence": 1,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [1],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 1,
+          "revisionConditions": "Files need to be re-uploaded with corrections",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Resubmit Step 2",
+          "targetTaskSequence": 2,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [2],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": "File updates in step 2 need corrections",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Resubmit Step 3",
+          "targetTaskSequence": 3,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [3],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 3,
+          "revisionConditions": "File updates in step 3 need corrections",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Resubmit Step 4",
+          "targetTaskSequence": 4,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [4],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 4,
+          "revisionConditions": "Consolidation needs to be redone",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        },
+        {
+          "outcomeName": "Approve",
+          "targetTaskSequence": null,
+          "revisionType": "SINGLE",
+          "revisionTaskSequences": [],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 5,
+          "revisionConditions": "All files and consolidation are satisfactory",
+          "autoEscalate": "N",
+          "createdBy": "admin"
+        }
+      ]
+    }
+  ]
+}

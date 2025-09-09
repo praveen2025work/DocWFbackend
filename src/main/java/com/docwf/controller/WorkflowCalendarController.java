@@ -291,4 +291,83 @@ public class WorkflowCalendarController {
         boolean canExecute = calendarService.canExecuteWorkflow(calendarId, date);
         return ResponseEntity.ok(canExecute);
     }
+    
+    // ===== NEW ENDPOINTS FOR CRON AND REGION FUNCTIONALITY =====
+    
+    @GetMapping("/calendars/region/{region}")
+    @Operation(summary = "Get calendars by region", description = "Retrieves all calendars for a specific region")
+    public ResponseEntity<List<WorkflowCalendarDto>> getCalendarsByRegion(
+            @Parameter(description = "Region code") @PathVariable String region) {
+        List<WorkflowCalendarDto> calendars = calendarService.getCalendarsByRegion(region);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/active/cron")
+    @Operation(summary = "Get active calendars with cron expressions", description = "Retrieves all active calendars that have cron expressions")
+    public ResponseEntity<List<WorkflowCalendarDto>> getActiveCalendarsWithCron() {
+        List<WorkflowCalendarDto> calendars = calendarService.getActiveCalendarsWithCron();
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/timezone/{timezone}")
+    @Operation(summary = "Get calendars by timezone", description = "Retrieves all calendars for a specific timezone")
+    public ResponseEntity<List<WorkflowCalendarDto>> getCalendarsByTimezone(
+            @Parameter(description = "Timezone") @PathVariable String timezone) {
+        List<WorkflowCalendarDto> calendars = calendarService.getCalendarsByTimezone(timezone);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/offset/{offsetDays}")
+    @Operation(summary = "Get calendars by offset days", description = "Retrieves all calendars with specific offset days")
+    public ResponseEntity<List<WorkflowCalendarDto>> getCalendarsWithOffset(
+            @Parameter(description = "Offset days") @PathVariable Integer offsetDays) {
+        List<WorkflowCalendarDto> calendars = calendarService.getCalendarsWithOffset(offsetDays);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/active")
+    @Operation(summary = "Get active calendars", description = "Retrieves all active calendars")
+    public ResponseEntity<List<WorkflowCalendarDto>> getActiveCalendars() {
+        List<WorkflowCalendarDto> calendars = calendarService.getActiveCalendars();
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/inactive")
+    @Operation(summary = "Get inactive calendars", description = "Retrieves all inactive calendars")
+    public ResponseEntity<List<WorkflowCalendarDto>> getInactiveCalendars() {
+        List<WorkflowCalendarDto> calendars = calendarService.getInactiveCalendars();
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @PostMapping("/calendars/{calendarId}/activate")
+    @Operation(summary = "Activate calendar", description = "Activates a calendar for scheduling")
+    public ResponseEntity<Void> activateCalendar(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        calendarService.activateCalendar(calendarId);
+        return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/calendars/{calendarId}/deactivate")
+    @Operation(summary = "Deactivate calendar", description = "Deactivates a calendar from scheduling")
+    public ResponseEntity<Void> deactivateCalendar(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        calendarService.deactivateCalendar(calendarId);
+        return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/calendars/validate-cron")
+    @Operation(summary = "Validate cron expression", description = "Validates a cron expression")
+    public ResponseEntity<Boolean> validateCronExpression(
+            @Parameter(description = "Cron expression to validate") @RequestParam String cronExpression) {
+        boolean isValid = calendarService.isValidCronExpression(cronExpression);
+        return ResponseEntity.ok(isValid);
+    }
+    
+    @GetMapping("/calendars/cron-description")
+    @Operation(summary = "Get cron expression description", description = "Gets human-readable description of a cron expression")
+    public ResponseEntity<String> getCronDescription(
+            @Parameter(description = "Cron expression") @RequestParam String cronExpression) {
+        String description = calendarService.getCronDescription(cronExpression);
+        return ResponseEntity.ok(description);
+    }
 }

@@ -35,10 +35,16 @@ public class WorkflowConfigDto {
     
     private LocalDateTime updatedOn;
     
+    // Workflow trigger configuration
+    private String triggerType; // MANUAL, SCHEDULED, EVENT
+    
     // Related data
     private List<WorkflowConfigRoleDto> workflowRoles;
     private List<WorkflowConfigTaskDto> tasks;
     private List<WorkflowConfigParamDto> parameters;
+    
+    // For UI-based workflow creation with sequence mapping
+    private List<WorkflowRoleDto> roles;
     
     // Constructors
     public WorkflowConfigDto() {}
@@ -178,6 +184,22 @@ public class WorkflowConfigDto {
         this.parameters = parameters;
     }
     
+    public String getTriggerType() {
+        return triggerType;
+    }
+    
+    public void setTriggerType(String triggerType) {
+        this.triggerType = triggerType;
+    }
+    
+    public List<WorkflowRoleDto> getRoles() {
+        return roles;
+    }
+    
+    public void setRoles(List<WorkflowRoleDto> roles) {
+        this.roles = roles;
+    }
+    
     @Override
     public String toString() {
         return "WorkflowConfigDto{" +
@@ -185,6 +207,7 @@ public class WorkflowConfigDto {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", isActive='" + isActive + '\'' +
+                ", triggerType='" + triggerType + '\'' +
                 '}';
     }
 }

@@ -41,6 +41,21 @@ public class WorkflowCalendar {
     @Column(name = "RECURRENCE", length = 50)
     private String recurrence; // NONE, DAILY, WEEKLY, MONTHLY, YEARLY
     
+    @Column(name = "CRON_EXPRESSION", length = 100)
+    private String cronExpression; // Quartz cron expression for scheduling
+    
+    @Column(name = "TIMEZONE", length = 50)
+    private String timezone; // Timezone for cron execution (e.g., "America/New_York")
+    
+    @Column(name = "REGION", length = 50)
+    private String region; // Geographic region (e.g., "US", "EU", "APAC")
+    
+    @Column(name = "OFFSET_DAYS")
+    private Integer offsetDays; // Days to offset from the base date (can be negative)
+    
+    @Column(name = "IS_ACTIVE", length = 1)
+    private String isActive = "Y"; // Y/N - whether calendar is active for scheduling
+    
     @NotBlank
     @Column(name = "CREATED_BY", length = 100, nullable = false)
     private String createdBy;
@@ -68,6 +83,24 @@ public class WorkflowCalendar {
         NONE, DAILY, WEEKLY, MONTHLY, YEARLY
     }
     
+    public enum Region {
+        US, EU, APAC, GLOBAL
+    }
+    
+    public enum CalendarStatus {
+        ACTIVE("Y"), INACTIVE("N");
+        
+        private final String value;
+        
+        CalendarStatus(String value) {
+            this.value = value;
+        }
+        
+        public String getValue() {
+            return value;
+        }
+    }
+    
     // Constructors
     public WorkflowCalendar() {}
     
@@ -77,6 +110,20 @@ public class WorkflowCalendar {
         this.startDate = startDate;
         this.endDate = endDate;
         this.recurrence = recurrence;
+        this.createdBy = createdBy;
+    }
+    
+    public WorkflowCalendar(String calendarName, String description, LocalDate startDate, LocalDate endDate, String recurrence, 
+                           String cronExpression, String timezone, String region, Integer offsetDays, String createdBy) {
+        this.calendarName = calendarName;
+        this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.recurrence = recurrence;
+        this.cronExpression = cronExpression;
+        this.timezone = timezone;
+        this.region = region;
+        this.offsetDays = offsetDays;
         this.createdBy = createdBy;
     }
     
@@ -177,6 +224,46 @@ public class WorkflowCalendar {
         this.workflowInstances = workflowInstances;
     }
     
+    public String getCronExpression() {
+        return cronExpression;
+    }
+    
+    public void setCronExpression(String cronExpression) {
+        this.cronExpression = cronExpression;
+    }
+    
+    public String getTimezone() {
+        return timezone;
+    }
+    
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+    
+    public String getRegion() {
+        return region;
+    }
+    
+    public void setRegion(String region) {
+        this.region = region;
+    }
+    
+    public Integer getOffsetDays() {
+        return offsetDays;
+    }
+    
+    public void setOffsetDays(Integer offsetDays) {
+        this.offsetDays = offsetDays;
+    }
+    
+    public String getIsActive() {
+        return isActive;
+    }
+    
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
+    }
+    
     // Helper methods
     public void addCalendarDay(WorkflowCalendarDay calendarDay) {
         calendarDays.add(calendarDay);
@@ -269,5 +356,49 @@ public class WorkflowCalendar {
     private boolean isWeekend(LocalDate date) {
         int dayOfWeek = date.getDayOfWeek().getValue();
         return dayOfWeek == 6 || dayOfWeek == 7; // Saturday = 6, Sunday = 7
+    }
+    
+    /**
+     * Calculate the effective date considering offset days
+     * @param baseDate The base date to calculate from
+     * @return The effective date after applying offset
+     */
+    public LocalDate calculateEffectiveDate(LocalDate baseDate) {
+        if (offsetDays == null || offsetDays == 0) {
+            return baseDate;
+        }
+        return baseDate.plusDays(offsetDays);
+    }
+    
+    /**
+     * Check if calendar is active for scheduling
+     * @return true if calendar is active
+     */
+    public boolean isActive() {
+        return "Y".equals(isActive);
+    }
+    
+    /**
+     * Check if calendar has cron-based scheduling
+     * @return true if cron expression is set
+     */
+    public boolean hasCronScheduling() {
+        return cronExpression != null && !cronExpression.trim().isEmpty();
+    }
+    
+    /**
+     * Get the timezone for cron execution, default to UTC if not set
+     * @return timezone string
+     */
+    public String getEffectiveTimezone() {
+        return timezone != null ? timezone : "UTC";
+    }
+    
+    /**
+     * Check if calendar is region-specific
+     * @return true if region is set
+     */
+    public boolean isRegionSpecific() {
+        return region != null && !region.trim().isEmpty();
     }
 }

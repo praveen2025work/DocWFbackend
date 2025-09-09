@@ -2,14 +2,14 @@ package com.docwf.dto;
 
 import com.docwf.entity.WorkflowConfigTaskFile.ActionType;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WorkflowConfigTaskFileDto {
     
     private Long fileId;
     
     private Long taskId;
-    
-    private Long parentFileId;  // Reference to parent file for UPDATE/CONSOLIDATE actions
     
     private String fileName;
     
@@ -29,6 +29,8 @@ public class WorkflowConfigTaskFileDto {
     
     private String keepFileVersions;  // Y/N
     
+    private String keepFileHistory;  // Y/N
+    
     private String retainForCurrentPeriod;  // Y/N
     
     private String fileCommentary;  // Additional comments about the file
@@ -40,6 +42,21 @@ public class WorkflowConfigTaskFileDto {
     private String updatedBy;
     
     private LocalDateTime updatedOn;
+    
+    // For sequence-based mapping during creation
+    private Integer fileSequence;
+    
+    // For file update tasks - which file from previous task to update
+    private Integer updateOfFileSequence;
+    
+    // For consolidation tasks - which files to consolidate
+    private List<Integer> consolidatedFrom;
+    
+    // For decision tasks - which task's files to base decision on
+    private Integer fromTaskSequence;
+    
+    // Related data
+    private List<WorkflowConfigTaskFileDependencyDto> dependencies;
     
     // Constructors
     public WorkflowConfigTaskFileDto() {}
@@ -148,6 +165,14 @@ public class WorkflowConfigTaskFileDto {
         this.keepFileVersions = keepFileVersions;
     }
     
+    public String getKeepFileHistory() {
+        return keepFileHistory;
+    }
+    
+    public void setKeepFileHistory(String keepFileHistory) {
+        this.keepFileHistory = keepFileHistory;
+    }
+    
     public String getRetainForCurrentPeriod() {
         return retainForCurrentPeriod;
     }
@@ -196,6 +221,46 @@ public class WorkflowConfigTaskFileDto {
         this.updatedOn = updatedOn;
     }
     
+    public Integer getFileSequence() {
+        return fileSequence;
+    }
+    
+    public void setFileSequence(Integer fileSequence) {
+        this.fileSequence = fileSequence;
+    }
+    
+    public Integer getUpdateOfFileSequence() {
+        return updateOfFileSequence;
+    }
+    
+    public void setUpdateOfFileSequence(Integer updateOfFileSequence) {
+        this.updateOfFileSequence = updateOfFileSequence;
+    }
+    
+    public List<Integer> getConsolidatedFrom() {
+        return consolidatedFrom;
+    }
+    
+    public void setConsolidatedFrom(List<Integer> consolidatedFrom) {
+        this.consolidatedFrom = consolidatedFrom;
+    }
+    
+    public Integer getFromTaskSequence() {
+        return fromTaskSequence;
+    }
+    
+    public void setFromTaskSequence(Integer fromTaskSequence) {
+        this.fromTaskSequence = fromTaskSequence;
+    }
+    
+    public List<WorkflowConfigTaskFileDependencyDto> getDependencies() {
+        return dependencies;
+    }
+    
+    public void setDependencies(List<WorkflowConfigTaskFileDependencyDto> dependencies) {
+        this.dependencies = dependencies;
+    }
+    
     // Helper methods
     public boolean isRequired() {
         return "Y".equals(isRequired);
@@ -203,6 +268,10 @@ public class WorkflowConfigTaskFileDto {
     
     public boolean keepFileVersions() {
         return "Y".equals(keepFileVersions);
+    }
+    
+    public boolean keepFileHistory() {
+        return "Y".equals(keepFileHistory);
     }
     
     public boolean retainForCurrentPeriod() {

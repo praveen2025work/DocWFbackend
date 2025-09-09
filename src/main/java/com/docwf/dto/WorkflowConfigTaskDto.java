@@ -31,11 +31,10 @@ public class WorkflowConfigTaskDto {
     
     private String parentTaskIds;  // Comma-separated list of parent task IDs
     
-    private String canBeRevisited;  // Y/N
+    // For sequence-based mapping during creation
+    private Integer taskSequence;
+    private List<Integer> parentTaskSequences;  // List of parent task sequences
     
-    private Integer maxRevisits;
-    
-    private String fileSelectionMode;  // USER_SELECT, ALL_FILES, AUTO_SELECT
     
     private String sourceTaskIds;  // Comma-separated list of source task IDs
     
@@ -72,26 +71,43 @@ public class WorkflowConfigTaskDto {
     private String taskRejectedBy;  // User who rejected the task
     
     // File management fields
-    private String allowNewFiles;  // Y/N - whether users can add new files in this task
-    
     private String fileSourceTaskIds;  // Comma-separated list of task IDs whose files can be accessed
-    
-    private String canRunInParallel;  // Y/N - whether this task can run parallel to other tasks
     
     private String parallelTaskIds;  // Comma-separated list of task IDs that can run in parallel
     
     private Integer fileRetentionDays;  // How long to keep files after task completion
     
-    private String keepFileVersions;  // Y/N - whether to keep file version history
     
-    private Integer maxFileVersions;  // Maximum number of file versions to keep
+    // Consolidation fields
+    private String consolidationMode = "MANUAL";  // MANUAL, AUTO, HYBRID
     
-    private String keepFileHistory;  // Y/N - whether to keep file change history
+    private String consolidationRules;  // JSON string for consolidation logic
     
-    private String fileHistoryDetails;  // Y/N - whether to track detailed file change history
+    private String fileSelectionStrategy = "ALL_AVAILABLE";  // ALL_AVAILABLE, USER_SELECT, AUTO_SELECT
+    
+    private Integer maxFileSelections;  // Maximum number of files user can select for consolidation
+    
+    private Integer minFileSelections = 1;  // Minimum number of files required for consolidation
+    
+    private Long consolidationTemplateId;  // Reference to consolidation template
+    
+    // Decision fields
+    private String decisionRequiresApproval = "Y";  // Y/N - whether decision needs approval
+    
+    private Long decisionApprovalRoleId;  // Role that can approve decisions
+    
+    private String revisionStrategy = "SINGLE_TASK";  // SINGLE_TASK, CASCADE, SELECTIVE
+    
+    private String revisionTaskMapping;  // JSON string mapping decision outcomes to target tasks
+    
+    // Task execution fields
+    private String canBeRevisited = "N";  // Y/N - whether task can be revisited
+    private Integer maxRevisits = 0;  // Maximum number of times task can be revisited
+    private String canRunInParallel = "N";  // Y/N - whether task can run in parallel with other tasks
     
     // Related data
     private String roleName;
+    private Integer roleSequence; // For UI-based workflow creation
     private List<WorkflowConfigTaskFileDto> taskFiles;
     private List<TaskDecisionOutcomeDto> decisionOutcomes;
     
@@ -178,29 +194,22 @@ public class WorkflowConfigTaskDto {
         this.parentTaskIds = parentTaskIds;
     }
     
-    public String getCanBeRevisited() {
-        return canBeRevisited;
+    public Integer getTaskSequence() {
+        return taskSequence;
     }
     
-    public void setCanBeRevisited(String canBeRevisited) {
-        this.canBeRevisited = canBeRevisited;
+    public void setTaskSequence(Integer taskSequence) {
+        this.taskSequence = taskSequence;
     }
     
-    public Integer getMaxRevisits() {
-        return maxRevisits;
+    public List<Integer> getParentTaskSequences() {
+        return parentTaskSequences;
     }
     
-    public void setMaxRevisits(Integer maxRevisits) {
-        this.maxRevisits = maxRevisits;
+    public void setParentTaskSequences(List<Integer> parentTaskSequences) {
+        this.parentTaskSequences = parentTaskSequences;
     }
     
-    public String getFileSelectionMode() {
-        return fileSelectionMode;
-    }
-    
-    public void setFileSelectionMode(String fileSelectionMode) {
-        this.fileSelectionMode = fileSelectionMode;
-    }
     
     public String getSourceTaskIds() {
         return sourceTaskIds;
@@ -338,13 +347,6 @@ public class WorkflowConfigTaskDto {
         this.taskRejectedBy = taskRejectedBy;
     }
     
-    public String getAllowNewFiles() {
-        return allowNewFiles;
-    }
-    
-    public void setAllowNewFiles(String allowNewFiles) {
-        this.allowNewFiles = allowNewFiles;
-    }
     
     public String getFileSourceTaskIds() {
         return fileSourceTaskIds;
@@ -354,13 +356,6 @@ public class WorkflowConfigTaskDto {
         this.fileSourceTaskIds = fileSourceTaskIds;
     }
     
-    public String getCanRunInParallel() {
-        return canRunInParallel;
-    }
-    
-    public void setCanRunInParallel(String canRunInParallel) {
-        this.canRunInParallel = canRunInParallel;
-    }
     
     public String getParallelTaskIds() {
         return parallelTaskIds;
@@ -378,36 +373,109 @@ public class WorkflowConfigTaskDto {
         this.fileRetentionDays = fileRetentionDays;
     }
     
-    public String getKeepFileVersions() {
-        return keepFileVersions;
+    
+    public String getConsolidationMode() {
+        return consolidationMode;
     }
     
-    public void setKeepFileVersions(String keepFileVersions) {
-        this.keepFileVersions = keepFileVersions;
+    public void setConsolidationMode(String consolidationMode) {
+        this.consolidationMode = consolidationMode;
     }
     
-    public Integer getMaxFileVersions() {
-        return maxFileVersions;
+    public String getConsolidationRules() {
+        return consolidationRules;
     }
     
-    public void setMaxFileVersions(Integer maxFileVersions) {
-        this.maxFileVersions = maxFileVersions;
+    public void setConsolidationRules(String consolidationRules) {
+        this.consolidationRules = consolidationRules;
     }
     
-    public String getKeepFileHistory() {
-        return keepFileHistory;
+    public String getFileSelectionStrategy() {
+        return fileSelectionStrategy;
     }
     
-    public void setKeepFileHistory(String keepFileHistory) {
-        this.keepFileHistory = keepFileHistory;
+    public void setFileSelectionStrategy(String fileSelectionStrategy) {
+        this.fileSelectionStrategy = fileSelectionStrategy;
     }
     
-    public String getFileHistoryDetails() {
-        return fileHistoryDetails;
+    public Integer getMaxFileSelections() {
+        return maxFileSelections;
     }
     
-    public void setFileHistoryDetails(String fileHistoryDetails) {
-        this.fileHistoryDetails = fileHistoryDetails;
+    public void setMaxFileSelections(Integer maxFileSelections) {
+        this.maxFileSelections = maxFileSelections;
+    }
+    
+    public Integer getMinFileSelections() {
+        return minFileSelections;
+    }
+    
+    public void setMinFileSelections(Integer minFileSelections) {
+        this.minFileSelections = minFileSelections;
+    }
+    
+    public Long getConsolidationTemplateId() {
+        return consolidationTemplateId;
+    }
+    
+    public void setConsolidationTemplateId(Long consolidationTemplateId) {
+        this.consolidationTemplateId = consolidationTemplateId;
+    }
+    
+    public String getDecisionRequiresApproval() {
+        return decisionRequiresApproval;
+    }
+    
+    public void setDecisionRequiresApproval(String decisionRequiresApproval) {
+        this.decisionRequiresApproval = decisionRequiresApproval;
+    }
+    
+    public Long getDecisionApprovalRoleId() {
+        return decisionApprovalRoleId;
+    }
+    
+    public void setDecisionApprovalRoleId(Long decisionApprovalRoleId) {
+        this.decisionApprovalRoleId = decisionApprovalRoleId;
+    }
+    
+    public String getRevisionStrategy() {
+        return revisionStrategy;
+    }
+    
+    public void setRevisionStrategy(String revisionStrategy) {
+        this.revisionStrategy = revisionStrategy;
+    }
+    
+    public String getRevisionTaskMapping() {
+        return revisionTaskMapping;
+    }
+    
+    public void setRevisionTaskMapping(String revisionTaskMapping) {
+        this.revisionTaskMapping = revisionTaskMapping;
+    }
+    
+    public String getCanBeRevisited() {
+        return canBeRevisited;
+    }
+    
+    public void setCanBeRevisited(String canBeRevisited) {
+        this.canBeRevisited = canBeRevisited;
+    }
+    
+    public Integer getMaxRevisits() {
+        return maxRevisits;
+    }
+    
+    public void setMaxRevisits(Integer maxRevisits) {
+        this.maxRevisits = maxRevisits;
+    }
+    
+    public String getCanRunInParallel() {
+        return canRunInParallel;
+    }
+    
+    public void setCanRunInParallel(String canRunInParallel) {
+        this.canRunInParallel = canRunInParallel;
     }
     
     public String getRoleName() {
@@ -416,6 +484,14 @@ public class WorkflowConfigTaskDto {
     
     public void setRoleName(String roleName) {
         this.roleName = roleName;
+    }
+    
+    public Integer getRoleSequence() {
+        return roleSequence;
+    }
+    
+    public void setRoleSequence(Integer roleSequence) {
+        this.roleSequence = roleSequence;
     }
     
     public List<WorkflowConfigTaskFileDto> getTaskFiles() {
@@ -435,9 +511,6 @@ public class WorkflowConfigTaskDto {
     }
     
     // Helper methods
-    public boolean canBeRevisited() {
-        return "Y".equals(canBeRevisited);
-    }
     
     public boolean isDecisionTask() {
         return "Y".equals(isDecisionTask);
@@ -451,13 +524,6 @@ public class WorkflowConfigTaskDto {
         return "Y".equals(notificationRequired);
     }
     
-    public boolean isAllowNewFiles() {
-        return "Y".equals(allowNewFiles);
-    }
-    
-    public boolean canRunInParallel() {
-        return "Y".equals(canRunInParallel);
-    }
     
     public boolean isPending() {
         return "PENDING".equals(taskStatus);
@@ -535,17 +601,6 @@ public class WorkflowConfigTaskDto {
         return ids;
     }
     
-    public boolean keepFileVersions() {
-        return "Y".equals(keepFileVersions);
-    }
-    
-    public boolean keepFileHistory() {
-        return "Y".equals(keepFileHistory);
-    }
-    
-    public boolean fileHistoryDetails() {
-        return "Y".equals(fileHistoryDetails);
-    }
     
     @Override
     public String toString() {
@@ -556,7 +611,6 @@ public class WorkflowConfigTaskDto {
                 ", roleId=" + roleId +
                 ", sequenceOrder=" + sequenceOrder +
                 ", parentTaskIds='" + parentTaskIds + '\'' +
-                ", canBeRevisited='" + canBeRevisited + '\'' +
                 '}';
     }
 }

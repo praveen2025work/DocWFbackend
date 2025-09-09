@@ -178,6 +178,10 @@ public class TaskDecisionOutcome {
         return escalationRoleId;
     }
     
+    public void setEscalationRoleId(Long escalationRoleId) {
+        this.escalationRoleId = escalationRoleId;
+    }
+    
     public boolean isSingleRevision() {
         return "SINGLE".equals(revisionType);
     }

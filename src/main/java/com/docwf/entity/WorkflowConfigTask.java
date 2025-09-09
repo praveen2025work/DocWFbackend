@@ -51,14 +51,6 @@ public class WorkflowConfigTask {
     @Column(name = "PARENT_TASK_IDS")
     private String parentTaskIds;  // Comma-separated list of parent task IDs
     
-    @Column(name = "CAN_BE_REVISITED", length = 1)
-    private String canBeRevisited = "N";  // Y/N
-    
-    @Column(name = "MAX_REVISITS")
-    private Integer maxRevisits = 0;
-    
-    @Column(name = "FILE_SELECTION_MODE", length = 50)
-    private String fileSelectionMode = "USER_SELECT";  // USER_SELECT, ALL_FILES, AUTO_SELECT
     
     @Column(name = "SOURCE_TASK_IDS")
     private String sourceTaskIds;  // Comma-separated list of source task IDs for file selection
@@ -112,8 +104,6 @@ public class WorkflowConfigTask {
     private String taskRejectedBy;  // User who rejected the task
     
     // File management fields
-    @Column(name = "ALLOW_NEW_FILES", length = 1)
-    private String allowNewFiles = "N";  // Y/N
     
     @Column(name = "FILE_SOURCE_TASK_IDS")
     private String fileSourceTaskIds;  // Comma-separated list of task IDs that provide files for this task
@@ -148,8 +138,15 @@ public class WorkflowConfigTask {
     @Column(name = "REVISION_TASK_MAPPING")
     private String revisionTaskMapping;  // JSON string mapping decision outcomes to target tasks
     
+    // Task execution fields
+    @Column(name = "CAN_BE_REVISITED", length = 1)
+    private String canBeRevisited = "N";  // Y/N - whether task can be revisited
+    
+    @Column(name = "MAX_REVISITS")
+    private Integer maxRevisits = 0;  // Maximum number of times task can be revisited
+    
     @Column(name = "CAN_RUN_IN_PARALLEL", length = 1)
-    private String canRunInParallel = "N";  // Y/N - whether this task can run parallel to other tasks
+    private String canRunInParallel = "N";  // Y/N - whether task can run in parallel with other tasks
     
     @Column(name = "PARALLEL_TASK_IDS")
     private String parallelTaskIds;  // Comma-separated list of task IDs that can run in parallel
@@ -157,17 +154,6 @@ public class WorkflowConfigTask {
     @Column(name = "FILE_RETENTION_DAYS")
     private Integer fileRetentionDays;  // How long to keep files after task completion
     
-    @Column(name = "KEEP_FILE_VERSIONS", length = 1)
-    private String keepFileVersions = "Y";  // Y/N - whether to keep file version history
-    
-    @Column(name = "MAX_FILE_VERSIONS")
-    private Integer maxFileVersions = 10;  // Maximum number of file versions to keep
-    
-    @Column(name = "KEEP_FILE_HISTORY", length = 1)
-    private String keepFileHistory = "Y";  // Y/N - whether to keep file change history
-    
-    @Column(name = "FILE_HISTORY_DETAILS", length = 1)
-    private String fileHistoryDetails = "Y";  // Y/N - whether to track detailed file change history
     
     // Relationships
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -267,29 +253,6 @@ public class WorkflowConfigTask {
         this.parentTaskIds = parentTaskIds;
     }
     
-    public String getCanBeRevisited() {
-        return canBeRevisited;
-    }
-    
-    public void setCanBeRevisited(String canBeRevisited) {
-        this.canBeRevisited = canBeRevisited;
-    }
-    
-    public Integer getMaxRevisits() {
-        return maxRevisits;
-    }
-    
-    public void setMaxRevisits(Integer maxRevisits) {
-        this.maxRevisits = maxRevisits;
-    }
-    
-    public String getFileSelectionMode() {
-        return fileSelectionMode;
-    }
-    
-    public void setFileSelectionMode(String fileSelectionMode) {
-        this.fileSelectionMode = fileSelectionMode;
-    }
     
     public String getSourceTaskIds() {
         return sourceTaskIds;
@@ -427,13 +390,6 @@ public class WorkflowConfigTask {
         this.taskRejectedBy = taskRejectedBy;
     }
     
-    public String getAllowNewFiles() {
-        return allowNewFiles;
-    }
-    
-    public void setAllowNewFiles(String allowNewFiles) {
-        this.allowNewFiles = allowNewFiles;
-    }
     
     public String getFileSourceTaskIds() {
         return fileSourceTaskIds;
@@ -523,6 +479,22 @@ public class WorkflowConfigTask {
         this.revisionTaskMapping = revisionTaskMapping;
     }
     
+    public String getCanBeRevisited() {
+        return canBeRevisited;
+    }
+    
+    public void setCanBeRevisited(String canBeRevisited) {
+        this.canBeRevisited = canBeRevisited;
+    }
+    
+    public Integer getMaxRevisits() {
+        return maxRevisits;
+    }
+    
+    public void setMaxRevisits(Integer maxRevisits) {
+        this.maxRevisits = maxRevisits;
+    }
+    
     public String getCanRunInParallel() {
         return canRunInParallel;
     }
@@ -547,37 +519,6 @@ public class WorkflowConfigTask {
         this.fileRetentionDays = fileRetentionDays;
     }
     
-    public String getKeepFileVersions() {
-        return keepFileVersions;
-    }
-    
-    public void setKeepFileVersions(String keepFileVersions) {
-        this.keepFileVersions = keepFileVersions;
-    }
-    
-    public Integer getMaxFileVersions() {
-        return maxFileVersions;
-    }
-    
-    public void setMaxFileVersions(Integer maxFileVersions) {
-        this.maxFileVersions = maxFileVersions;
-    }
-    
-    public String getKeepFileHistory() {
-        return keepFileHistory;
-    }
-    
-    public void setKeepFileHistory(String keepFileHistory) {
-        this.keepFileHistory = keepFileHistory;
-    }
-    
-    public String getFileHistoryDetails() {
-        return fileHistoryDetails;
-    }
-    
-    public void setFileHistoryDetails(String fileHistoryDetails) {
-        this.fileHistoryDetails = fileHistoryDetails;
-    }
     
     public List<WorkflowConfigTaskFile> getTaskFiles() {
         return taskFiles;
@@ -606,17 +547,6 @@ public class WorkflowConfigTask {
         outcome.setTask(this);
     }
     
-    public boolean canBeRevisited() {
-        return "Y".equals(canBeRevisited);
-    }
-    
-    public boolean isAllowNewFiles() {
-        return "Y".equals(allowNewFiles);
-    }
-    
-    public boolean canRunInParallel() {
-        return "Y".equals(canRunInParallel);
-    }
     
     public boolean isDecisionTask() {
         return "Y".equals(isDecisionTask);
@@ -698,9 +628,7 @@ public class WorkflowConfigTask {
                 ", role=" + (role != null ? role.getRoleName() : "null") +
                 ", sequenceOrder=" + sequenceOrder +
                 ", parentTaskIds='" + parentTaskIds + '\'' +
-                ", canBeRevisited='" + canBeRevisited + '\'' +
                 ", taskStatus='" + taskStatus + '\'' +
-                ", allowNewFiles='" + allowNewFiles + '\'' +
                 '}';
     }
 }

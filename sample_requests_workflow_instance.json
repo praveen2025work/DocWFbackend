@@ -1,0 +1,1211 @@
+{
+  "api_info": {
+    "name": "DocWF Workflow Instance Management API",
+    "version": "1.0.0",
+    "base_url": "http://localhost:8080",
+    "description": "Comprehensive REST API for managing workflow instances, tasks, files, and user roles"
+  },
+  "endpoints": {
+    "workflow_instance_tasks": {
+      "get_task_details_file_upload": {
+        "method": "GET",
+        "url": "/api/execution/tasks/1/details",
+        "description": "Get detailed information for a FILE_UPLOAD task instance",
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "taskName": "Upload Financial Data",
+          "taskType": "FILE_UPLOAD",
+          "status": "IN_PROGRESS",
+          "assignedTo": 1,
+          "assignedToUsername": "alice",
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "decisionOutcome": null,
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "taskConfiguration": {
+            "fileSelectionMode": "USER_SELECT",
+            "allowedFileTypes": ["*.xlsx", "*.xls", "*.csv"],
+            "maxFileSize": "10MB",
+            "isRequired": true,
+            "fileDescription": "Upload monthly financial data in Excel format"
+          },
+          "instanceTaskFiles": [
+            {
+              "instanceFileId": 1,
+              "version": 1,
+              "fileName": "financial_data_jan.xlsx",
+              "filePath": "/uploads/financial_data_jan.xlsx",
+              "fileSize": 2048000,
+              "actionType": "UPLOAD",
+              "fileStatus": "COMPLETED",
+              "fileCommentary": "January financial data uploaded",
+              "createdBy": "alice",
+              "createdAt": "2025-01-02T10:30:00"
+            }
+          ],
+          "queries": [
+            {
+              "queryId": 1,
+              "queryTitle": "File format clarification",
+              "queryDescription": "What format should the financial data be in?",
+              "queryStatus": "RESOLVED",
+              "priority": "MEDIUM",
+              "raisedByUsername": "alice",
+              "assignedToUsername": "bob",
+              "createdAt": "2025-01-02T10:15:00"
+            }
+          ]
+        }
+      },
+      "get_task_details_file_download": {
+        "method": "GET",
+        "url": "/api/execution/tasks/2/details",
+        "description": "Get detailed information for a FILE_DOWNLOAD task instance",
+        "response_example": {
+          "instanceTaskId": 2,
+          "instanceId": 1,
+          "taskId": 2,
+          "taskName": "Download Consolidated Report",
+          "taskType": "FILE_DOWNLOAD",
+          "status": "PENDING",
+          "assignedTo": 2,
+          "assignedToUsername": "bob",
+          "startedOn": null,
+          "completedOn": null,
+          "decisionOutcome": null,
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "taskConfiguration": {
+            "downloadSource": "CONSOLIDATED_FILES",
+            "fileFormat": "PDF",
+            "includeCharts": true,
+            "isRequired": true,
+            "fileDescription": "Download the consolidated monthly report"
+          },
+          "availableFiles": [
+            {
+              "instanceFileId": 3,
+              "version": 1,
+              "fileName": "consolidated_report_jan.pdf",
+              "filePath": "/reports/consolidated_report_jan.pdf",
+              "fileSize": 5120000,
+              "actionType": "CONSOLIDATE",
+              "fileStatus": "COMPLETED",
+              "createdBy": "system",
+              "createdAt": "2025-01-02T11:00:00"
+            }
+          ],
+          "queries": []
+        }
+      },
+      "get_task_details_file_update": {
+        "method": "GET",
+        "url": "/api/execution/tasks/3/details",
+        "description": "Get detailed information for a FILE_UPDATE task instance",
+        "response_example": {
+          "instanceTaskId": 3,
+          "instanceId": 1,
+          "taskId": 3,
+          "taskName": "Update Budget Data",
+          "taskType": "FILE_UPDATE",
+          "status": "IN_PROGRESS",
+          "assignedTo": 1,
+          "assignedToUsername": "alice",
+          "startedOn": "2025-01-02T11:00:00",
+          "completedOn": null,
+          "decisionOutcome": null,
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "taskConfiguration": {
+            "sourceFileId": 1,
+            "updateType": "MODIFY_EXISTING",
+            "backupOriginal": true,
+            "isRequired": true,
+            "fileDescription": "Update the budget data with latest figures"
+          },
+          "sourceFile": {
+            "instanceFileId": 1,
+            "version": 1,
+            "fileName": "financial_data_jan.xlsx",
+            "filePath": "/uploads/financial_data_jan.xlsx",
+            "fileSize": 2048000,
+            "actionType": "UPLOAD",
+            "fileStatus": "COMPLETED",
+            "createdBy": "alice",
+            "createdAt": "2025-01-02T10:30:00"
+          },
+          "updatedFiles": [
+            {
+              "instanceFileId": 1,
+              "version": 2,
+              "fileName": "financial_data_jan_v2.xlsx",
+              "filePath": "/uploads/financial_data_jan_v2.xlsx",
+              "fileSize": 2150000,
+              "actionType": "UPDATE",
+              "fileStatus": "IN_PROGRESS",
+              "fileCommentary": "Updated with latest budget figures",
+              "createdBy": "alice",
+              "createdAt": "2025-01-02T11:15:00"
+            }
+          ],
+          "queries": []
+        }
+      },
+      "get_task_details_file_consolidate": {
+        "method": "GET",
+        "url": "/api/execution/tasks/4/details",
+        "description": "Get detailed information for a FILE_CONSOLIDATE task instance",
+        "response_example": {
+          "instanceTaskId": 4,
+          "instanceId": 1,
+          "taskId": 4,
+          "taskName": "Consolidate Monthly Reports",
+          "taskType": "FILE_CONSOLIDATE",
+          "status": "COMPLETED",
+          "assignedTo": 3,
+          "assignedToUsername": "carol",
+          "startedOn": "2025-01-02T12:00:00",
+          "completedOn": "2025-01-02T13:00:00",
+          "decisionOutcome": "APPROVED",
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "taskConfiguration": {
+            "consolidationMode": "MERGE_FILES",
+            "outputFormat": "PDF",
+            "includeSummary": true,
+            "isRequired": true,
+            "fileDescription": "Consolidate all monthly reports into a single document"
+          },
+          "sourceFiles": [
+            {
+              "instanceFileId": 1,
+              "version": 2,
+              "fileName": "financial_data_jan_v2.xlsx",
+              "filePath": "/uploads/financial_data_jan_v2.xlsx",
+              "actionType": "UPDATE"
+            },
+            {
+              "instanceFileId": 2,
+              "version": 1,
+              "fileName": "expense_report_jan.xlsx",
+              "filePath": "/uploads/expense_report_jan.xlsx",
+              "actionType": "UPLOAD"
+            }
+          ],
+          "consolidatedFile": {
+            "instanceFileId": 3,
+            "version": 1,
+            "fileName": "consolidated_report_jan.pdf",
+            "filePath": "/reports/consolidated_report_jan.pdf",
+            "fileSize": 5120000,
+            "actionType": "CONSOLIDATE",
+            "fileStatus": "COMPLETED",
+            "fileCommentary": "Consolidated monthly report with all data",
+            "createdBy": "system",
+            "createdAt": "2025-01-02T13:00:00"
+          },
+          "queries": []
+        }
+      },
+      "get_task_details_decision": {
+        "method": "GET",
+        "url": "/api/execution/tasks/5/details",
+        "description": "Get detailed information for a DECISION task instance",
+        "response_example": {
+          "instanceTaskId": 5,
+          "instanceId": 1,
+          "taskId": 5,
+          "taskName": "Approve Monthly Report",
+          "taskType": "DECISION",
+          "status": "PENDING",
+          "assignedTo": 4,
+          "assignedToUsername": "david",
+          "startedOn": null,
+          "completedOn": null,
+          "decisionOutcome": null,
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "taskConfiguration": {
+            "decisionType": "APPROVAL",
+            "decisionOptions": ["APPROVED", "REJECTED", "NEEDS_REVISION"],
+            "requiresComments": true,
+            "isRequired": true,
+            "fileDescription": "Review and approve the consolidated monthly report"
+          },
+          "reviewFiles": [
+            {
+              "instanceFileId": 3,
+              "version": 1,
+              "fileName": "consolidated_report_jan.pdf",
+              "filePath": "/reports/consolidated_report_jan.pdf",
+              "actionType": "CONSOLIDATE"
+            }
+          ],
+          "decisionOutcomes": [],
+          "queries": [
+            {
+              "queryId": 2,
+              "queryTitle": "Clarification on budget variance",
+              "queryDescription": "Can you explain the 15% variance in the marketing budget?",
+              "queryStatus": "OPEN",
+              "priority": "HIGH",
+              "raisedByUsername": "david",
+              "assignedToUsername": "alice",
+              "createdAt": "2025-01-02T13:30:00"
+            }
+          ]
+        }
+      }
+    },
+    "file_operations": {
+      "get_file_versions": {
+        "method": "GET",
+        "url": "/api/files/versions/1",
+        "description": "Get all versions of a specific file by instance file ID",
+        "response_example": [
+          {
+            "instanceFileId": 1,
+            "version": 2,
+            "fileName": "financial_data_jan_v2.xlsx",
+            "filePath": "/uploads/financial_data_jan_v2.xlsx",
+            "fileSize": 2150000,
+            "actionType": "UPDATE",
+            "fileStatus": "COMPLETED",
+            "fileCommentary": "Updated with latest budget figures",
+            "createdBy": "alice",
+            "createdAt": "2025-01-02T11:15:00"
+          },
+          {
+            "instanceFileId": 1,
+            "version": 1,
+            "fileName": "financial_data_jan.xlsx",
+            "filePath": "/uploads/financial_data_jan.xlsx",
+            "fileSize": 2048000,
+            "actionType": "UPLOAD",
+            "fileStatus": "COMPLETED",
+            "fileCommentary": "Initial upload of January financial data",
+            "createdBy": "alice",
+            "createdAt": "2025-01-02T10:30:00"
+          }
+        ]
+      },
+      "get_latest_file_version": {
+        "method": "GET",
+        "url": "/api/files/versions/1/latest",
+        "description": "Get the latest version of a specific file",
+        "response_example": {
+          "instanceFileId": 1,
+          "version": 2,
+          "fileName": "financial_data_jan_v2.xlsx",
+          "filePath": "/uploads/financial_data_jan_v2.xlsx",
+          "fileSize": 2150000,
+          "actionType": "UPDATE",
+          "fileStatus": "COMPLETED",
+          "fileCommentary": "Updated with latest budget figures",
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T11:15:00"
+        }
+      },
+      "get_specific_file_version": {
+        "method": "GET",
+        "url": "/api/files/versions/1/1",
+        "description": "Get a specific version of a file",
+        "response_example": {
+          "instanceFileId": 1,
+          "version": 1,
+          "fileName": "financial_data_jan.xlsx",
+          "filePath": "/uploads/financial_data_jan.xlsx",
+          "fileSize": 2048000,
+          "actionType": "UPLOAD",
+          "fileStatus": "COMPLETED",
+          "fileCommentary": "Initial upload of January financial data",
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T10:30:00"
+        }
+      },
+      "upload_file": {
+        "method": "POST",
+        "url": "/api/files/upload",
+        "description": "Upload a new file for a task instance",
+        "content_type": "multipart/form-data",
+        "form_data": {
+          "file": "financial_data_feb.xlsx",
+          "instanceTaskId": "1",
+          "actionType": "UPLOAD",
+          "fileCommentary": "February financial data upload",
+          "createdBy": "alice"
+        },
+        "response_example": {
+          "instanceFileId": 4,
+          "version": 1,
+          "fileName": "financial_data_feb.xlsx",
+          "filePath": "/uploads/financial_data_feb.xlsx",
+          "fileSize": 1980000,
+          "actionType": "UPLOAD",
+          "fileStatus": "COMPLETED",
+          "fileCommentary": "February financial data upload",
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T14:00:00"
+        }
+      },
+      "create_new_file_version": {
+        "method": "POST",
+        "url": "/api/files/versions/1",
+        "description": "Create a new version of an existing file",
+        "content_type": "multipart/form-data",
+        "form_data": {
+          "file": "financial_data_jan_v3.xlsx",
+          "actionType": "UPDATE",
+          "fileCommentary": "Updated with Q1 projections",
+          "createdBy": "alice"
+        },
+        "response_example": {
+          "instanceFileId": 1,
+          "version": 3,
+          "fileName": "financial_data_jan_v3.xlsx",
+          "filePath": "/uploads/financial_data_jan_v3.xlsx",
+          "fileSize": 2250000,
+          "actionType": "UPDATE",
+          "fileStatus": "COMPLETED",
+          "fileCommentary": "Updated with Q1 projections",
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T14:30:00"
+        }
+      },
+      "download_file": {
+        "method": "GET",
+        "url": "/api/files/download/financial_data_jan_v2.xlsx",
+        "description": "Download a specific file version",
+        "query_params": {
+          "instanceFileId": "1",
+          "version": "2"
+        },
+        "response_type": "file_download"
+      },
+      "download_latest_file": {
+        "method": "GET",
+        "url": "/api/files/download/latest/1",
+        "description": "Download the latest version of a file",
+        "response_type": "file_download"
+      },
+      "consolidate_files": {
+        "method": "POST",
+        "url": "/api/files/consolidate",
+        "description": "Consolidate multiple files into one",
+        "request_body": {
+          "instanceTaskId": 4,
+          "sourceFileIds": [1, 2],
+          "consolidationMode": "MERGE_FILES",
+          "outputFormat": "PDF",
+          "includeSummary": true,
+          "createdBy": "system"
+        },
+        "response_example": {
+          "instanceFileId": 3,
+          "version": 1,
+          "fileName": "consolidated_report_jan.pdf",
+          "filePath": "/reports/consolidated_report_jan.pdf",
+          "fileSize": 5120000,
+          "actionType": "CONSOLIDATE",
+          "fileStatus": "COMPLETED",
+          "fileCommentary": "Consolidated report from files: financial_data_jan_v2.xlsx, expense_report_jan.xlsx",
+          "createdBy": "system",
+          "createdAt": "2025-01-02T13:00:00"
+        }
+      },
+      "delete_file_version": {
+        "method": "DELETE",
+        "url": "/api/files/versions/1/1",
+        "description": "Delete a specific version of a file",
+        "response_example": {
+          "message": "File version deleted successfully",
+          "deletedFile": {
+            "instanceFileId": 1,
+            "version": 1,
+            "fileName": "financial_data_jan.xlsx"
+          }
+        }
+      }
+    },
+    "task_queries": {
+      "create_task_query": {
+        "method": "POST",
+        "url": "/api/queries",
+        "description": "Create a new query for a task instance with initial message",
+        "request_body": {
+          "instanceTaskId": 1,
+          "queryTitle": "File format clarification needed",
+          "queryDescription": "What specific format should the financial data be in? Excel or CSV?",
+          "raisedByUserId": 1,
+          "assignedToUserId": 2,
+          "priority": "HIGH",
+          "createdBy": "alice",
+          "initialMessage": {
+            "messageText": "What specific format should the financial data be in? Excel or CSV? I've attached a sample of what I currently have.",
+            "messageType": "TEXT",
+            "attachments": [
+              {
+                "fileName": "current_data_sample.xlsx",
+                "filePath": "/uploads/samples/current_data_sample.xlsx",
+                "fileSize": 128000,
+                "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              }
+            ]
+          }
+        },
+        "response_example": {
+          "queryId": 3,
+          "instanceTaskId": 1,
+          "queryTitle": "File format clarification needed",
+          "queryDescription": "What specific format should the financial data be in? Excel or CSV?",
+          "raisedByUserId": 1,
+          "raisedByUsername": "alice",
+          "assignedToUserId": 2,
+          "assignedToUsername": "bob",
+          "queryStatus": "OPEN",
+          "priority": "HIGH",
+          "resolutionNotes": null,
+          "resolvedByUserId": null,
+          "resolvedByUsername": null,
+          "resolvedAt": null,
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T14:45:00",
+          "updatedBy": null,
+          "updatedAt": null,
+          "taskName": "Upload Financial Data",
+          "workflowName": "Monthly Finance Workflow",
+          "instanceId": 1,
+          "conversation": {
+            "totalMessages": 1,
+            "messages": [
+              {
+                "messageId": 1,
+                "queryId": 3,
+                "messageText": "What specific format should the financial data be in? Excel or CSV? I've attached a sample of what I currently have.",
+                "messageType": "TEXT",
+                "sentByUserId": 1,
+                "sentByUsername": "alice",
+                "sentAt": "2025-01-02T14:45:00",
+                "attachments": [
+                  {
+                    "attachmentId": 1,
+                    "fileName": "current_data_sample.xlsx",
+                    "filePath": "/uploads/samples/current_data_sample.xlsx",
+                    "fileSize": 128000,
+                    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "uploadedAt": "2025-01-02T14:45:00"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "add_message_to_query": {
+        "method": "POST",
+        "url": "/api/queries/{queryId}/messages",
+        "description": "Add a new message to an existing query conversation",
+        "path_params": {
+          "queryId": "3"
+        },
+        "request_body": {
+          "messageText": "I've attached the template file and a sample of the correct data format. Please review and let me know if this matches your requirements.",
+          "messageType": "TEXT",
+          "sentByUserId": 2,
+          "sentBy": "bob",
+          "attachments": [
+            {
+              "fileName": "data_template.xlsx",
+              "filePath": "/uploads/templates/data_template.xlsx",
+              "fileSize": 256000,
+              "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            },
+            {
+              "fileName": "sample_data.pdf",
+              "filePath": "/uploads/samples/sample_data.pdf",
+              "fileSize": 512000,
+              "mimeType": "application/pdf"
+            }
+          ]
+        },
+        "response_example": {
+          "messageId": 2,
+          "queryId": 3,
+          "messageText": "I've attached the template file and a sample of the correct data format. Please review and let me know if this matches your requirements.",
+          "messageType": "TEXT",
+          "sentByUserId": 2,
+          "sentByUsername": "bob",
+          "sentAt": "2025-01-02T15:00:00",
+          "attachments": [
+            {
+              "attachmentId": 2,
+              "fileName": "data_template.xlsx",
+              "filePath": "/uploads/templates/data_template.xlsx",
+              "fileSize": 256000,
+              "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "uploadedAt": "2025-01-02T15:00:00"
+            },
+            {
+              "attachmentId": 3,
+              "fileName": "sample_data.pdf",
+              "filePath": "/uploads/samples/sample_data.pdf",
+              "fileSize": 512000,
+              "mimeType": "application/pdf",
+              "uploadedAt": "2025-01-02T15:00:00"
+            }
+          ]
+        }
+      },
+      "upload_file_to_query": {
+        "method": "POST",
+        "url": "/api/queries/{queryId}/attachments",
+        "description": "Upload a file attachment to a query conversation",
+        "content_type": "multipart/form-data",
+        "path_params": {
+          "queryId": "3"
+        },
+        "form_data": {
+          "file": "corrected_data.xlsx",
+          "messageId": "2",
+          "uploadedByUserId": "1",
+          "uploadedBy": "alice",
+          "description": "Corrected data file based on template"
+        },
+        "response_example": {
+          "attachmentId": 4,
+          "queryId": 3,
+          "messageId": 2,
+          "fileName": "corrected_data.xlsx",
+          "filePath": "/uploads/query_attachments/corrected_data.xlsx",
+          "fileSize": 384000,
+          "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "description": "Corrected data file based on template",
+          "uploadedByUserId": 1,
+          "uploadedByUsername": "alice",
+          "uploadedAt": "2025-01-02T15:30:00"
+        }
+      },
+      "get_query_conversation": {
+        "method": "GET",
+        "url": "/api/queries/{queryId}/conversation",
+        "description": "Get the complete conversation for a query with all messages and attachments",
+        "path_params": {
+          "queryId": "3"
+        },
+        "query_params": {
+          "page": "0",
+          "size": "20",
+          "sortBy": "sentAt",
+          "sortDir": "asc"
+        },
+        "response_example": {
+          "queryId": 3,
+          "queryTitle": "File format clarification needed",
+          "queryStatus": "IN_PROGRESS",
+          "totalMessages": 4,
+          "messages": [
+            {
+              "messageId": 1,
+              "queryId": 3,
+              "messageText": "What specific format should the financial data be in? Excel or CSV? I've attached a sample of what I currently have.",
+              "messageType": "TEXT",
+              "sentByUserId": 1,
+              "sentByUsername": "alice",
+              "sentAt": "2025-01-02T14:45:00",
+              "attachments": [
+                {
+                  "attachmentId": 1,
+                  "fileName": "current_data_sample.xlsx",
+                  "filePath": "/uploads/samples/current_data_sample.xlsx",
+                  "fileSize": 128000,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "uploadedAt": "2025-01-02T14:45:00"
+                }
+              ]
+            },
+            {
+              "messageId": 2,
+              "queryId": 3,
+              "messageText": "I've attached the template file and a sample of the correct data format. Please review and let me know if this matches your requirements.",
+              "messageType": "TEXT",
+              "sentByUserId": 2,
+              "sentByUsername": "bob",
+              "sentAt": "2025-01-02T15:00:00",
+              "attachments": [
+                {
+                  "attachmentId": 2,
+                  "fileName": "data_template.xlsx",
+                  "filePath": "/uploads/templates/data_template.xlsx",
+                  "fileSize": 256000,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "uploadedAt": "2025-01-02T15:00:00"
+                },
+                {
+                  "attachmentId": 3,
+                  "fileName": "sample_data.pdf",
+                  "filePath": "/uploads/samples/sample_data.pdf",
+                  "fileSize": 512000,
+                  "mimeType": "application/pdf",
+                  "uploadedAt": "2025-01-02T15:00:00"
+                }
+              ]
+            },
+            {
+              "messageId": 3,
+              "queryId": 3,
+              "messageText": "Thank you for the template! I've corrected the data format and uploaded the updated file. Please review.",
+              "messageType": "TEXT",
+              "sentByUserId": 1,
+              "sentByUsername": "alice",
+              "sentAt": "2025-01-02T15:30:00",
+              "attachments": [
+                {
+                  "attachmentId": 4,
+                  "fileName": "corrected_data.xlsx",
+                  "filePath": "/uploads/query_attachments/corrected_data.xlsx",
+                  "fileSize": 384000,
+                  "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "uploadedAt": "2025-01-02T15:30:00"
+                }
+              ]
+            },
+            {
+              "messageId": 4,
+              "queryId": 3,
+              "messageText": "Perfect! The data format now matches the template exactly. You can proceed with the upload.",
+              "messageType": "TEXT",
+              "sentByUserId": 2,
+              "sentByUsername": "bob",
+              "sentAt": "2025-01-02T15:45:00",
+              "attachments": []
+            }
+          ]
+        }
+      },
+      "download_query_attachment": {
+        "method": "GET",
+        "url": "/api/queries/attachments/{attachmentId}/download",
+        "description": "Download a file attachment from a query conversation",
+        "path_params": {
+          "attachmentId": "2"
+        },
+        "response_example": "Binary file content"
+      },
+      "delete_query_attachment": {
+        "method": "DELETE",
+        "url": "/api/queries/attachments/{attachmentId}",
+        "description": "Delete a file attachment from a query conversation",
+        "path_params": {
+          "attachmentId": "2"
+        },
+        "query_params": {
+          "deletedByUserId": "1",
+          "deletedBy": "alice"
+        },
+        "response_example": {
+          "message": "Attachment deleted successfully",
+          "attachmentId": 2,
+          "deletedAt": "2025-01-02T16:00:00"
+        }
+      },
+      "get_task_queries": {
+        "method": "GET",
+        "url": "/api/queries/task/1",
+        "description": "Get all queries for a specific task instance",
+        "query_params": {
+          "status": "OPEN",
+          "priority": "HIGH"
+        },
+        "response_example": [
+          {
+            "queryId": 1,
+            "instanceTaskId": 1,
+            "queryTitle": "File format clarification",
+            "queryDescription": "What format should the financial data be in?",
+            "raisedByUserId": 1,
+            "raisedByUsername": "alice",
+            "assignedToUserId": 2,
+            "assignedToUsername": "bob",
+            "queryStatus": "RESOLVED",
+            "priority": "MEDIUM",
+            "resolutionNotes": "Please use Excel format (.xlsx)",
+            "resolvedByUserId": 2,
+            "resolvedByUsername": "bob",
+            "resolvedAt": "2025-01-02T10:45:00",
+            "createdBy": "alice",
+            "createdAt": "2025-01-02T10:15:00"
+          },
+          {
+            "queryId": 3,
+            "instanceTaskId": 1,
+            "queryTitle": "File format clarification needed",
+            "queryDescription": "What specific format should the financial data be in? Excel or CSV?",
+            "raisedByUserId": 1,
+            "raisedByUsername": "alice",
+            "assignedToUserId": 2,
+            "assignedToUsername": "bob",
+            "queryStatus": "OPEN",
+            "priority": "HIGH",
+            "createdBy": "alice",
+            "createdAt": "2025-01-02T14:45:00"
+          }
+        ]
+      },
+      "update_query_status": {
+        "method": "PUT",
+        "url": "/api/queries/3/status",
+        "description": "Update the status of a query",
+        "request_body": {
+          "queryStatus": "RESOLVED",
+          "resolutionNotes": "Please use Excel format (.xlsx) with the following columns: Date, Description, Amount, Category",
+          "updatedByUserId": 2,
+          "updatedBy": "bob"
+        },
+        "response_example": {
+          "queryId": 3,
+          "instanceTaskId": 1,
+          "queryTitle": "File format clarification needed",
+          "queryDescription": "What specific format should the financial data be in? Excel or CSV?",
+          "raisedByUserId": 1,
+          "raisedByUsername": "alice",
+          "assignedToUserId": 2,
+          "assignedToUsername": "bob",
+          "queryStatus": "RESOLVED",
+          "priority": "HIGH",
+          "resolutionNotes": "Please use Excel format (.xlsx) with the following columns: Date, Description, Amount, Category",
+          "resolvedByUserId": 2,
+          "resolvedByUsername": "bob",
+          "resolvedAt": "2025-01-02T15:00:00",
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T14:45:00",
+          "updatedBy": "bob",
+          "updatedAt": "2025-01-02T15:00:00"
+        }
+      }
+    },
+    "task_completion": {
+      "mark_task_complete": {
+        "method": "POST",
+        "url": "/api/execution/tasks/1/complete",
+        "description": "Mark a task as completed with decision outcome",
+        "request_body": {
+          "decisionOutcome": "APPROVED",
+          "completionNotes": "All required files uploaded successfully",
+          "completedByUserId": 1,
+          "completedBy": "alice"
+        },
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "taskName": "Upload Financial Data",
+          "taskType": "FILE_UPLOAD",
+          "status": "COMPLETED",
+          "assignedTo": 1,
+          "assignedToUsername": "alice",
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": "2025-01-02T15:30:00",
+          "decisionOutcome": "APPROVED",
+          "completionNotes": "All required files uploaded successfully",
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "nextTasks": [
+            {
+              "instanceTaskId": 2,
+              "taskName": "Download Consolidated Report",
+              "taskType": "FILE_DOWNLOAD",
+              "status": "PENDING"
+            }
+          ]
+        }
+      },
+      "mark_task_rejected": {
+        "method": "POST",
+        "url": "/api/execution/tasks/1/reject",
+        "description": "Mark a task as rejected with reason",
+        "request_body": {
+          "decisionOutcome": "REJECTED",
+          "rejectionReason": "File format is incorrect. Please use Excel format.",
+          "rejectedByUserId": 2,
+          "rejectedBy": "bob"
+        },
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "taskName": "Upload Financial Data",
+          "taskType": "FILE_UPLOAD",
+          "status": "REJECTED",
+          "assignedTo": 1,
+          "assignedToUsername": "alice",
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "rejectedOn": "2025-01-02T15:30:00",
+          "decisionOutcome": "REJECTED",
+          "rejectionReason": "File format is incorrect. Please use Excel format.",
+          "rejectedBy": "bob",
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "nextTasks": []
+        }
+      },
+      "mark_decision_task_complete": {
+        "method": "POST",
+        "url": "/api/execution/tasks/5/complete",
+        "description": "Mark a decision task as completed with decision outcome",
+        "request_body": {
+          "decisionOutcome": "APPROVED",
+          "decisionComments": "Monthly report looks good. All figures are accurate and within budget.",
+          "completedByUserId": 4,
+          "completedBy": "david"
+        },
+        "response_example": {
+          "instanceTaskId": 5,
+          "instanceId": 1,
+          "taskId": 5,
+          "taskName": "Approve Monthly Report",
+          "taskType": "DECISION",
+          "status": "COMPLETED",
+          "assignedTo": 4,
+          "assignedToUsername": "david",
+          "startedOn": "2025-01-02T13:00:00",
+          "completedOn": "2025-01-02T16:00:00",
+          "decisionOutcome": "APPROVED",
+          "decisionComments": "Monthly report looks good. All figures are accurate and within budget.",
+          "workflowName": "Monthly Finance Workflow",
+          "workflowId": 1,
+          "workflowStatus": "COMPLETED",
+          "nextTasks": []
+        }
+      }
+    },
+    "workflow_instance_users": {
+      "get_workflow_instance_users": {
+        "method": "GET",
+        "url": "/api/execution/instances/1/users",
+        "description": "Get all users assigned to a workflow instance by roles",
+        "response_example": {
+          "instanceId": 1,
+          "workflowId": 1,
+          "workflowName": "Monthly Finance Workflow",
+          "instanceStatus": "IN_PROGRESS",
+          "usersByRole": {
+            "Preparer": [
+              {
+                "userId": 1,
+                "username": "alice",
+                "firstName": "Alice",
+                "lastName": "Smith",
+                "email": "alice@company.com",
+                "isActive": "Y",
+                "assignedTasks": [
+                  {
+                    "instanceTaskId": 1,
+                    "taskName": "Upload Financial Data",
+                    "taskType": "FILE_UPLOAD",
+                    "status": "COMPLETED"
+                  },
+                  {
+                    "instanceTaskId": 3,
+                    "taskName": "Update Budget Data",
+                    "taskType": "FILE_UPDATE",
+                    "status": "IN_PROGRESS"
+                  }
+                ],
+                "totalTasks": 2,
+                "completedTasks": 1,
+                "pendingTasks": 1
+              }
+            ],
+            "Reviewer": [
+              {
+                "userId": 2,
+                "username": "bob",
+                "firstName": "Bob",
+                "lastName": "Johnson",
+                "email": "bob@company.com",
+                "isActive": "Y",
+                "assignedTasks": [
+                  {
+                    "instanceTaskId": 2,
+                    "taskName": "Download Consolidated Report",
+                    "taskType": "FILE_DOWNLOAD",
+                    "status": "PENDING"
+                  }
+                ],
+                "totalTasks": 1,
+                "completedTasks": 0,
+                "pendingTasks": 1
+              }
+            ],
+            "Consolidator": [
+              {
+                "userId": 3,
+                "username": "carol",
+                "firstName": "Carol",
+                "lastName": "Williams",
+                "email": "carol@company.com",
+                "isActive": "Y",
+                "assignedTasks": [
+                  {
+                    "instanceTaskId": 4,
+                    "taskName": "Consolidate Monthly Reports",
+                    "taskType": "FILE_CONSOLIDATE",
+                    "status": "COMPLETED"
+                  }
+                ],
+                "totalTasks": 1,
+                "completedTasks": 1,
+                "pendingTasks": 0
+              }
+            ],
+            "Approver": [
+              {
+                "userId": 4,
+                "username": "david",
+                "firstName": "David",
+                "lastName": "Brown",
+                "email": "david@company.com",
+                "isActive": "Y",
+                "assignedTasks": [
+                  {
+                    "instanceTaskId": 5,
+                    "taskName": "Approve Monthly Report",
+                    "taskType": "DECISION",
+                    "status": "PENDING"
+                  }
+                ],
+                "totalTasks": 1,
+                "completedTasks": 0,
+                "pendingTasks": 1
+              }
+            ]
+          },
+          "roleSummary": {
+            "Preparer": {
+              "totalUsers": 1,
+              "totalTasks": 2,
+              "completedTasks": 1,
+              "pendingTasks": 1
+            },
+            "Reviewer": {
+              "totalUsers": 1,
+              "totalTasks": 1,
+              "completedTasks": 0,
+              "pendingTasks": 1
+            },
+            "Consolidator": {
+              "totalUsers": 1,
+              "totalTasks": 1,
+              "completedTasks": 1,
+              "pendingTasks": 0
+            },
+            "Approver": {
+              "totalUsers": 1,
+              "totalTasks": 1,
+              "completedTasks": 0,
+              "pendingTasks": 1
+            }
+          }
+        }
+      },
+      "get_users_by_role": {
+        "method": "GET",
+        "url": "/api/execution/instances/1/users/role/Preparer",
+        "description": "Get users assigned to a specific role in a workflow instance",
+        "response_example": [
+          {
+            "userId": 1,
+            "username": "alice",
+            "firstName": "Alice",
+            "lastName": "Smith",
+            "email": "alice@company.com",
+            "isActive": "Y",
+            "roleName": "Preparer",
+            "assignedTasks": [
+              {
+                "instanceTaskId": 1,
+                "taskName": "Upload Financial Data",
+                "taskType": "FILE_UPLOAD",
+                "status": "COMPLETED"
+              },
+              {
+                "instanceTaskId": 3,
+                "taskName": "Update Budget Data",
+                "taskType": "FILE_UPDATE",
+                "status": "IN_PROGRESS"
+              }
+            ],
+            "totalTasks": 2,
+            "completedTasks": 1,
+            "pendingTasks": 1
+          }
+        ]
+      },
+      "get_user_task_summary": {
+        "method": "GET",
+        "url": "/api/execution/instances/1/users/1/summary",
+        "description": "Get task summary for a specific user in a workflow instance",
+        "response_example": {
+          "userId": 1,
+          "username": "alice",
+          "firstName": "Alice",
+          "lastName": "Smith",
+          "email": "alice@company.com",
+          "roleName": "Preparer",
+          "instanceId": 1,
+          "workflowName": "Monthly Finance Workflow",
+          "taskSummary": {
+            "totalAssignedTasks": 2,
+            "completedTasks": 1,
+            "inProgressTasks": 1,
+            "pendingTasks": 0,
+            "overdueTasks": 0,
+            "completionRate": 50.0
+          },
+          "assignedTasks": [
+            {
+              "instanceTaskId": 1,
+              "taskName": "Upload Financial Data",
+              "taskType": "FILE_UPLOAD",
+              "status": "COMPLETED",
+              "startedOn": "2025-01-02T10:00:00",
+              "completedOn": "2025-01-02T15:30:00",
+              "decisionOutcome": "APPROVED"
+            },
+            {
+              "instanceTaskId": 3,
+              "taskName": "Update Budget Data",
+              "taskType": "FILE_UPDATE",
+              "status": "IN_PROGRESS",
+              "startedOn": "2025-01-02T11:00:00",
+              "completedOn": null,
+              "decisionOutcome": null
+            }
+          ],
+          "queries": {
+            "raised": 2,
+            "assigned": 1,
+            "open": 1,
+            "resolved": 1
+          }
+        }
+      }
+    }
+  },
+  "authentication": {
+    "note": "Development mode: No authentication required. Production mode: Basic authentication with role-based access control."
+  },
+  "testing": {
+    "insomnia_collection": "DocWF_Workflow_Instance_Test_Suite.json",
+    "swagger_ui": "http://localhost:8080/swagger-ui.html",
+    "openapi_docs": "http://localhost:8080/api-docs",
+    "h2_console": "http://localhost:8080/h2-console"
+  },
+  "sample_data": {
+    "workflow_instance": {
+      "instanceId": 1,
+      "workflowId": 1,
+      "workflowName": "Monthly Finance Workflow",
+      "status": "IN_PROGRESS",
+      "startedBy": 1,
+      "startedOn": "2025-01-02T10:00:00",
+      "tasks": [
+        {
+          "instanceTaskId": 1,
+          "taskName": "Upload Financial Data",
+          "taskType": "FILE_UPLOAD",
+          "status": "COMPLETED",
+          "assignedTo": 1
+        },
+        {
+          "instanceTaskId": 2,
+          "taskName": "Download Consolidated Report",
+          "taskType": "FILE_DOWNLOAD",
+          "status": "PENDING",
+          "assignedTo": 2
+        },
+        {
+          "instanceTaskId": 3,
+          "taskName": "Update Budget Data",
+          "taskType": "FILE_UPDATE",
+          "status": "IN_PROGRESS",
+          "assignedTo": 1
+        },
+        {
+          "instanceTaskId": 4,
+          "taskName": "Consolidate Monthly Reports",
+          "taskType": "FILE_CONSOLIDATE",
+          "status": "COMPLETED",
+          "assignedTo": 3
+        },
+        {
+          "instanceTaskId": 5,
+          "taskName": "Approve Monthly Report",
+          "taskType": "DECISION",
+          "status": "PENDING",
+          "assignedTo": 4
+        }
+      ]
+    },
+    "query_conversation_features": {
+      "message_types": [
+        "TEXT",
+        "SYSTEM",
+        "NOTIFICATION"
+      ],
+      "attachment_types": [
+        "FILE",
+        "IMAGE", 
+        "DOCUMENT",
+        "TEMPLATE"
+      ],
+      "supported_file_types": [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/csv",
+        "image/jpeg",
+        "image/png",
+        "application/zip"
+      ],
+      "conversation_flow_example": {
+        "queryId": 3,
+        "totalMessages": 4,
+        "conversation_timeline": [
+          {
+            "step": 1,
+            "action": "Query Created",
+            "user": "alice",
+            "message": "Initial question with file attachment",
+            "attachments": 1
+          },
+          {
+            "step": 2,
+            "action": "Response with Templates",
+            "user": "bob", 
+            "message": "Provided template and sample files",
+            "attachments": 2
+          },
+          {
+            "step": 3,
+            "action": "Updated File Upload",
+            "user": "alice",
+            "message": "Uploaded corrected file based on template",
+            "attachments": 1
+          },
+          {
+            "step": 4,
+            "action": "Resolution",
+            "user": "bob",
+            "message": "Confirmed format is correct",
+            "attachments": 0
+          }
+        ]
+      }
+    }
+  }
+}

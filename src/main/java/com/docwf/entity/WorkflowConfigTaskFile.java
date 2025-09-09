@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.envers.Audited;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "WORKFLOW_CONFIG_TASK_FILE")
@@ -52,6 +54,9 @@ public class WorkflowConfigTaskFile {
     @Column(name = "KEEP_FILE_VERSIONS", length = 1)
     private String keepFileVersions = "Y";  // Y/N - whether to keep file version history
     
+    @Column(name = "KEEP_FILE_HISTORY", length = 1)
+    private String keepFileHistory = "Y";  // Y/N - whether to keep file change history
+    
     @Column(name = "RETAIN_FOR_CURRENT_PERIOD", length = 1)
     private String retainForCurrentPeriod = "Y";  // Y/N - whether to retain file for current workflow period
     
@@ -71,6 +76,13 @@ public class WorkflowConfigTaskFile {
     @UpdateTimestamp
     @Column(name = "UPDATED_ON")
     private LocalDateTime updatedOn;
+    
+    // Relationships
+    @OneToMany(mappedBy = "file", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WorkflowConfigTaskFileDependency> dependencies = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "parentFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WorkflowConfigTaskFileDependency> parentDependencies = new ArrayList<>();
     
     // Enums
     public enum ActionType {
@@ -186,6 +198,14 @@ public class WorkflowConfigTaskFile {
         this.keepFileVersions = keepFileVersions;
     }
     
+    public String getKeepFileHistory() {
+        return keepFileHistory;
+    }
+    
+    public void setKeepFileHistory(String keepFileHistory) {
+        this.keepFileHistory = keepFileHistory;
+    }
+    
     public String getRetainForCurrentPeriod() {
         return retainForCurrentPeriod;
     }
@@ -234,6 +254,22 @@ public class WorkflowConfigTaskFile {
         this.updatedOn = updatedOn;
     }
     
+    public List<WorkflowConfigTaskFileDependency> getDependencies() {
+        return dependencies;
+    }
+    
+    public void setDependencies(List<WorkflowConfigTaskFileDependency> dependencies) {
+        this.dependencies = dependencies;
+    }
+    
+    public List<WorkflowConfigTaskFileDependency> getParentDependencies() {
+        return parentDependencies;
+    }
+    
+    public void setParentDependencies(List<WorkflowConfigTaskFileDependency> parentDependencies) {
+        this.parentDependencies = parentDependencies;
+    }
+    
     // Helper methods
     public boolean isRequired() {
         return "Y".equals(isRequired);
@@ -241,6 +277,10 @@ public class WorkflowConfigTaskFile {
     
     public boolean keepFileVersions() {
         return "Y".equals(keepFileVersions);
+    }
+    
+    public boolean keepFileHistory() {
+        return "Y".equals(keepFileHistory);
     }
     
     public boolean retainForCurrentPeriod() {

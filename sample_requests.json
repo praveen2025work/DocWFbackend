@@ -626,6 +626,33 @@
          "description": "Start a new workflow instance",
          "query_params": {
            "startedByUserId": "1"
+        },
+        "response_example": {
+          "instanceId": 1,
+          "workflowId": 1,
+          "status": "PENDING",
+          "startedBy": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "escalatedTo": null,
+          "workflowName": "Monthly Finance Workflow",
+          "startedByUsername": "alice",
+          "escalatedToUsername": null,
+          "instanceTasks": [
+            {
+              "instanceTaskId": 1,
+              "instanceId": 1,
+              "taskId": 1,
+              "status": "PENDING",
+              "assignedTo": null,
+              "startedOn": null,
+              "completedOn": null,
+              "decisionOutcome": null,
+              "assignedToUsername": null,
+              "taskName": "Upload Raw Data",
+              "taskType": "FILE_UPLOAD"
+            }
+          ]
          }
        },
        "start_workflow_with_calendar": {
@@ -635,29 +662,225 @@
          "query_params": {
            "startedByUserId": "1",
            "calendarId": "1"
+        },
+        "response_example": {
+          "instanceId": 2,
+          "workflowId": 1,
+          "status": "PENDING",
+          "startedBy": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "escalatedTo": null,
+          "calendarId": 1,
+          "calendarName": "US Business Days 2025",
+          "workflowName": "Monthly Finance Workflow",
+          "startedByUsername": "alice",
+          "escalatedToUsername": null,
+          "instanceTasks": [
+            {
+              "instanceTaskId": 2,
+              "instanceId": 2,
+              "taskId": 1,
+              "status": "PENDING",
+              "assignedTo": null,
+              "startedOn": null,
+              "completedOn": null,
+              "decisionOutcome": null,
+              "assignedToUsername": null,
+              "taskName": "Upload Raw Data",
+              "taskType": "FILE_UPLOAD"
+            }
+          ]
          }
        },
       "get_workflow_instances": {
         "method": "GET",
         "url": "/api/execution/workflows/1/instances",
-        "description": "Get all instances of a workflow"
+        "description": "Get all instances of a workflow with pagination and filtering",
+        "query_params": {
+          "page": "0",
+          "size": "10",
+          "status": "IN_PROGRESS",
+          "startedBy": "1"
+        },
+        "response_example": [
+          {
+            "instanceId": 1,
+            "workflowId": 1,
+            "status": "IN_PROGRESS",
+            "startedBy": 1,
+            "startedOn": "2025-01-02T10:00:00",
+            "completedOn": null,
+            "escalatedTo": null,
+            "workflowName": "Monthly Finance Workflow",
+            "startedByUsername": "alice",
+            "escalatedToUsername": null
+          }
+        ]
+      },
+      "get_workflow_instance_by_id": {
+        "method": "GET",
+        "url": "/api/execution/instances/1",
+        "description": "Get a specific workflow instance by ID",
+        "response_example": {
+          "instanceId": 1,
+          "workflowId": 1,
+          "status": "IN_PROGRESS",
+          "startedBy": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "escalatedTo": null,
+          "workflowName": "Monthly Finance Workflow",
+          "startedByUsername": "alice",
+          "escalatedToUsername": null,
+          "instanceTasks": [
+            {
+              "instanceTaskId": 1,
+              "instanceId": 1,
+              "taskId": 1,
+              "status": "COMPLETED",
+              "assignedTo": 1,
+              "startedOn": "2025-01-02T10:00:00",
+              "completedOn": "2025-01-02T11:00:00",
+              "decisionOutcome": "APPROVED",
+              "assignedToUsername": "alice",
+              "taskName": "Upload Raw Data",
+              "taskType": "FILE_UPLOAD"
+            },
+            {
+              "instanceTaskId": 2,
+              "instanceId": 1,
+              "taskId": 2,
+              "status": "IN_PROGRESS",
+              "assignedTo": 2,
+              "startedOn": "2025-01-02T11:00:00",
+              "completedOn": null,
+              "decisionOutcome": null,
+              "assignedToUsername": "bob",
+              "taskName": "Review Data",
+              "taskType": "REVIEW"
+            }
+          ]
+        }
       },
       "get_instance_tasks": {
         "method": "GET",
         "url": "/api/execution/instances/1/tasks",
-        "description": "Get all tasks for a workflow instance"
+        "description": "Get all tasks for a workflow instance with filtering",
+        "query_params": {
+          "status": "PENDING",
+          "assignedTo": "2"
+        },
+        "response_example": [
+          {
+            "instanceTaskId": 2,
+            "instanceId": 1,
+            "taskId": 2,
+            "status": "PENDING",
+            "assignedTo": 2,
+            "startedOn": null,
+            "completedOn": null,
+            "decisionOutcome": null,
+            "assignedToUsername": "bob",
+            "taskName": "Review Data",
+            "taskType": "REVIEW"
+          }
+        ]
+      },
+      "get_instance_task_by_id": {
+        "method": "GET",
+        "url": "/api/execution/tasks/1",
+        "description": "Get a specific task instance by ID",
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "status": "COMPLETED",
+          "assignedTo": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": "2025-01-02T11:00:00",
+          "decisionOutcome": "APPROVED",
+          "assignedToUsername": "alice",
+          "taskName": "Upload Raw Data",
+          "taskType": "FILE_UPLOAD",
+          "instanceTaskFiles": [
+            {
+              "instanceFileId": 1,
+              "version": 1,
+              "fileName": "financial_data.xlsx",
+              "filePath": "/uploads/financial_data.xlsx",
+              "actionType": "UPLOAD",
+              "createdBy": "alice",
+              "createdAt": "2025-01-02T10:30:00"
+            }
+          ]
+        }
       },
       "start_task": {
         "method": "POST",
         "url": "/api/execution/tasks/1/start",
-        "description": "Mark a task as started"
+        "description": "Mark a task as started",
+        "query_params": {
+          "startedByUserId": "1"
+        },
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "status": "IN_PROGRESS",
+          "assignedTo": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "decisionOutcome": null,
+          "assignedToUsername": "alice",
+          "taskName": "Upload Raw Data",
+          "taskType": "FILE_UPLOAD"
+        }
       },
       "complete_task": {
         "method": "POST",
         "url": "/api/execution/tasks/1/complete",
-        "description": "Mark a task as completed",
+        "description": "Mark a task as completed with decision outcome",
         "query_params": {
-          "decisionOutcome": "APPROVED"
+          "decisionOutcome": "APPROVED",
+          "completedByUserId": "1"
+        },
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "status": "COMPLETED",
+          "assignedTo": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": "2025-01-02T11:00:00",
+          "decisionOutcome": "APPROVED",
+          "assignedToUsername": "alice",
+          "taskName": "Upload Raw Data",
+          "taskType": "FILE_UPLOAD"
+        }
+      },
+      "reject_task": {
+        "method": "POST",
+        "url": "/api/execution/tasks/1/reject",
+        "description": "Reject a task with reason",
+        "query_params": {
+          "reason": "Data format is incorrect",
+          "rejectedByUserId": "2"
+        },
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "status": "REJECTED",
+          "assignedTo": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "rejectedOn": "2025-01-02T11:30:00",
+          "reason": "Data format is incorrect",
+          "rejectedBy": "bob",
+          "assignedToUsername": "alice",
+          "taskName": "Upload Raw Data",
+          "taskType": "FILE_UPLOAD"
         }
       },
       "assign_task": {
@@ -665,7 +888,21 @@
         "url": "/api/execution/tasks/1/assign",
         "description": "Assign task to user",
         "query_params": {
-          "userId": "2"
+          "userId": "2",
+          "assignedByUserId": "1"
+        },
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "status": "PENDING",
+          "assignedTo": 2,
+          "startedOn": null,
+          "completedOn": null,
+          "decisionOutcome": null,
+          "assignedToUsername": "bob",
+          "taskName": "Upload Raw Data",
+          "taskType": "FILE_UPLOAD"
         }
       },
       "escalate_task": {
@@ -673,7 +910,162 @@
         "url": "/api/execution/tasks/1/escalate",
         "description": "Escalate task to another user",
         "query_params": {
-          "escalatedToUserId": "3"
+          "escalatedToUserId": "3",
+          "escalatedByUserId": "2",
+          "reason": "Requires manager approval"
+        },
+        "response_example": {
+          "instanceTaskId": 1,
+          "instanceId": 1,
+          "taskId": 1,
+          "status": "ESCALATED",
+          "assignedTo": 3,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "decisionOutcome": null,
+          "escalatedTo": 3,
+          "escalatedToUsername": "carol",
+          "assignedToUsername": "carol",
+          "taskName": "Upload Raw Data",
+          "taskType": "FILE_UPLOAD"
+        }
+      },
+      "escalate_workflow": {
+        "method": "POST",
+        "url": "/api/execution/instances/1/escalate",
+        "description": "Escalate entire workflow instance",
+        "query_params": {
+          "escalatedToUserId": "3",
+          "escalatedByUserId": "1",
+          "reason": "Workflow requires manager intervention"
+        },
+        "response_example": {
+          "instanceId": 1,
+          "workflowId": 1,
+          "status": "ESCALATED",
+          "startedBy": 1,
+          "startedOn": "2025-01-02T10:00:00",
+          "completedOn": null,
+          "escalatedTo": 3,
+          "workflowName": "Monthly Finance Workflow",
+          "startedByUsername": "alice",
+          "escalatedToUsername": "carol"
+        }
+      },
+      "get_user_tasks": {
+        "method": "GET",
+        "url": "/api/execution/tasks/user/2",
+        "description": "Get all tasks assigned to a specific user",
+        "query_params": {
+          "status": "PENDING",
+          "page": "0",
+          "size": "10"
+        },
+        "response_example": [
+          {
+            "instanceTaskId": 2,
+            "instanceId": 1,
+            "taskId": 2,
+            "status": "PENDING",
+            "assignedTo": 2,
+            "startedOn": null,
+            "completedOn": null,
+            "decisionOutcome": null,
+            "assignedToUsername": "bob",
+            "taskName": "Review Data",
+            "taskType": "REVIEW",
+            "workflowName": "Monthly Finance Workflow"
+          }
+        ]
+      },
+      "get_user_workflow_instances": {
+        "method": "GET",
+        "url": "/api/execution/instances/user/1",
+        "description": "Get all workflow instances started by a user",
+        "query_params": {
+          "status": "IN_PROGRESS",
+          "page": "0",
+          "size": "10"
+        },
+        "response_example": [
+          {
+            "instanceId": 1,
+            "workflowId": 1,
+            "status": "IN_PROGRESS",
+            "startedBy": 1,
+            "startedOn": "2025-01-02T10:00:00",
+            "completedOn": null,
+            "escalatedTo": null,
+            "workflowName": "Monthly Finance Workflow",
+            "startedByUsername": "alice",
+            "escalatedToUsername": null
+          }
+        ]
+      },
+      "get_overdue_tasks": {
+        "method": "GET",
+        "url": "/api/execution/tasks/overdue",
+        "description": "Get all overdue tasks across the system",
+        "query_params": {
+          "page": "0",
+          "size": "10"
+        },
+        "response_example": [
+          {
+            "instanceTaskId": 3,
+            "instanceId": 2,
+            "taskId": 1,
+            "status": "IN_PROGRESS",
+            "assignedTo": 2,
+            "startedOn": "2025-01-01T09:00:00",
+            "completedOn": null,
+            "decisionOutcome": null,
+            "assignedToUsername": "bob",
+            "taskName": "Upload Raw Data",
+            "taskType": "FILE_UPLOAD",
+            "workflowName": "Quarterly Audit Workflow",
+            "overdueHours": 25
+          }
+        ]
+      },
+      "get_workflow_statistics": {
+        "method": "GET",
+        "url": "/api/execution/workflows/1/statistics",
+        "description": "Get statistics for a specific workflow",
+        "query_params": {
+          "startDate": "2025-01-01",
+          "endDate": "2025-01-31"
+        },
+        "response_example": {
+          "workflowId": 1,
+          "workflowName": "Monthly Finance Workflow",
+          "totalInstances": 15,
+          "completedInstances": 12,
+          "inProgressInstances": 2,
+          "failedInstances": 1,
+          "averageCompletionTime": "2.5 hours",
+          "completionRate": 80.0,
+          "totalTasks": 60,
+          "completedTasks": 48,
+          "pendingTasks": 8,
+          "overdueTasks": 4
+        }
+      },
+      "get_user_workload": {
+        "method": "GET",
+        "url": "/api/execution/users/2/workload",
+        "description": "Get workload summary for a specific user",
+        "response_example": {
+          "userId": 2,
+          "username": "bob",
+          "totalAssignedTasks": 8,
+          "pendingTasks": 3,
+          "inProgressTasks": 2,
+          "completedTasks": 3,
+          "overdueTasks": 1,
+          "averageTaskCompletionTime": "1.5 hours",
+          "workloadPercentage": 75.0,
+          "maxCapacity": 10
         }
       }
     },
@@ -1012,6 +1404,208 @@
         "query_params": {
           "decision": "APPROVED",
           "reason": "Process owner override based on business rules"
+        }
+      }
+    },
+    "task_queries": {
+      "create_task_query": {
+        "method": "POST",
+        "url": "/api/queries",
+        "description": "Create a new query/chat for a specific task",
+        "request_body": {
+          "instanceTaskId": 1,
+          "queryTitle": "Need clarification on data format",
+          "queryDescription": "The uploaded file doesn't match the expected format. Can you please clarify the required structure?",
+          "raisedByUserId": 1,
+          "assignedToUserId": 2,
+          "priority": "HIGH",
+          "createdBy": "alice"
+        },
+        "response_example": {
+          "queryId": 1,
+          "instanceTaskId": 1,
+          "queryTitle": "Need clarification on data format",
+          "queryDescription": "The uploaded file doesn't match the expected format. Can you please clarify the required structure?",
+          "raisedByUserId": 1,
+          "raisedByUsername": "alice",
+          "assignedToUserId": 2,
+          "assignedToUsername": "bob",
+          "queryStatus": "OPEN",
+          "priority": "HIGH",
+          "resolutionNotes": null,
+          "resolvedByUserId": null,
+          "resolvedByUsername": null,
+          "resolvedAt": null,
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T10:00:00",
+          "updatedBy": null,
+          "updatedAt": null,
+          "taskName": "Upload Raw Data",
+          "workflowName": "Monthly Finance Workflow",
+          "instanceId": 1
+        }
+      },
+      "get_queries_for_task": {
+        "method": "GET",
+        "url": "/api/queries/task/1",
+        "description": "Get all queries for a specific task instance",
+        "query_params": {
+          "page": "0",
+          "size": "10",
+          "sortBy": "createdAt",
+          "sortDir": "desc"
+        },
+        "response_example": [
+          {
+            "queryId": 1,
+            "instanceTaskId": 1,
+            "queryTitle": "Need clarification on data format",
+            "queryDescription": "The uploaded file doesn't match the expected format. Can you please clarify the required structure?",
+            "raisedByUserId": 1,
+            "raisedByUsername": "alice",
+            "assignedToUserId": 2,
+            "assignedToUsername": "bob",
+            "queryStatus": "OPEN",
+            "priority": "HIGH",
+            "createdAt": "2025-01-02T10:00:00"
+          }
+        ]
+      },
+      "get_queries_for_workflow": {
+        "method": "GET",
+        "url": "/api/queries/workflow/1",
+        "description": "Get all queries for a specific workflow instance",
+        "query_params": {
+          "page": "0",
+          "size": "10"
+        }
+      },
+      "get_queries_assigned_to_user": {
+        "method": "GET",
+        "url": "/api/queries/assigned-to/2",
+        "description": "Get all queries assigned to a specific user",
+        "response_example": [
+          {
+            "queryId": 1,
+            "instanceTaskId": 1,
+            "queryTitle": "Need clarification on data format",
+            "queryDescription": "The uploaded file doesn't match the expected format. Can you please clarify the required structure?",
+            "raisedByUserId": 1,
+            "raisedByUsername": "alice",
+            "assignedToUserId": 2,
+            "assignedToUsername": "bob",
+            "queryStatus": "OPEN",
+            "priority": "HIGH",
+            "createdAt": "2025-01-02T10:00:00"
+          }
+        ]
+      },
+      "get_queries_raised_by_user": {
+        "method": "GET",
+        "url": "/api/queries/raised-by/1",
+        "description": "Get all queries raised by a specific user"
+      },
+      "get_open_queries_for_user": {
+        "method": "GET",
+        "url": "/api/queries/open/2",
+        "description": "Get all open queries assigned to a specific user"
+      },
+      "get_high_priority_queries": {
+        "method": "GET",
+        "url": "/api/queries/high-priority",
+        "description": "Get all high priority queries across the system"
+      },
+      "update_query_status": {
+        "method": "PUT",
+        "url": "/api/queries/1/status",
+        "description": "Update the status of a query (OPEN, IN_PROGRESS, RESOLVED, CLOSED)",
+        "request_body": {
+          "queryStatus": "RESOLVED",
+          "resolutionNotes": "The data format has been clarified. Please use the template provided in the documentation.",
+          "updatedByUserId": 2,
+          "updatedBy": "bob"
+        },
+        "response_example": {
+          "queryId": 1,
+          "instanceTaskId": 1,
+          "queryTitle": "Need clarification on data format",
+          "queryDescription": "The uploaded file doesn't match the expected format. Can you please clarify the required structure?",
+          "raisedByUserId": 1,
+          "raisedByUsername": "alice",
+          "assignedToUserId": 2,
+          "assignedToUsername": "bob",
+          "queryStatus": "RESOLVED",
+          "priority": "HIGH",
+          "resolutionNotes": "The data format has been clarified. Please use the template provided in the documentation.",
+          "resolvedByUserId": 2,
+          "resolvedByUsername": "bob",
+          "resolvedAt": "2025-01-02T11:30:00",
+          "createdBy": "alice",
+          "createdAt": "2025-01-02T10:00:00",
+          "updatedBy": "bob",
+          "updatedAt": "2025-01-02T11:30:00"
+        }
+      },
+      "get_query_by_id": {
+        "method": "GET",
+        "url": "/api/queries/1",
+        "description": "Get a specific query by its ID"
+      },
+      "delete_query": {
+        "method": "DELETE",
+        "url": "/api/queries/1",
+        "description": "Delete a specific query"
+      },
+      "get_query_statistics": {
+        "method": "GET",
+        "url": "/api/queries/statistics/2",
+        "description": "Get query statistics for a specific user",
+        "response_example": {
+          "userId": 2,
+          "openQueries": 3,
+          "resolvedQueries": 15,
+          "closedQueries": 2
+        }
+      },
+      "get_user_query_dashboard": {
+        "method": "GET",
+        "url": "/api/queries/dashboard/2",
+        "description": "Get comprehensive query dashboard for a user",
+        "response_example": {
+          "userId": 2,
+          "assignedQueries": [
+            {
+              "queryId": 1,
+              "queryTitle": "Need clarification on data format",
+              "queryStatus": "OPEN",
+              "priority": "HIGH",
+              "raisedByUsername": "alice"
+            }
+          ],
+          "raisedQueries": [
+            {
+              "queryId": 2,
+              "queryTitle": "Approval needed for exception",
+              "queryStatus": "RESOLVED",
+              "priority": "MEDIUM",
+              "assignedToUsername": "carol"
+            }
+          ],
+          "openQueries": [
+            {
+              "queryId": 1,
+              "queryTitle": "Need clarification on data format",
+              "queryStatus": "OPEN",
+              "priority": "HIGH",
+              "raisedByUsername": "alice"
+            }
+          ],
+          "statistics": {
+            "userId": 2,
+            "openQueries": 3,
+            "resolvedQueries": 15,
+            "closedQueries": 2
+          }
         }
       }
     }

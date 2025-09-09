@@ -55,4 +55,32 @@ public interface WorkflowCalendarRepository extends JpaRepository<WorkflowCalend
                                           @Param("createdAfter") java.time.LocalDateTime createdAfter,
                                           @Param("createdBefore") java.time.LocalDateTime createdBefore,
                                           Pageable pageable);
+    
+    // New methods for cron and region functionality
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.region = :region")
+    List<WorkflowCalendar> findByRegion(@Param("region") String region);
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.isActive = 'Y' AND c.cronExpression IS NOT NULL AND c.cronExpression != ''")
+    List<WorkflowCalendar> findActiveCalendarsWithCron();
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.timezone = :timezone")
+    List<WorkflowCalendar> findByTimezone(@Param("timezone") String timezone);
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.offsetDays = :offsetDays")
+    List<WorkflowCalendar> findByOffsetDays(@Param("offsetDays") Integer offsetDays);
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.isActive = :isActive")
+    List<WorkflowCalendar> findByIsActive(@Param("isActive") String isActive);
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.region = :region AND c.isActive = 'Y'")
+    List<WorkflowCalendar> findActiveCalendarsByRegion(@Param("region") String region);
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.timezone = :timezone AND c.isActive = 'Y'")
+    List<WorkflowCalendar> findActiveCalendarsByTimezone(@Param("timezone") String timezone);
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.cronExpression IS NOT NULL AND c.cronExpression != '' AND c.isActive = 'Y'")
+    List<WorkflowCalendar> findActiveCalendarsWithCronExpression();
+    
+    @Query("SELECT c FROM WorkflowCalendar c WHERE c.offsetDays IS NOT NULL AND c.isActive = 'Y'")
+    List<WorkflowCalendar> findActiveCalendarsWithOffset();
 }

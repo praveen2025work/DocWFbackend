@@ -23,6 +23,16 @@ public class WorkflowCalendarDto {
     
     private String recurrence; // NONE, DAILY, WEEKLY, MONTHLY, YEARLY
     
+    private String cronExpression; // Quartz cron expression for scheduling
+    
+    private String timezone; // Timezone for cron execution (e.g., "America/New_York")
+    
+    private String region; // Geographic region (e.g., "US", "EU", "APAC")
+    
+    private Integer offsetDays; // Days to offset from the base date (can be negative)
+    
+    private String isActive = "Y"; // Y/N - whether calendar is active for scheduling
+    
     @NotBlank(message = "Created by is required")
     private String createdBy;
     
@@ -93,6 +103,46 @@ public class WorkflowCalendarDto {
     
     public void setRecurrence(String recurrence) {
         this.recurrence = recurrence;
+    }
+    
+    public String getCronExpression() {
+        return cronExpression;
+    }
+    
+    public void setCronExpression(String cronExpression) {
+        this.cronExpression = cronExpression;
+    }
+    
+    public String getTimezone() {
+        return timezone;
+    }
+    
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+    
+    public String getRegion() {
+        return region;
+    }
+    
+    public void setRegion(String region) {
+        this.region = region;
+    }
+    
+    public Integer getOffsetDays() {
+        return offsetDays;
+    }
+    
+    public void setOffsetDays(Integer offsetDays) {
+        this.offsetDays = offsetDays;
+    }
+    
+    public String getIsActive() {
+        return isActive;
+    }
+    
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
     }
     
     public String getCreatedBy() {
