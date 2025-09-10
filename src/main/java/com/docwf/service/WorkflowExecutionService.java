@@ -6,8 +6,28 @@ import com.docwf.dto.TaskInstanceDecisionOutcomeDto;
 import com.docwf.dto.WorkflowProgressDto;
 import com.docwf.dto.WorkflowInstanceStatsDto;
 import com.docwf.dto.UserWorkloadDto;
+import com.docwf.dto.CreateWorkflowInstanceDto;
+import com.docwf.dto.ProcessOwnerDashboardDto;
+import com.docwf.dto.EscalationItemDto;
+import com.docwf.dto.ProcessOwnerStatsDto;
+import com.docwf.dto.UserDashboardDto;
+import com.docwf.dto.UserActivityDto;
+import com.docwf.dto.UserNotificationDto;
+import com.docwf.dto.UserCalendarDto;
+import com.docwf.dto.UserPerformanceDto;
+import com.docwf.dto.WorkflowRoleDto;
+import com.docwf.dto.UserPermissionDto;
+import com.docwf.dto.UserTeamDto;
+import com.docwf.dto.UserPreferencesDto;
+import com.docwf.dto.ManagerDashboardDto;
+import com.docwf.dto.AdminDashboardDto;
+import com.docwf.dto.WorkflowUserDto;
+import com.docwf.dto.ProcessOwnerWorkloadDto;
+import com.docwf.dto.ProcessOwnerPerformanceDto;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface WorkflowExecutionService {
     
@@ -20,6 +40,11 @@ public interface WorkflowExecutionService {
      * Start a new workflow instance with calendar validation
      */
     WorkflowInstanceDto startWorkflowWithCalendar(Long workflowId, Long startedByUserId, Long calendarId);
+    
+    /**
+     * Start a new workflow instance with calendar using DTO
+     */
+    WorkflowInstanceDto startWorkflowWithCalendar(CreateWorkflowInstanceDto createInstanceDto);
     
     /**
      * Get workflow instance by ID
@@ -178,4 +203,223 @@ public interface WorkflowExecutionService {
      * Get user workload
      */
     UserWorkloadDto getUserWorkload(Long userId);
+    
+    // Process Owner specific methods
+    /**
+     * Get workflow instances managed by a process owner
+     */
+    List<WorkflowInstanceDto> getWorkflowInstancesByProcessOwner(Long processOwnerId, String status, String priority);
+    
+    /**
+     * Get tasks managed by a process owner
+     */
+    List<WorkflowInstanceTaskDto> getTasksByProcessOwner(Long processOwnerId, String status, String priority);
+    
+    /**
+     * Get workflow instances that need process owner attention
+     */
+    List<WorkflowInstanceDto> getWorkflowInstancesNeedingProcessOwnerAttention(Long processOwnerId);
+    
+    /**
+     * Get overdue workflows for a process owner
+     */
+    List<WorkflowInstanceDto> getOverdueWorkflowsForProcessOwner(Long processOwnerId);
+    
+    // Dashboard specific methods
+    /**
+     * Get process owner dashboard data
+     */
+    ProcessOwnerDashboardDto getProcessOwnerDashboard(Long processOwnerId);
+    
+    /**
+     * Get escalation queue for a process owner
+     */
+    List<EscalationItemDto> getEscalationQueueForProcessOwner(Long processOwnerId);
+    
+    /**
+     * Get process owner statistics
+     */
+    ProcessOwnerStatsDto getProcessOwnerStatistics(Long processOwnerId);
+    
+    /**
+     * Reassign a task to another user
+     */
+    WorkflowInstanceTaskDto reassignTask(Long taskId, Long newUserId, String reason);
+    
+    /**
+     * Override task decision with process owner authority
+     */
+    WorkflowInstanceTaskDto overrideTaskDecision(Long taskId, String decision, String reason);
+    
+    /**
+     * Get process owner team members
+     */
+    List<WorkflowUserDto> getProcessOwnerTeam(Long processOwnerId);
+    
+    /**
+     * Assign workflow to process owner
+     */
+    WorkflowInstanceDto assignWorkflowToProcessOwner(Long workflowId, Long processOwnerId);
+    
+    /**
+     * Unassign workflow from process owner
+     */
+    void unassignWorkflowFromProcessOwner(Long workflowId, Long processOwnerId);
+    
+    /**
+     * Get process owner workload
+     */
+    ProcessOwnerWorkloadDto getProcessOwnerWorkload(Long processOwnerId);
+    
+    /**
+     * Get process owner performance metrics
+     */
+    ProcessOwnerPerformanceDto getProcessOwnerPerformance(Long processOwnerId, String period);
+    
+    // User Dashboard specific methods
+    /**
+     * Get user dashboard data
+     */
+    UserDashboardDto getUserDashboard(Long userId);
+    
+    // Additional dashboard methods
+    /**
+     * Get user activities
+     */
+    List<UserActivityDto> getUserActivities(Long userId, Integer limit);
+    
+    /**
+     * Get user notifications
+     */
+    List<UserNotificationDto> getUserNotifications(Long userId, String status);
+    
+    /**
+     * Mark notification as read
+     */
+    UserNotificationDto markNotificationAsRead(Long notificationId);
+    
+    /**
+     * Get user calendar
+     */
+    UserCalendarDto getUserCalendar(Long userId, String startDate, String endDate);
+    
+    /**
+     * Get user performance metrics
+     */
+    UserPerformanceDto getUserPerformance(Long userId, String period);
+    
+    /**
+     * Get user roles
+     */
+    List<WorkflowRoleDto> getUserRoles(Long userId);
+    
+    /**
+     * Get user permissions
+     */
+    List<UserPermissionDto> getUserPermissions(Long userId);
+    
+    /**
+     * Get user team information
+     */
+    UserTeamDto getUserTeam(Long userId);
+    
+    /**
+     * Get user preferences
+     */
+    UserPreferencesDto getUserPreferences(Long userId);
+    
+    /**
+     * Update user preferences
+     */
+    UserPreferencesDto updateUserPreferences(Long userId, UserPreferencesDto preferences);
+    
+    // Manager and Admin Dashboard methods
+    /**
+     * Get manager dashboard data
+     */
+    ManagerDashboardDto getManagerDashboard(Long managerId);
+    
+    /**
+     * Get admin dashboard data
+     */
+    AdminDashboardDto getAdminDashboard(Long adminId);
+    
+    // User-specific search methods
+    
+    /**
+     * Search user tasks with multiple criteria
+     */
+    List<WorkflowInstanceTaskDto> searchUserTasks(Long userId, String status, String priority, 
+                                                 String startedAfter, String startedBefore, 
+                                                 String completedAfter, String completedBefore);
+    
+    /**
+     * Search user workflows with multiple criteria
+     */
+    List<WorkflowInstanceDto> searchUserWorkflows(Long userId, String status, 
+                                                 String startedAfter, String startedBefore, 
+                                                 String completedAfter, String completedBefore);
+    
+    /**
+     * Search user activities with multiple criteria
+     */
+    List<UserActivityDto> searchUserActivities(Long userId, String activityType, 
+                                              String startedAfter, String startedBefore, Integer limit);
+    
+    /**
+     * Search user notifications with multiple criteria
+     */
+    List<UserNotificationDto> searchUserNotifications(Long userId, String status, String type, 
+                                                     String createdAfter, String createdBefore);
+    
+    // Instance and task search methods
+    
+    /**
+     * Search workflow instances with multiple criteria
+     */
+    Page<WorkflowInstanceDto> searchInstances(Long workflowId, String status, Long startedBy,
+                                             String startedAfter, String startedBefore,
+                                             String completedAfter, String completedBefore,
+                                             Pageable pageable);
+    
+    /**
+     * Search workflow tasks with multiple criteria
+     */
+    Page<WorkflowInstanceTaskDto> searchTasks(Long instanceId, String status, Long assignedTo,
+                                             String startedAfter, String startedBefore,
+                                             String completedAfter, String completedBefore,
+                                             Pageable pageable);
+    
+    /**
+     * Get overdue workflow instances
+     */
+    List<WorkflowInstanceDto> getOverdueInstances(Integer thresholdHours);
+    
+    // Process Owner specific search methods
+    
+    /**
+     * Search process owner tasks with multiple criteria
+     */
+    List<WorkflowInstanceTaskDto> searchProcessOwnerTasks(Long processOwnerId, String status, String priority, Long assignedTo,
+                                                         String startedAfter, String startedBefore, 
+                                                         String completedAfter, String completedBefore);
+    
+    /**
+     * Search process owner workflows with multiple criteria
+     */
+    List<WorkflowInstanceDto> searchProcessOwnerWorkflows(Long processOwnerId, String status,
+                                                         String startedAfter, String startedBefore, 
+                                                         String completedAfter, String completedBefore);
+    
+    /**
+     * Search process owner team members with multiple criteria
+     */
+    List<WorkflowUserDto> searchProcessOwnerTeam(Long processOwnerId, String username, String firstName, String lastName,
+                                                 String isActive, String roleName);
+    
+    /**
+     * Search process owner escalations with multiple criteria
+     */
+    List<EscalationItemDto> searchProcessOwnerEscalations(Long processOwnerId, String status, String type,
+                                                          String escalatedAfter, String escalatedBefore);
 }

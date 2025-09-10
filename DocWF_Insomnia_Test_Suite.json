@@ -1,0 +1,667 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-08-20T18:46:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "req_root",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}",
+      "name": "Root",
+      "description": "Test the root endpoint",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_swagger_ui",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/swagger-ui.html",
+      "name": "Swagger UI",
+      "description": "Access Swagger UI documentation",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_h2_console",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/h2-console",
+      "name": "H2 Console",
+      "description": "Access H2 database console",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_users_get_all",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/users",
+      "name": "Get All Users",
+      "description": "Retrieve all users with pagination",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Page number (0-based)"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Page size"
+        },
+        {
+          "name": "isActive",
+          "value": "Y",
+          "description": "Filter by active status"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_users_search",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/users/search",
+      "name": "Search Users",
+      "description": "Search users with multiple criteria",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "username",
+          "value": "alice",
+          "description": "Username filter"
+        },
+        {
+          "name": "firstName",
+          "value": "Alice",
+          "description": "First name filter"
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Page number"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Page size"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_users_create",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/users",
+      "name": "Create User",
+      "description": "Create a new user",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"testuser\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"email\": \"testuser@example.com\",\n  \"isActive\": \"Y\",\n  \"createdBy\": \"system\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_users_get_by_id",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/users/1",
+      "name": "Get User by ID",
+      "description": "Retrieve user by ID",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_roles_get_all",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/roles",
+      "name": "Get All Roles",
+      "description": "Retrieve all roles with pagination",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Page number"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Page size"
+        },
+        {
+          "name": "isActive",
+          "value": "Y",
+          "description": "Filter by active status"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_roles_create",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/roles",
+      "name": "Create Role",
+      "description": "Create a new role",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"roleName\": \"Manager\",\n  \"isActive\": \"Y\",\n  \"createdBy\": \"system\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_workflows_get_all",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/workflows",
+      "name": "Get All Workflows",
+      "description": "Retrieve all workflows with pagination",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Page number"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Page size"
+        },
+        {
+          "name": "isActive",
+          "value": "Y",
+          "description": "Filter by active status"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_workflows_create",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/workflows",
+      "name": "Create Workflow",
+      "description": "Create a new workflow",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Test Workflow\",\n  \"description\": \"A test workflow\",\n  \"reminderBeforeDueMins\": 30,\n  \"minutesAfterDue\": 15,\n  \"escalationAfterMins\": 60,\n  \"dueInMins\": 120,\n  \"isActive\": \"Y\",\n  \"createdBy\": \"system\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_workflows_get_by_id",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/workflows/1",
+      "name": "Get Workflow by ID",
+      "description": "Retrieve workflow by ID",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_workflows_tasks",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/workflows/1/tasks",
+      "name": "Get Workflow Tasks",
+      "description": "Retrieve tasks for a specific workflow",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_workflows_add_task",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/workflows/1/tasks",
+      "name": "Add Task to Workflow",
+      "description": "Add a new task to a workflow",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Review Task\",\n  \"taskType\": \"FILE_UPDATE\",\n  \"roleId\": 2,\n  \"sequenceOrder\": 3,\n  \"expectedCompletion\": 60\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_calendars_get_all",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/calendars",
+      "name": "Get All Calendars",
+      "description": "Retrieve all calendars with pagination",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Page number"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Page size"
+        },
+        {
+          "name": "recurrence",
+          "value": "MONTHLY",
+          "description": "Filter by recurrence"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_calendars_create",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/calendars",
+      "name": "Create Calendar",
+      "description": "Create a new calendar",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"calendarName\": \"Test Calendar\",\n  \"description\": \"A test calendar\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-12-31\",\n  \"recurrence\": \"MONTHLY\",\n  \"createdBy\": \"system\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_calendars_days",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/calendars/1/days",
+      "name": "Get Calendar Days",
+      "description": "Retrieve days for a specific calendar",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_files_upload",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/files/upload",
+      "name": "Upload File",
+      "description": "Upload a file to the system",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "value": "",
+            "type": "file",
+            "fileName": "test.txt",
+            "description": "File to upload"
+          },
+          {
+            "name": "instanceTaskId",
+            "value": "1",
+            "description": "Instance Task ID"
+          },
+          {
+            "name": "actionType",
+            "value": "FILE_UPLOAD",
+            "description": "Action type"
+          },
+          {
+            "name": "createdBy",
+            "value": "system",
+            "description": "User who uploaded the file"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_files_download",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/files/download/test.txt",
+      "name": "Download File",
+      "description": "Download a file from the system",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_execution_instances",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/execution/instances",
+      "name": "Get Execution Instances",
+      "description": "Retrieve workflow execution instances",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Page number"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Page size"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_execution_start",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/execution/start",
+      "name": "Start Workflow Execution",
+      "description": "Start a new workflow execution",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"workflowId\": 1,\n  \"startedBy\": 1,\n  \"parameters\": {}\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_dashboard_user",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/dashboard/user/1",
+      "name": "Get User Dashboard",
+      "description": "Retrieve user dashboard data",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_dashboard_admin",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/api/dashboard/admin",
+      "name": "Get Admin Dashboard",
+      "description": "Retrieve admin dashboard data",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "wrk_docwf",
+      "parentId": null,
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "name": "DocWF API Tests",
+      "description": "Comprehensive test suite for DocWF Workflow Management System",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_docwf",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "name": "DocWF Environment",
+      "data": {
+        "base_url": "http://localhost:8080"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1732123560000,
+      "_type": "environment"
+    },
+    {
+      "_id": "req_health_check",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/actuator/health",
+      "name": "Health Check",
+      "description": "Check application health status",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    },
+    {
+      "_id": "req_metrics",
+      "parentId": "wrk_docwf",
+      "modified": 1732123560000,
+      "created": 1732123560000,
+      "url": "{{ _.base_url }}/actuator/metrics",
+      "name": "Application Metrics",
+      "description": "Get application metrics",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1732123560000,
+      "_type": "request"
+    }
+  ]
+}

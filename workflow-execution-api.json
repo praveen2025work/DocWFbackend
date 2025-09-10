@@ -87,6 +87,111 @@
         }
       }
     },
+    "/api/execution/workflows/start-with-calendar": {
+      "post": {
+        "tags": ["Workflow Execution"],
+        "summary": "Start Workflow Instance with Calendar",
+        "description": "Creates a new workflow instance with optional calendar mapping for date validation",
+        "operationId": "startWorkflowWithCalendar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkflowInstanceDto"
+              },
+              "examples": {
+                "with_calendar": {
+                  "summary": "Start workflow with calendar validation",
+                  "description": "Example of starting a workflow with calendar date validation",
+                  "value": {
+                    "workflowId": 123,
+                    "startedBy": 456,
+                    "calendarId": 1,
+                    "triggeredBy": "system_scheduler",
+                    "scheduledStartTime": "2025-01-02T09:00:00"
+                  }
+                },
+                "without_calendar": {
+                  "summary": "Start workflow without calendar",
+                  "description": "Example of starting a workflow without calendar restrictions",
+                  "value": {
+                    "workflowId": 124,
+                    "startedBy": 456,
+                    "triggeredBy": "manual",
+                    "scheduledStartTime": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Workflow instance created successfully with calendar mapping",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceDto"
+                },
+                "example": {
+                  "instanceId": 789,
+                  "workflowId": 123,
+                  "status": "PENDING",
+                  "startedBy": 456,
+                  "startedOn": "2024-12-20T10:00:00",
+                  "completedOn": null,
+                  "escalatedTo": null,
+                  "calendarId": 1,
+                  "calendarName": "US Business Days 2025",
+                  "workflowName": "Financial Close Process",
+                  "startedByUsername": "john.doe",
+                  "escalatedToUsername": null,
+                  "instanceTasks": [
+                    {
+                      "instanceTaskId": 1001,
+                      "instanceId": 789,
+                      "taskId": 2001,
+                      "status": "PENDING",
+                      "assignedTo": 456,
+                      "startedOn": "2024-12-20T10:00:00",
+                      "completedOn": null,
+                      "decisionOutcome": null,
+                      "assignedToUsername": "john.doe",
+                      "taskName": "Collect Financial Data",
+                      "taskType": "FILE_UPLOAD"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data or calendar validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "timestamp": "2024-12-20T10:00:00",
+                  "status": 400,
+                  "error": "Bad Request",
+                  "message": "Workflow cannot execute on this date according to calendar: 1",
+                  "path": "/api/execution/workflows/start-with-calendar"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow, user, or calendar not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
     "/api/execution/workflows/{workflowId}/instances": {
       "get": {
         "tags": ["Workflow Execution"],
@@ -1103,6 +1208,88 @@
             "type": "number",
             "format": "float",
             "description": "Percentage of user's workload capacity"
+          }
+        }
+      },
+      "CreateWorkflowInstanceDto": {
+        "type": "object",
+        "description": "DTO for creating workflow instances with optional calendar mapping",
+        "properties": {
+          "workflowId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the workflow configuration to start",
+            "example": 123
+          },
+          "startedBy": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the user starting the workflow",
+            "example": 456
+          },
+          "calendarId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Optional calendar ID for date validation",
+            "example": 1
+          },
+          "triggeredBy": {
+            "type": "string",
+            "description": "Source that triggered the workflow (e.g., system_scheduler, manual)",
+            "example": "system_scheduler"
+          },
+          "scheduledStartTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Optional scheduled start time for future execution",
+            "example": "2025-01-02T09:00:00"
+          }
+        },
+        "required": ["workflowId", "startedBy"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Standard error response format",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the error occurred"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "path": {
+            "type": "string",
+            "description": "Request path that caused the error"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Field name with validation error"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Validation error message"
+                }
+              }
+            },
+            "description": "Field-specific validation errors"
           }
         }
       }

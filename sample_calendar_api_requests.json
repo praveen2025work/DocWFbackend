@@ -1,0 +1,802 @@
+{
+  "calendar_api_samples": {
+    "description": "Sample API requests for Calendar Management UI",
+    "base_url": "http://localhost:8080/api/calendar",
+    "endpoints": {
+      "create_calendar": {
+        "method": "POST",
+        "url": "/api/calendar",
+        "description": "Create a new calendar",
+        "request_body": {
+          "calendarName": "US Business Days 2025",
+          "description": "US business calendar excluding weekends and federal holidays",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "YEARLY",
+          "cronExpression": "0 0 9 * * MON-FRI",
+          "timezone": "America/New_York",
+          "region": "US",
+          "offsetDays": 0,
+          "isActive": "Y",
+          "createdBy": "admin@company.com"
+        },
+        "response_example": {
+          "calendarId": 1,
+          "calendarName": "US Business Days 2025",
+          "description": "US business calendar excluding weekends and federal holidays",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "YEARLY",
+          "cronExpression": "0 0 9 * * MON-FRI",
+          "timezone": "America/New_York",
+          "region": "US",
+          "offsetDays": 0,
+          "isActive": "Y",
+          "createdBy": "admin@company.com",
+          "createdAt": "2024-12-20T10:00:00Z",
+          "updatedBy": null,
+          "updatedAt": null,
+          "calendarDays": []
+        }
+      },
+      "create_calendar_with_days": {
+        "method": "POST",
+        "url": "/api/calendar/with-days",
+        "description": "Create calendar with calendar days in one call",
+        "request_body": {
+          "calendarName": "EU Monthly Close Calendar",
+          "description": "EU monthly close calendar with 2-day offset and cron scheduling",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "MONTHLY",
+          "cronExpression": "0 0 8 1 * ?",
+          "timezone": "Europe/London",
+          "region": "EU",
+          "offsetDays": 2,
+          "isActive": "Y",
+          "createdBy": "finance@company.com",
+          "calendarDays": [
+            {
+              "dayDate": "2025-01-01",
+              "dayType": "HOLIDAY",
+              "note": "New Year's Day"
+            },
+            {
+              "dayDate": "2025-01-31",
+              "dayType": "RUNDAY",
+              "note": "January month-end close"
+            },
+            {
+              "dayDate": "2025-02-28",
+              "dayType": "RUNDAY",
+              "note": "February month-end close"
+            },
+            {
+              "dayDate": "2025-03-31",
+              "dayType": "RUNDAY",
+              "note": "March month-end close"
+            }
+          ]
+        },
+        "response_example": {
+          "calendarId": 2,
+          "calendarName": "EU Monthly Close Calendar",
+          "description": "EU monthly close calendar with 2-day offset and cron scheduling",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "MONTHLY",
+          "cronExpression": "0 0 8 1 * ?",
+          "timezone": "Europe/London",
+          "region": "EU",
+          "offsetDays": 2,
+          "isActive": "Y",
+          "createdBy": "finance@company.com",
+          "createdAt": "2024-12-20T10:00:00Z",
+          "updatedBy": null,
+          "updatedAt": null,
+          "calendarDays": [
+            {
+              "calendarDayId": 1,
+              "calendarId": 2,
+              "dayDate": "2025-01-01",
+              "dayType": "HOLIDAY",
+              "note": "New Year's Day"
+            },
+            {
+              "calendarDayId": 2,
+              "calendarId": 2,
+              "dayDate": "2025-01-31",
+              "dayType": "RUNDAY",
+              "note": "January month-end close"
+            }
+          ]
+        }
+      },
+      "get_calendar_by_id": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}",
+        "description": "Get calendar by ID",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": {
+          "calendarId": 1,
+          "calendarName": "US Business Days 2025",
+          "description": "US business calendar excluding weekends and federal holidays",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "YEARLY",
+          "cronExpression": "0 0 9 * * MON-FRI",
+          "timezone": "America/New_York",
+          "region": "US",
+          "offsetDays": 0,
+          "isActive": "Y",
+          "createdBy": "admin@company.com",
+          "createdAt": "2024-12-20T10:00:00Z",
+          "updatedBy": null,
+          "updatedAt": null,
+          "calendarDays": [
+            {
+              "calendarDayId": 1,
+              "calendarId": 1,
+              "dayDate": "2025-01-01",
+              "dayType": "HOLIDAY",
+              "note": "New Year's Day"
+            },
+            {
+              "calendarDayId": 2,
+              "calendarId": 1,
+              "dayDate": "2025-01-20",
+              "dayType": "HOLIDAY",
+              "note": "Martin Luther King Jr. Day"
+            }
+          ]
+        }
+      },
+      "update_calendar": {
+        "method": "PUT",
+        "url": "/api/calendar/{calendarId}",
+        "description": "Update calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "request_body": {
+          "calendarName": "Updated US Business Days 2025",
+          "description": "Updated description",
+          "endDate": "2025-12-31",
+          "cronExpression": "0 30 9 * * MON-FRI",
+          "timezone": "America/New_York",
+          "region": "US",
+          "offsetDays": 1,
+          "isActive": "Y",
+          "updatedBy": "admin@company.com"
+        },
+        "response_example": {
+          "calendarId": 1,
+          "calendarName": "Updated US Business Days 2025",
+          "description": "Updated description",
+          "startDate": "2025-01-01",
+          "endDate": "2025-12-31",
+          "recurrence": "YEARLY",
+          "cronExpression": "0 30 9 * * MON-FRI",
+          "timezone": "America/New_York",
+          "region": "US",
+          "offsetDays": 1,
+          "isActive": "Y",
+          "createdBy": "admin@company.com",
+          "createdAt": "2024-12-20T10:00:00Z",
+          "updatedBy": "admin@company.com",
+          "updatedAt": "2024-12-20T11:00:00Z",
+          "calendarDays": []
+        }
+      },
+      "delete_calendar": {
+        "method": "DELETE",
+        "url": "/api/calendar/{calendarId}",
+        "description": "Delete calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": {
+          "message": "Calendar deleted successfully"
+        }
+      },
+      "search_calendars": {
+        "method": "GET",
+        "url": "/api/calendar/search",
+        "description": "Search calendars with filters",
+        "query_params": {
+          "calendarName": "Business",
+          "recurrence": "YEARLY",
+          "region": "US",
+          "isActive": "Y",
+          "page": 0,
+          "size": 10
+        },
+        "response_example": {
+          "content": [
+            {
+              "calendarId": 1,
+              "calendarName": "US Business Days 2025",
+              "description": "US business calendar excluding weekends and federal holidays",
+              "startDate": "2025-01-01",
+              "endDate": "2025-12-31",
+              "recurrence": "YEARLY",
+              "cronExpression": "0 0 9 * * MON-FRI",
+              "timezone": "America/New_York",
+              "region": "US",
+              "offsetDays": 0,
+              "isActive": "Y",
+              "createdBy": "admin@company.com",
+              "createdAt": "2024-12-20T10:00:00Z",
+              "updatedBy": null,
+              "updatedAt": null,
+              "calendarDays": []
+            }
+          ],
+          "pageable": {
+            "pageNumber": 0,
+            "pageSize": 10,
+            "sort": {
+              "sorted": true,
+              "unsorted": false
+            }
+          },
+          "totalElements": 1,
+          "totalPages": 1,
+          "first": true,
+          "last": true,
+          "numberOfElements": 1
+        }
+      },
+      "get_all_calendars": {
+        "method": "GET",
+        "url": "/api/calendar",
+        "description": "Get all calendars with pagination",
+        "query_params": {
+          "recurrence": "YEARLY",
+          "page": 0,
+          "size": 10
+        },
+        "response_example": {
+          "content": [
+            {
+              "calendarId": 1,
+              "calendarName": "US Business Days 2025",
+              "description": "US business calendar excluding weekends and federal holidays",
+              "startDate": "2025-01-01",
+              "endDate": "2025-12-31",
+              "recurrence": "YEARLY",
+              "cronExpression": "0 0 9 * * MON-FRI",
+              "timezone": "America/New_York",
+              "region": "US",
+              "offsetDays": 0,
+              "isActive": "Y",
+              "createdBy": "admin@company.com",
+              "createdAt": "2024-12-20T10:00:00Z",
+              "updatedBy": null,
+              "updatedAt": null,
+              "calendarDays": []
+            }
+          ],
+          "pageable": {
+            "pageNumber": 0,
+            "pageSize": 10,
+            "sort": {
+              "sorted": true,
+              "unsorted": false
+            }
+          },
+          "totalElements": 1,
+          "totalPages": 1,
+          "first": true,
+          "last": true,
+          "numberOfElements": 1
+        }
+      },
+      "add_calendar_day": {
+        "method": "POST",
+        "url": "/api/calendar/{calendarId}/days",
+        "description": "Add single calendar day",
+        "path_params": {
+          "calendarId": 1
+        },
+        "request_body": {
+          "dayDate": "2025-12-25",
+          "dayType": "HOLIDAY",
+          "note": "Christmas Day"
+        },
+        "response_example": {
+          "calendarDayId": 3,
+          "calendarId": 1,
+          "dayDate": "2025-12-25",
+          "dayType": "HOLIDAY",
+          "note": "Christmas Day"
+        }
+      },
+      "add_calendar_days_batch": {
+        "method": "POST",
+        "url": "/api/calendar/{calendarId}/days/batch",
+        "description": "Add multiple calendar days",
+        "path_params": {
+          "calendarId": 1
+        },
+        "request_body": [
+          {
+            "dayDate": "2025-12-24",
+            "dayType": "HOLIDAY",
+            "note": "Christmas Eve"
+          },
+          {
+            "dayDate": "2025-12-25",
+            "dayType": "HOLIDAY",
+            "note": "Christmas Day"
+          },
+          {
+            "dayDate": "2025-12-26",
+            "dayType": "HOLIDAY",
+            "note": "Boxing Day"
+          }
+        ],
+        "response_example": [
+          {
+            "calendarDayId": 4,
+            "calendarId": 1,
+            "dayDate": "2025-12-24",
+            "dayType": "HOLIDAY",
+            "note": "Christmas Eve"
+          },
+          {
+            "calendarDayId": 5,
+            "calendarId": 1,
+            "dayDate": "2025-12-25",
+            "dayType": "HOLIDAY",
+            "note": "Christmas Day"
+          },
+          {
+            "calendarDayId": 6,
+            "calendarId": 1,
+            "dayDate": "2025-12-26",
+            "dayType": "HOLIDAY",
+            "note": "Boxing Day"
+          }
+        ]
+      },
+      "get_calendar_days": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/days",
+        "description": "Get all calendar days for a calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": [
+          {
+            "calendarDayId": 1,
+            "calendarId": 1,
+            "dayDate": "2025-01-01",
+            "dayType": "HOLIDAY",
+            "note": "New Year's Day"
+          },
+          {
+            "calendarDayId": 2,
+            "calendarId": 1,
+            "dayDate": "2025-01-20",
+            "dayType": "HOLIDAY",
+            "note": "Martin Luther King Jr. Day"
+          },
+          {
+            "calendarDayId": 3,
+            "calendarId": 1,
+            "dayDate": "2025-12-25",
+            "dayType": "HOLIDAY",
+            "note": "Christmas Day"
+          }
+        ]
+      },
+      "update_calendar_day": {
+        "method": "PUT",
+        "url": "/api/calendar/days/{dayId}",
+        "description": "Update calendar day",
+        "path_params": {
+          "dayId": 1
+        },
+        "request_body": {
+          "dayType": "RUNDAY",
+          "note": "Updated note - now a run day"
+        },
+        "response_example": {
+          "calendarDayId": 1,
+          "calendarId": 1,
+          "dayDate": "2025-01-01",
+          "dayType": "RUNDAY",
+          "note": "Updated note - now a run day"
+        }
+      },
+      "delete_calendar_day": {
+        "method": "DELETE",
+        "url": "/api/calendar/days/{dayId}",
+        "description": "Delete calendar day",
+        "path_params": {
+          "dayId": 1
+        },
+        "response_example": {
+          "message": "Calendar day deleted successfully"
+        }
+      },
+      "validate_date": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/validate-date",
+        "description": "Validate if date is valid for calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "query_params": {
+          "date": "2025-01-02"
+        },
+        "response_example": true
+      },
+      "can_execute_workflow": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/can-execute",
+        "description": "Check if workflow can execute on date",
+        "path_params": {
+          "calendarId": 1
+        },
+        "query_params": {
+          "date": "2025-01-02"
+        },
+        "response_example": true
+      },
+      "get_next_valid_date": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/next-valid-date",
+        "description": "Get next valid date for calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "query_params": {
+          "fromDate": "2025-01-01"
+        },
+        "response_example": "2025-01-02"
+      },
+      "get_valid_dates_range": {
+        "method": "GET",
+        "url": "/api/calendar/{calendarId}/valid-dates",
+        "description": "Get valid dates in range",
+        "path_params": {
+          "calendarId": 1
+        },
+        "query_params": {
+          "startDate": "2025-01-01",
+          "endDate": "2025-01-31"
+        },
+        "response_example": [
+          "2025-01-02",
+          "2025-01-03",
+          "2025-01-06",
+          "2025-01-07",
+          "2025-01-08",
+          "2025-01-09",
+          "2025-01-10"
+        ]
+      },
+      "get_calendars_by_region": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/region/{region}",
+        "description": "Get calendars by region",
+        "path_params": {
+          "region": "US"
+        },
+        "response_example": [
+          {
+            "calendarId": 1,
+            "calendarName": "US Business Days 2025",
+            "description": "US business calendar excluding weekends and federal holidays",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "recurrence": "YEARLY",
+            "cronExpression": "0 0 9 * * MON-FRI",
+            "timezone": "America/New_York",
+            "region": "US",
+            "offsetDays": 0,
+            "isActive": "Y",
+            "createdBy": "admin@company.com",
+            "createdAt": "2024-12-20T10:00:00Z",
+            "updatedBy": null,
+            "updatedAt": null,
+            "calendarDays": []
+          }
+        ]
+      },
+      "get_active_calendars_with_cron": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/active/cron",
+        "description": "Get active calendars with cron expressions",
+        "response_example": [
+          {
+            "calendarId": 1,
+            "calendarName": "US Business Days 2025",
+            "description": "US business calendar excluding weekends and federal holidays",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "recurrence": "YEARLY",
+            "cronExpression": "0 0 9 * * MON-FRI",
+            "timezone": "America/New_York",
+            "region": "US",
+            "offsetDays": 0,
+            "isActive": "Y",
+            "createdBy": "admin@company.com",
+            "createdAt": "2024-12-20T10:00:00Z",
+            "updatedBy": null,
+            "updatedAt": null,
+            "calendarDays": []
+          }
+        ]
+      },
+      "get_calendars_by_timezone": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/timezone/{timezone}",
+        "description": "Get calendars by timezone",
+        "path_params": {
+          "timezone": "America/New_York"
+        },
+        "response_example": [
+          {
+            "calendarId": 1,
+            "calendarName": "US Business Days 2025",
+            "description": "US business calendar excluding weekends and federal holidays",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "recurrence": "YEARLY",
+            "cronExpression": "0 0 9 * * MON-FRI",
+            "timezone": "America/New_York",
+            "region": "US",
+            "offsetDays": 0,
+            "isActive": "Y",
+            "createdBy": "admin@company.com",
+            "createdAt": "2024-12-20T10:00:00Z",
+            "updatedBy": null,
+            "updatedAt": null,
+            "calendarDays": []
+          }
+        ]
+      },
+      "get_calendars_with_offset": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/offset/{offsetDays}",
+        "description": "Get calendars by offset days",
+        "path_params": {
+          "offsetDays": 0
+        },
+        "response_example": [
+          {
+            "calendarId": 1,
+            "calendarName": "US Business Days 2025",
+            "description": "US business calendar excluding weekends and federal holidays",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "recurrence": "YEARLY",
+            "cronExpression": "0 0 9 * * MON-FRI",
+            "timezone": "America/New_York",
+            "region": "US",
+            "offsetDays": 0,
+            "isActive": "Y",
+            "createdBy": "admin@company.com",
+            "createdAt": "2024-12-20T10:00:00Z",
+            "updatedBy": null,
+            "updatedAt": null,
+            "calendarDays": []
+          }
+        ]
+      },
+      "get_active_calendars": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/active",
+        "description": "Get all active calendars",
+        "response_example": [
+          {
+            "calendarId": 1,
+            "calendarName": "US Business Days 2025",
+            "description": "US business calendar excluding weekends and federal holidays",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "recurrence": "YEARLY",
+            "cronExpression": "0 0 9 * * MON-FRI",
+            "timezone": "America/New_York",
+            "region": "US",
+            "offsetDays": 0,
+            "isActive": "Y",
+            "createdBy": "admin@company.com",
+            "createdAt": "2024-12-20T10:00:00Z",
+            "updatedBy": null,
+            "updatedAt": null,
+            "calendarDays": []
+          }
+        ]
+      },
+      "get_inactive_calendars": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/inactive",
+        "description": "Get all inactive calendars",
+        "response_example": []
+      },
+      "activate_calendar": {
+        "method": "POST",
+        "url": "/api/calendar/calendars/{calendarId}/activate",
+        "description": "Activate calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": {
+          "message": "Calendar activated successfully"
+        }
+      },
+      "deactivate_calendar": {
+        "method": "POST",
+        "url": "/api/calendar/calendars/{calendarId}/deactivate",
+        "description": "Deactivate calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": {
+          "message": "Calendar deactivated successfully"
+        }
+      },
+      "validate_cron_expression": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/validate-cron",
+        "description": "Validate cron expression",
+        "query_params": {
+          "cronExpression": "0 0 9 * * MON-FRI"
+        },
+        "response_example": true
+      },
+      "get_cron_description": {
+        "method": "GET",
+        "url": "/api/calendar/calendars/cron-description",
+        "description": "Get human-readable cron description",
+        "query_params": {
+          "cronExpression": "0 0 9 * * MON-FRI"
+        },
+        "response_example": "At 09:00 AM, Monday through Friday"
+      },
+      "schedule_calendar_cron": {
+        "method": "POST",
+        "url": "/api/calendar/cron/schedule/{calendarId}",
+        "description": "Schedule calendar for cron execution",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": "Calendar 1 scheduled successfully"
+      },
+      "unschedule_calendar_cron": {
+        "method": "DELETE",
+        "url": "/api/calendar/cron/unschedule/{calendarId}",
+        "description": "Unschedule calendar from cron execution",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": "Calendar 1 unscheduled successfully"
+      },
+      "reschedule_calendar_cron": {
+        "method": "PUT",
+        "url": "/api/calendar/cron/reschedule/{calendarId}",
+        "description": "Reschedule calendar with updated cron expression",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": "Calendar 1 rescheduled successfully"
+      },
+      "schedule_all_active_calendars": {
+        "method": "POST",
+        "url": "/api/calendar/cron/schedule-all",
+        "description": "Schedule all active calendars with cron expressions",
+        "response_example": "All active calendars scheduled successfully"
+      },
+      "get_scheduled_calendars": {
+        "method": "GET",
+        "url": "/api/calendar/cron/scheduled",
+        "description": "Get all scheduled calendar IDs",
+        "response_example": [1, 2, 3]
+      },
+      "check_calendar_scheduled": {
+        "method": "GET",
+        "url": "/api/calendar/cron/status/{calendarId}",
+        "description": "Check if calendar is scheduled",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": true
+      },
+      "get_next_execution_time": {
+        "method": "GET",
+        "url": "/api/calendar/cron/next-execution/{calendarId}",
+        "description": "Get next execution time for calendar",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": "2025-01-02T09:00:00Z"
+      },
+      "pause_calendar_execution": {
+        "method": "POST",
+        "url": "/api/calendar/cron/pause/{calendarId}",
+        "description": "Pause calendar execution",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": "Calendar 1 paused successfully"
+      },
+      "resume_calendar_execution": {
+        "method": "POST",
+        "url": "/api/calendar/cron/resume/{calendarId}",
+        "description": "Resume calendar execution",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": "Calendar 1 resumed successfully"
+      },
+      "get_calendar_execution_status": {
+        "method": "GET",
+        "url": "/api/calendar/cron/execution-status/{calendarId}",
+        "description": "Get calendar execution status",
+        "path_params": {
+          "calendarId": 1
+        },
+        "response_example": "SCHEDULED"
+      }
+    },
+    "data_models": {
+      "calendar_dto": {
+        "calendarId": "Long - Unique identifier",
+        "calendarName": "String - Name of the calendar",
+        "description": "String - Description of the calendar",
+        "startDate": "LocalDate - Start date of calendar period",
+        "endDate": "LocalDate - End date of calendar period",
+        "recurrence": "String - NONE, DAILY, WEEKLY, MONTHLY, YEARLY",
+        "cronExpression": "String - Quartz cron expression",
+        "timezone": "String - Timezone for cron execution",
+        "region": "String - US, EU, APAC, GLOBAL",
+        "offsetDays": "Integer - Days to offset from base date",
+        "isActive": "String - Y/N - Whether calendar is active",
+        "createdBy": "String - User who created the calendar",
+        "createdAt": "LocalDateTime - Creation timestamp",
+        "updatedBy": "String - User who last updated",
+        "updatedAt": "LocalDateTime - Last update timestamp",
+        "calendarDays": "Array - List of calendar days"
+      },
+      "calendar_day_dto": {
+        "calendarDayId": "Long - Unique identifier",
+        "calendarId": "Long - Parent calendar ID",
+        "dayDate": "LocalDate - Date of the calendar day",
+        "dayType": "String - HOLIDAY or RUNDAY",
+        "note": "String - Optional note about the day"
+      }
+    },
+    "enums": {
+      "recurrence_types": ["NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+      "day_types": ["HOLIDAY", "RUNDAY"],
+      "regions": ["US", "EU", "APAC", "GLOBAL"],
+      "calendar_status": ["Y", "N"],
+      "execution_status": ["SCHEDULED", "PAUSED", "NOT_SCHEDULED", "ERROR"]
+    },
+    "common_cron_expressions": {
+      "daily_at_9am": "0 0 9 * * ?",
+      "weekdays_at_9am": "0 0 9 * * MON-FRI",
+      "monthly_first_day": "0 0 8 1 * ?",
+      "every_hour": "0 0 * * * ?",
+      "every_30_minutes": "0 */30 * * * ?",
+      "weekdays_every_2_hours": "0 0 */2 * * MON-FRI"
+    },
+    "common_timezones": {
+      "us_eastern": "America/New_York",
+      "us_central": "America/Chicago",
+      "us_mountain": "America/Denver",
+      "us_pacific": "America/Los_Angeles",
+      "europe_london": "Europe/London",
+      "europe_paris": "Europe/Paris",
+      "asia_tokyo": "Asia/Tokyo",
+      "asia_singapore": "Asia/Singapore",
+      "utc": "UTC"
+    }
+  }
+}

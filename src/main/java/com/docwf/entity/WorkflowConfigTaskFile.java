@@ -3,9 +3,12 @@ package com.docwf.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.envers.Audited;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "WORKFLOW_CONFIG_TASK_FILE")
@@ -23,43 +26,69 @@ public class WorkflowConfigTaskFile {
     @JoinColumn(name = "TASK_ID", nullable = false)
     private WorkflowConfigTask task;
     
-    @Column(name = "FILE_NAME", length = 500)
+    @Column(name = "FILE_NAME", length = 500, nullable = false)
     private String fileName;
     
-    @Column(name = "FILE_PATH", length = 1000)
+    @Column(name = "FILE_PATH", length = 1000, nullable = false)
     private String filePath;
     
-    @Column(name = "FILE_VERSION")
-    private Integer fileVersion = 1;
+    @Column(name = "FILE_LOCATION", length = 1000)
+    private String fileLocation;  // Physical storage location (e.g., S3 bucket, local directory)
+    
+    @Column(name = "FILE_TYPE_REGEX", length = 100)
+    private String fileTypeRegex;  // File type pattern (e.g., "*.*", "*.xls", "*.pdf")
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "ACTION_TYPE", length = 50)
+    @Column(name = "ACTION_TYPE", length = 50, nullable = false)
     private ActionType actionType;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PARENT_FILE_ID")
-    private WorkflowConfigTaskFile parentFile;
+    @Column(name = "FILE_DESCRIPTION", length = 500)
+    private String fileDescription;
     
-    @Column(name = "CONSOLIDATED_FLAG", length = 1)
-    private String consolidatedFlag = "N";
+    @Column(name = "IS_REQUIRED", length = 1)
+    private String isRequired = "N";  // Y/N - whether this file is required for task completion
     
-    @Column(name = "DECISION_OUTCOME", length = 255)
-    private String decisionOutcome;
+    @Column(name = "FILE_STATUS", length = 50)
+    private String fileStatus = "PENDING";  // PENDING, IN_PROGRESS, COMPLETED, REJECTED
     
-    @Column(name = "CREATED_BY", length = 100)
+    @Column(name = "KEEP_FILE_VERSIONS", length = 1)
+    private String keepFileVersions = "Y";  // Y/N - whether to keep file version history
+    
+    @Column(name = "KEEP_FILE_HISTORY", length = 1)
+    private String keepFileHistory = "Y";  // Y/N - whether to keep file change history
+    
+    @Column(name = "RETAIN_FOR_CURRENT_PERIOD", length = 1)
+    private String retainForCurrentPeriod = "Y";  // Y/N - whether to retain file for current workflow period
+    
+    @Column(name = "FILE_COMMENTARY", length = 1000)
+    private String fileCommentary;  // Additional comments about the file
+    
+    @Column(name = "CREATED_BY", length = 100, nullable = false)
     private String createdBy;
     
     @CreationTimestamp
-    @Column(name = "CREATED_AT")
-    private LocalDateTime createdAt;
+    @Column(name = "CREATED_ON", nullable = false)
+    private LocalDateTime createdOn;
+    
+    @Column(name = "UPDATED_BY", length = 100)
+    private String updatedBy;
+    
+    @UpdateTimestamp
+    @Column(name = "UPDATED_ON")
+    private LocalDateTime updatedOn;
+    
+    // Relationships
+    @OneToMany(mappedBy = "file", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WorkflowConfigTaskFileDependency> dependencies = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "parentFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WorkflowConfigTaskFileDependency> parentDependencies = new ArrayList<>();
     
     // Enums
     public enum ActionType {
-        FILE_UPLOAD,
-        FILE_DOWNLOAD,
-        FILE_UPDATE,
-        CONSOLIDATE_FILES,
-        DECISION
+        UPLOAD,      // Files that users upload
+        UPDATE,      // Files that users modify/update
+        CONSOLIDATE  // Files created by combining multiple files
     }
     
     // Constructors
@@ -68,6 +97,14 @@ public class WorkflowConfigTaskFile {
     public WorkflowConfigTaskFile(String fileName, String filePath, ActionType actionType, String createdBy) {
         this.fileName = fileName;
         this.filePath = filePath;
+        this.actionType = actionType;
+        this.createdBy = createdBy;
+    }
+    
+    public WorkflowConfigTaskFile(String fileName, String filePath, String fileLocation, ActionType actionType, String createdBy) {
+        this.fileName = fileName;
+        this.filePath = filePath;
+        this.fileLocation = fileLocation;
         this.actionType = actionType;
         this.createdBy = createdBy;
     }
@@ -105,12 +142,20 @@ public class WorkflowConfigTaskFile {
         this.filePath = filePath;
     }
     
-    public Integer getFileVersion() {
-        return fileVersion;
+    public String getFileLocation() {
+        return fileLocation;
     }
     
-    public void setFileVersion(Integer fileVersion) {
-        this.fileVersion = fileVersion;
+    public void setFileLocation(String fileLocation) {
+        this.fileLocation = fileLocation;
+    }
+    
+    public String getFileTypeRegex() {
+        return fileTypeRegex;
+    }
+    
+    public void setFileTypeRegex(String fileTypeRegex) {
+        this.fileTypeRegex = fileTypeRegex;
     }
     
     public ActionType getActionType() {
@@ -121,28 +166,60 @@ public class WorkflowConfigTaskFile {
         this.actionType = actionType;
     }
     
-    public WorkflowConfigTaskFile getParentFile() {
-        return parentFile;
+    public String getFileDescription() {
+        return fileDescription;
     }
     
-    public void setParentFile(WorkflowConfigTaskFile parentFile) {
-        this.parentFile = parentFile;
+    public void setFileDescription(String fileDescription) {
+        this.fileDescription = fileDescription;
     }
     
-    public String getConsolidatedFlag() {
-        return consolidatedFlag;
+    public String getIsRequired() {
+        return isRequired;
     }
     
-    public void setConsolidatedFlag(String consolidatedFlag) {
-        this.consolidatedFlag = consolidatedFlag;
+    public void setIsRequired(String isRequired) {
+        this.isRequired = isRequired;
     }
     
-    public String getDecisionOutcome() {
-        return decisionOutcome;
+    public String getFileStatus() {
+        return fileStatus;
     }
     
-    public void setDecisionOutcome(String decisionOutcome) {
-        this.decisionOutcome = decisionOutcome;
+    public void setFileStatus(String fileStatus) {
+        this.fileStatus = fileStatus;
+    }
+    
+    public String getKeepFileVersions() {
+        return keepFileVersions;
+    }
+    
+    public void setKeepFileVersions(String keepFileVersions) {
+        this.keepFileVersions = keepFileVersions;
+    }
+    
+    public String getKeepFileHistory() {
+        return keepFileHistory;
+    }
+    
+    public void setKeepFileHistory(String keepFileHistory) {
+        this.keepFileHistory = keepFileHistory;
+    }
+    
+    public String getRetainForCurrentPeriod() {
+        return retainForCurrentPeriod;
+    }
+    
+    public void setRetainForCurrentPeriod(String retainForCurrentPeriod) {
+        this.retainForCurrentPeriod = retainForCurrentPeriod;
+    }
+    
+    public String getFileCommentary() {
+        return fileCommentary;
+    }
+    
+    public void setFileCommentary(String fileCommentary) {
+        this.fileCommentary = fileCommentary;
     }
     
     public String getCreatedBy() {
@@ -153,12 +230,77 @@ public class WorkflowConfigTaskFile {
         this.createdBy = createdBy;
     }
     
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreatedOn() {
+        return createdOn;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreatedOn(LocalDateTime createdOn) {
+        this.createdOn = createdOn;
+    }
+    
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+    
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+    
+    public LocalDateTime getUpdatedOn() {
+        return updatedOn;
+    }
+    
+    public void setUpdatedOn(LocalDateTime updatedOn) {
+        this.updatedOn = updatedOn;
+    }
+    
+    public List<WorkflowConfigTaskFileDependency> getDependencies() {
+        return dependencies;
+    }
+    
+    public void setDependencies(List<WorkflowConfigTaskFileDependency> dependencies) {
+        this.dependencies = dependencies;
+    }
+    
+    public List<WorkflowConfigTaskFileDependency> getParentDependencies() {
+        return parentDependencies;
+    }
+    
+    public void setParentDependencies(List<WorkflowConfigTaskFileDependency> parentDependencies) {
+        this.parentDependencies = parentDependencies;
+    }
+    
+    // Helper methods
+    public boolean isRequired() {
+        return "Y".equals(isRequired);
+    }
+    
+    public boolean keepFileVersions() {
+        return "Y".equals(keepFileVersions);
+    }
+    
+    public boolean keepFileHistory() {
+        return "Y".equals(keepFileHistory);
+    }
+    
+    public boolean retainForCurrentPeriod() {
+        return "Y".equals(retainForCurrentPeriod);
+    }
+    
+    public boolean isPending() {
+        return "PENDING".equals(fileStatus);
+    }
+    
+    public boolean isInProgress() {
+        return "IN_PROGRESS".equals(fileStatus);
+    }
+    
+    public boolean isCompleted() {
+        return "COMPLETED".equals(fileStatus);
+    }
+    
+    public boolean isRejected() {
+        return "REJECTED".equals(fileStatus);
     }
     
     @Override
@@ -167,8 +309,11 @@ public class WorkflowConfigTaskFile {
                 "fileId=" + fileId +
                 ", fileName='" + fileName + '\'' +
                 ", filePath='" + filePath + '\'' +
+                ", fileLocation='" + fileLocation + '\'' +
+                ", fileTypeRegex='" + fileTypeRegex + '\'' +
                 ", actionType=" + actionType +
-                ", fileVersion=" + fileVersion +
+                ", fileStatus='" + fileStatus + '\'' +
+                ", isRequired='" + isRequired + '\'' +
                 '}';
     }
 }

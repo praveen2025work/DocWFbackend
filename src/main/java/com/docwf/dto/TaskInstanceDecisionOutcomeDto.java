@@ -12,6 +12,10 @@ public class TaskInstanceDecisionOutcomeDto {
     @NotBlank(message = "Outcome name is required")
     private String outcomeName;
     
+    private String outcomeDescription;
+    
+    private String nextAction;
+    
     private Long nextInstanceTaskId;
     
     private Long priorInstanceTaskId;
@@ -55,6 +59,22 @@ public class TaskInstanceDecisionOutcomeDto {
     
     public void setOutcomeName(String outcomeName) {
         this.outcomeName = outcomeName;
+    }
+    
+    public String getOutcomeDescription() {
+        return outcomeDescription;
+    }
+    
+    public void setOutcomeDescription(String outcomeDescription) {
+        this.outcomeDescription = outcomeDescription;
+    }
+    
+    public String getNextAction() {
+        return nextAction;
+    }
+    
+    public void setNextAction(String nextAction) {
+        this.nextAction = nextAction;
     }
     
     public Long getNextInstanceTaskId() {

@@ -1,0 +1,726 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DocWF Complex Workflow Execution API",
+    "description": "APIs for complex workflow execution with file dependencies, consolidation, decision routing, and revisitation capabilities",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DocWF Development Team",
+      "email": "dev@docwf.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.docwf.com",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Complex Workflow Execution",
+      "description": "APIs for complex workflow execution with file dependencies and decision routing"
+    },
+    {
+      "name": "File Consolidation",
+      "description": "APIs for file consolidation and consolidation preview"
+    },
+    {
+      "name": "Decision Routing",
+      "description": "APIs for decision-based workflow routing and revisitation"
+    },
+    {
+      "name": "Task Revisitation",
+      "description": "APIs for task revision and revisitation capabilities"
+    }
+  ],
+  "paths": {
+    "/api/complex-workflow/tasks/{instanceTaskId}/execute": {
+      "post": {
+        "tags": ["Complex Workflow Execution"],
+        "summary": "Execute task step",
+        "description": "Execute a workflow step with file dependencies",
+        "operationId": "executeTaskStep",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Action to perform",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "comments",
+            "in": "query",
+            "description": "Comments",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task executed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/available-files": {
+      "get": {
+        "tags": ["Complex Workflow Execution"],
+        "summary": "Get available files",
+        "description": "Get available files for a task based on source task dependencies",
+        "operationId": "getAvailableFilesForTask",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available files retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/consolidate": {
+      "post": {
+        "tags": ["File Consolidation"],
+        "summary": "Consolidate files",
+        "description": "Consolidate files based on consolidation rules",
+        "operationId": "consolidateFiles",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "consolidationNotes",
+            "in": "query",
+            "description": "Consolidation notes",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "description": "Selected file IDs"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Files consolidated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid consolidation request"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/consolidation-preview": {
+      "get": {
+        "tags": ["File Consolidation"],
+        "summary": "Get consolidation preview",
+        "description": "Get consolidation preview for a task",
+        "operationId": "getConsolidationPreview",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consolidation preview retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/auto-consolidate": {
+      "post": {
+        "tags": ["File Consolidation"],
+        "summary": "Auto consolidate",
+        "description": "Execute auto-consolidation based on rules",
+        "operationId": "executeAutoConsolidation",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Auto-consolidation completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Auto-consolidation failed"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/decide": {
+      "post": {
+        "tags": ["Decision Routing"],
+        "summary": "Make decision",
+        "description": "Make a decision and route to appropriate tasks",
+        "operationId": "makeDecision",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "decision",
+            "in": "query",
+            "description": "Decision",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "comments",
+            "in": "query",
+            "description": "Comments",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nextAction",
+            "in": "query",
+            "description": "Next action",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Decision made successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstanceTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid decision request"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/instances/{instanceId}/route-decision": {
+      "post": {
+        "tags": ["Decision Routing"],
+        "summary": "Route workflow",
+        "description": "Route workflow based on decision outcome",
+        "operationId": "routeWorkflowBasedOnDecision",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "Instance ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "decisionTaskId",
+            "in": "query",
+            "description": "Decision Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "decision",
+            "in": "query",
+            "description": "Decision",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nextAction",
+            "in": "query",
+            "description": "Next action",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow routed successfully"
+          },
+          "400": {
+            "description": "Invalid routing request"
+          },
+          "404": {
+            "description": "Instance or task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/decision-routing-options": {
+      "get": {
+        "tags": ["Decision Routing"],
+        "summary": "Get decision routing options",
+        "description": "Get decision routing options for a task",
+        "operationId": "getDecisionRoutingOptions",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Decision routing options retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskInstanceDecisionOutcomeDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/instances/{instanceId}/open-revision-tasks": {
+      "post": {
+        "tags": ["Task Revisitation"],
+        "summary": "Open revision tasks",
+        "description": "Open revision tasks based on decision outcome",
+        "operationId": "openRevisionTasks",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "Instance ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "revisionStrategy",
+            "in": "query",
+            "description": "Revision strategy",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "description": "Task IDs to open"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Revision tasks opened successfully"
+          },
+          "400": {
+            "description": "Invalid revision request"
+          },
+          "404": {
+            "description": "Instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/can-revise": {
+      "get": {
+        "tags": ["Task Revisitation"],
+        "summary": "Check revision capability",
+        "description": "Check if a task can be revised",
+        "operationId": "canTaskBeRevised",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revision capability checked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/instances/{instanceId}/revision-history": {
+      "get": {
+        "tags": ["Task Revisitation"],
+        "summary": "Get revision history",
+        "description": "Get revision history for a workflow instance",
+        "operationId": "getRevisionHistory",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "Instance ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revision history retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/tasks/{instanceTaskId}/validate-dependencies": {
+      "get": {
+        "tags": ["Complex Workflow Execution"],
+        "summary": "Validate file dependencies",
+        "description": "Validate file dependencies before task execution",
+        "operationId": "validateFileDependencies",
+        "parameters": [
+          {
+            "name": "instanceTaskId",
+            "in": "path",
+            "description": "Instance Task ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File dependencies validated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/complex-workflow/instances/{instanceId}/file-dependency-tree": {
+      "get": {
+        "tags": ["Complex Workflow Execution"],
+        "summary": "Get file dependency tree",
+        "description": "Get file dependency tree for a workflow instance",
+        "operationId": "getFileDependencyTree",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "description": "Instance ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File dependency tree retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instance not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkflowInstanceTaskDto": {
+        "type": "object",
+        "properties": {
+          "instanceTaskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the task instance"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status of the task instance",
+            "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "REJECTED"]
+          },
+          "assignedTo": {
+            "type": "object",
+            "description": "User assigned to this task"
+          },
+          "startedOn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the task was started"
+          },
+          "completedOn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the task was completed"
+          }
+        }
+      },
+      "TaskInstanceDecisionOutcomeDto": {
+        "type": "object",
+        "properties": {
+          "outcomeId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the decision outcome"
+          },
+          "outcomeName": {
+            "type": "string",
+            "description": "Name of the decision outcome"
+          },
+          "nextAction": {
+            "type": "string",
+            "description": "Next action to take based on this decision"
+          },
+          "targetTaskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Target task ID for routing"
+          }
+        }
+      }
+    }
+  }
+}

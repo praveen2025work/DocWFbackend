@@ -118,4 +118,143 @@ public interface WorkflowInstanceTaskRepository extends JpaRepository<WorkflowIn
      */
     @Query("SELECT wit FROM WorkflowInstanceTask wit WHERE wit.status IN ('PENDING', 'IN_PROGRESS') AND wit.startedOn < :attentionTime")
     List<WorkflowInstanceTask> findTasksNeedingAttention(@Param("attentionTime") java.time.LocalDateTime attentionTime);
+    
+    // Process Owner specific queries
+    /**
+     * Find tasks for workflow instances where the user has a process owner role
+     */
+    @Query("SELECT DISTINCT wit FROM WorkflowInstanceTask wit " +
+           "JOIN wit.workflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND (:status IS NULL OR wit.status = :status)")
+    List<WorkflowInstanceTask> findTasksByProcessOwnerRole(@Param("processOwnerId") Long processOwnerId, @Param("status") TaskInstanceStatus status);
+    
+    /**
+     * Find overdue tasks for workflow instances where the user has a process owner role
+     */
+    @Query("SELECT DISTINCT wit FROM WorkflowInstanceTask wit " +
+           "JOIN wit.workflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND wit.status = 'IN_PROGRESS' " +
+           "AND wit.startedOn < :overdueThreshold")
+    List<WorkflowInstanceTask> findOverdueTasksForProcessOwner(@Param("processOwnerId") Long processOwnerId, @Param("overdueThreshold") LocalDateTime overdueThreshold);
+    
+    // Dashboard specific queries
+    /**
+     * Count pending tasks for a process owner
+     */
+    @Query("SELECT COUNT(DISTINCT wit) FROM WorkflowInstanceTask wit " +
+           "JOIN wit.workflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND wit.status = 'PENDING'")
+    long countPendingTasksByProcessOwner(@Param("processOwnerId") Long processOwnerId);
+    
+    /**
+     * Find pending tasks for a process owner (limited for dashboard)
+     */
+    @Query("SELECT DISTINCT wit FROM WorkflowInstanceTask wit " +
+           "JOIN wit.workflowInstance wi " +
+           "JOIN wi.instanceRoles wir " +
+           "JOIN wir.role wr " +
+           "WHERE wir.user.userId = :processOwnerId " +
+           "AND wr.roleName = 'PROCESS_OWNER' " +
+           "AND wir.isActive = 'Y' " +
+           "AND wit.status = 'PENDING' " +
+           "ORDER BY wit.startedOn ASC")
+    List<WorkflowInstanceTask> findPendingTasksByProcessOwnerForDashboard(@Param("processOwnerId") Long processOwnerId);
+    
+    // User Dashboard specific queries
+    /**
+     * Count total tasks for a user
+     */
+    @Query("SELECT COUNT(DISTINCT wit) FROM WorkflowInstanceTask wit " +
+           "WHERE wit.assignedTo.userId = :userId")
+    long countTotalTasksByUser(@Param("userId") Long userId);
+    
+    /**
+     * Count pending tasks for a user
+     */
+    @Query("SELECT COUNT(DISTINCT wit) FROM WorkflowInstanceTask wit " +
+           "WHERE wit.assignedTo.userId = :userId " +
+           "AND wit.status = 'PENDING'")
+    long countPendingTasksByUser(@Param("userId") Long userId);
+    
+    /**
+     * Count completed tasks today for a user
+     */
+    @Query("SELECT COUNT(DISTINCT wit) FROM WorkflowInstanceTask wit " +
+           "WHERE wit.assignedTo.userId = :userId " +
+           "AND wit.status = 'COMPLETED' " +
+           "AND wit.completedOn >= :startOfDay " +
+           "AND wit.completedOn < :endOfDay")
+    long countCompletedTasksTodayByUser(@Param("userId") Long userId, 
+                                       @Param("startOfDay") LocalDateTime startOfDay,
+                                       @Param("endOfDay") LocalDateTime endOfDay);
+    
+    /**
+     * Find recent tasks for a user (limited for dashboard)
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit " +
+           "WHERE wit.assignedTo.userId = :userId " +
+           "ORDER BY wit.startedOn DESC")
+    List<WorkflowInstanceTask> findRecentTasksByUserForDashboard(@Param("userId") Long userId);
+    
+    /**
+     * Count tasks by status
+     */
+    long countByStatus(TaskInstanceStatus status);
+    
+    /**
+     * Find tasks by assigned user ID and date range
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit WHERE wit.assignedTo.userId = :userId " +
+           "AND ((wit.startedOn BETWEEN :startDate AND :endDate) OR " +
+           "(wit.completedOn BETWEEN :startDate AND :endDate) OR " +
+           "(:startDate BETWEEN wit.startedOn AND wit.completedOn))")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndDateRange(@Param("userId") Long userId, 
+                                                                 @Param("startDate") LocalDateTime startDate, 
+                                                                 @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Find tasks by assigned user ID and status
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit WHERE wit.assignedTo.userId = :userId AND wit.status = :status")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndStatus(@Param("userId") Long userId, @Param("status") TaskInstanceStatus status);
+    
+    /**
+     * Find tasks by assigned user ID and priority
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit JOIN wit.task t WHERE wit.assignedTo.userId = :userId AND t.taskPriority = :priority")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndPriority(@Param("userId") Long userId, @Param("priority") String priority);
+    
+    /**
+     * Find tasks by assigned user ID, status and priority
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit JOIN wit.task t WHERE wit.assignedTo.userId = :userId " +
+           "AND wit.status = :status AND t.taskPriority = :priority")
+    List<WorkflowInstanceTask> findByAssignedToUserIdAndStatusAndPriority(@Param("userId") Long userId, 
+                                                                        @Param("status") TaskInstanceStatus status, 
+                                                                        @Param("priority") String priority);
+    
+    /**
+     * Find conflicting tasks for a user in a time range
+     */
+    @Query("SELECT wit FROM WorkflowInstanceTask wit WHERE wit.assignedTo.userId = :userId " +
+           "AND wit.status IN ('PENDING', 'IN_PROGRESS') " +
+           "AND NOT (wit.completedOn <= :startTime OR wit.startedOn >= :endTime)")
+    List<WorkflowInstanceTask> findConflictingTasks(@Param("userId") Long userId, 
+                                                   @Param("startTime") LocalDateTime startTime, 
+                                                   @Param("endTime") LocalDateTime endTime);
 }

@@ -2,17 +2,23 @@ package com.docwf.service.impl;
 
 import com.docwf.dto.WorkflowCalendarDto;
 import com.docwf.dto.WorkflowCalendarDayDto;
+import com.docwf.dto.CreateCalendarWithDaysDto;
 import com.docwf.entity.WorkflowCalendar;
 import com.docwf.entity.WorkflowCalendarDay;
 import com.docwf.exception.WorkflowException;
 import com.docwf.repository.WorkflowCalendarRepository;
 import com.docwf.repository.WorkflowCalendarDayRepository;
 import com.docwf.service.WorkflowCalendarService;
+import com.docwf.service.CalendarSchedulerService;
+import com.docwf.config.CalendarSchedulerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +33,12 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
     @Autowired
     private WorkflowCalendarDayRepository calendarDayRepository;
     
+    @Autowired
+    private CalendarSchedulerConfig calendarSchedulerConfig;
+    
+    @Autowired
+    private CalendarSchedulerService calendarSchedulerService;
+    
     @Override
     public WorkflowCalendarDto createCalendar(WorkflowCalendarDto calendarDto) {
         WorkflowCalendar calendar = new WorkflowCalendar(
@@ -35,10 +47,55 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
             calendarDto.getStartDate(),
             calendarDto.getEndDate(),
             calendarDto.getRecurrence(),
+            calendarDto.getCronExpression(),
+            calendarDto.getTimezone(),
+            calendarDto.getRegion(),
+            calendarDto.getOffsetDays(),
             calendarDto.getCreatedBy()
         );
         
+        // Set additional fields
+        calendar.setIsActive(calendarDto.getIsActive() != null ? calendarDto.getIsActive() : "Y");
+        
         WorkflowCalendar savedCalendar = calendarRepository.save(calendar);
+        
+        // Schedule the workflow if it has a cron expression and is active
+        scheduleCalendarWorkflow(savedCalendar);
+        
+        return convertToDto(savedCalendar);
+    }
+    
+    @Override
+    public WorkflowCalendarDto createCalendarWithDays(CreateCalendarWithDaysDto calendarWithDaysDto) {
+        // Create the calendar first
+        WorkflowCalendar calendar = new WorkflowCalendar(
+            calendarWithDaysDto.getCalendarName(),
+            calendarWithDaysDto.getDescription(),
+            calendarWithDaysDto.getStartDate(),
+            calendarWithDaysDto.getEndDate(),
+            calendarWithDaysDto.getRecurrence(),
+            calendarWithDaysDto.getCreatedBy()
+        );
+        
+        // Save the calendar to get the ID
+        WorkflowCalendar savedCalendar = calendarRepository.save(calendar);
+        
+        // Create and save all calendar days
+        List<WorkflowCalendarDay> calendarDays = calendarWithDaysDto.getCalendarDays().stream()
+            .map(dayInput -> new WorkflowCalendarDay(
+                savedCalendar,
+                dayInput.getDayDate(),
+                dayInput.getDayType(),
+                dayInput.getNote()
+            ))
+            .collect(Collectors.toList());
+        
+        // Save all calendar days
+        List<WorkflowCalendarDay> savedDays = calendarDayRepository.saveAll(calendarDays);
+        
+        // Add the days to the calendar entity
+        savedCalendar.setCalendarDays(savedDays);
+        
         return convertToDto(savedCalendar);
     }
     
@@ -60,6 +117,53 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         return calendarRepository.findAll().stream()
             .map(this::convertToDto)
             .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowCalendarDto> getAllCalendars(String recurrence, Pageable pageable) {
+        Page<WorkflowCalendar> calendars;
+        if (recurrence != null && !recurrence.isEmpty()) {
+            calendars = calendarRepository.findByRecurrence(recurrence, pageable);
+        } else {
+            calendars = calendarRepository.findAll(pageable);
+        }
+        return calendars.map(this::convertToDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowCalendarDto> searchCalendars(String calendarName, String description, String recurrence, 
+                                                    String createdBy, String startDate, String endDate, 
+                                                    String createdAfter, String createdBefore, Pageable pageable) {
+        // Use repository method for better performance
+        java.time.LocalDate startDateObj = null;
+        java.time.LocalDate endDateObj = null;
+        java.time.LocalDateTime afterDate = null;
+        java.time.LocalDateTime beforeDate = null;
+        
+        try {
+            if (startDate != null) {
+                startDateObj = java.time.LocalDate.parse(startDate);
+            }
+            if (endDate != null) {
+                endDateObj = java.time.LocalDate.parse(endDate);
+            }
+            if (createdAfter != null) {
+                afterDate = java.time.LocalDateTime.parse(createdAfter);
+            }
+            if (createdBefore != null) {
+                beforeDate = java.time.LocalDateTime.parse(createdBefore);
+            }
+        } catch (Exception e) {
+            // If date parsing fails, return empty results
+            return Page.empty(pageable);
+        }
+        
+        Page<WorkflowCalendar> calendars = calendarRepository.searchCalendars(
+                calendarName, description, recurrence, createdBy, startDateObj, endDateObj, afterDate, beforeDate, pageable);
+        
+        return calendars.map(this::convertToDto);
     }
     
     @Override
@@ -88,9 +192,16 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         calendar.setStartDate(calendarDto.getStartDate());
         calendar.setEndDate(calendarDto.getEndDate());
         calendar.setRecurrence(calendarDto.getRecurrence());
+        calendar.setCronExpression(calendarDto.getCronExpression());
+        calendar.setTimezone(calendarDto.getTimezone());
+        calendar.setIsActive(calendarDto.getIsActive());
         calendar.setUpdatedBy(calendarDto.getUpdatedBy());
         
         WorkflowCalendar updatedCalendar = calendarRepository.save(calendar);
+        
+        // Update the schedule
+        updateCalendarSchedule(updatedCalendar);
+        
         return convertToDto(updatedCalendar);
     }
     
@@ -99,6 +210,10 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         if (!calendarRepository.existsById(calendarId)) {
             throw new WorkflowException("Calendar not found with ID: " + calendarId);
         }
+        
+        // Unschedule the workflow before deleting
+        unscheduleCalendarWorkflow(calendarId);
+        
         calendarRepository.deleteById(calendarId);
     }
     
@@ -222,7 +337,13 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
     @Override
     @Transactional(readOnly = true)
     public boolean canExecuteWorkflow(Long calendarId, LocalDate date) {
-        return isDateValid(calendarId, date);
+        Optional<WorkflowCalendar> calendarOpt = calendarRepository.findById(calendarId);
+        if (calendarOpt.isEmpty()) {
+            return false;
+        }
+        
+        WorkflowCalendar calendar = calendarOpt.get();
+        return calendar.canExecuteWorkflow(date);
     }
     
     @Override
@@ -267,6 +388,38 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         return null;
     }
     
+    @Override
+    public List<WorkflowCalendarDayDto> addCalendarDaysBatch(Long calendarId, List<WorkflowCalendarDayDto> daysDto) {
+        return daysDto.stream()
+            .map(dayDto -> addCalendarDays(calendarId, List.of(dayDto)))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<LocalDate> getValidDatesInRange(Long calendarId, LocalDate startDate, LocalDate endDate) {
+        return getValidDates(calendarId, startDate, endDate);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowCalendarDayDto> getHolidaysInRange(Long calendarId, LocalDate startDate, LocalDate endDate) {
+        return calendarDayRepository.findByCalendarAndDateRange(calendarId, startDate, endDate).stream()
+            .filter(day -> "HOLIDAY".equals(day.getDayType()))
+            .map(this::convertToDayDto)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<WorkflowCalendarDayDto> getRunDaysInRange(Long calendarId, LocalDate startDate, LocalDate endDate) {
+        return calendarDayRepository.findByCalendarAndDateRange(calendarId, startDate, endDate).stream()
+            .filter(day -> "RUNDAY".equals(day.getDayType()))
+            .map(this::convertToDayDto)
+            .collect(Collectors.toList());
+    }
+    
     // Helper methods for conversion
     private WorkflowCalendarDto convertToDto(WorkflowCalendar calendar) {
         WorkflowCalendarDto dto = new WorkflowCalendarDto();
@@ -276,6 +429,11 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         dto.setStartDate(calendar.getStartDate());
         dto.setEndDate(calendar.getEndDate());
         dto.setRecurrence(calendar.getRecurrence());
+        dto.setCronExpression(calendar.getCronExpression());
+        dto.setTimezone(calendar.getTimezone());
+        dto.setRegion(calendar.getRegion());
+        dto.setOffsetDays(calendar.getOffsetDays());
+        dto.setIsActive(calendar.getIsActive());
         dto.setCreatedBy(calendar.getCreatedBy());
         dto.setCreatedAt(calendar.getCreatedAt());
         dto.setUpdatedBy(calendar.getUpdatedBy());
@@ -298,5 +456,177 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         dto.setDayType(calendarDay.getDayType());
         dto.setNote(calendarDay.getNote());
         return dto;
+    }
+    
+    // ===== NEW METHODS FOR CRON AND REGION FUNCTIONALITY =====
+    
+    @Override
+    public List<WorkflowCalendarDto> getCalendarsByRegion(String region) {
+        List<WorkflowCalendar> calendars = calendarRepository.findByRegion(region);
+        return calendars.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<WorkflowCalendarDto> getActiveCalendarsWithCron() {
+        List<WorkflowCalendar> calendars = calendarRepository.findActiveCalendarsWithCron();
+        return calendars.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<WorkflowCalendarDto> getCalendarsByTimezone(String timezone) {
+        List<WorkflowCalendar> calendars = calendarRepository.findByTimezone(timezone);
+        return calendars.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<WorkflowCalendarDto> getCalendarsWithOffset(Integer offsetDays) {
+        List<WorkflowCalendar> calendars = calendarRepository.findByOffsetDays(offsetDays);
+        return calendars.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public WorkflowCalendar getCalendarEntityById(Long calendarId) {
+        return calendarRepository.findById(calendarId).orElse(null);
+    }
+    
+    @Override
+    public List<Long> getWorkflowIdsForCalendar(Long calendarId) {
+        // This would need to be implemented based on your workflow-calendar relationship
+        // For now, returning empty list - you'll need to implement this based on your data model
+        return List.of();
+    }
+    
+    @Override
+    public void activateCalendar(Long calendarId) {
+        WorkflowCalendar calendar = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new WorkflowException("Calendar not found: " + calendarId));
+        calendar.setIsActive("Y");
+        calendarRepository.save(calendar);
+    }
+    
+    @Override
+    public void deactivateCalendar(Long calendarId) {
+        WorkflowCalendar calendar = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new WorkflowException("Calendar not found: " + calendarId));
+        calendar.setIsActive("N");
+        calendarRepository.save(calendar);
+    }
+    
+    @Override
+    public List<WorkflowCalendarDto> getActiveCalendars() {
+        List<WorkflowCalendar> calendars = calendarRepository.findByIsActive("Y");
+        return calendars.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<WorkflowCalendarDto> getInactiveCalendars() {
+        List<WorkflowCalendar> calendars = calendarRepository.findByIsActive("N");
+        return calendars.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public boolean isValidCronExpression(String cronExpression) {
+        try {
+            org.quartz.CronExpression.validateExpression(cronExpression);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public String getCronDescription(String cronExpression) {
+        try {
+            org.quartz.CronExpression cron = new org.quartz.CronExpression(cronExpression);
+            return cron.getExpressionSummary();
+        } catch (Exception e) {
+            return "Invalid cron expression";
+        }
+    }
+    
+    // Scheduler integration methods
+    @Override
+    public boolean isDateValidForExecution(Long calendarId, LocalDate date) {
+        try {
+            WorkflowCalendar calendar = getCalendarEntityById(calendarId);
+            if (calendar == null || !"Y".equals(calendar.getIsActive())) {
+                return false;
+            }
+            
+            // Check if date is within calendar range
+            if (calendar.getStartDate() != null && date.isBefore(calendar.getStartDate())) {
+                return false;
+            }
+            
+            if (calendar.getEndDate() != null && date.isAfter(calendar.getEndDate())) {
+                return false;
+            }
+            
+            // Check if date is a valid run day
+            return isDateValid(calendarId, date);
+            
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public void scheduleCalendarWorkflow(WorkflowCalendar calendar) {
+        if (calendar != null && "Y".equals(calendar.getIsActive()) && 
+            calendar.getCronExpression() != null && !calendar.getCronExpression().trim().isEmpty()) {
+            calendarSchedulerConfig.scheduleWorkflow(calendar);
+        }
+    }
+    
+    @Override
+    public void unscheduleCalendarWorkflow(Long calendarId) {
+        calendarSchedulerConfig.unscheduleWorkflow(calendarId);
+    }
+    
+    @Override
+    public void updateCalendarSchedule(WorkflowCalendar calendar) {
+        if (calendar != null && "Y".equals(calendar.getIsActive()) && 
+            calendar.getCronExpression() != null && !calendar.getCronExpression().trim().isEmpty()) {
+            calendarSchedulerConfig.updateWorkflowSchedule(calendar);
+        } else {
+            // If calendar is inactive or has no cron expression, unschedule it
+            unscheduleCalendarWorkflow(calendar.getCalendarId());
+        }
+    }
+    
+    @Override
+    public boolean isCalendarScheduled(Long calendarId) {
+        return calendarSchedulerService.isCalendarScheduled(calendarId);
+    }
+    
+    @Override
+    public String getNextExecutionTime(Long calendarId) {
+        java.util.Date nextExecution = calendarSchedulerService.getNextExecutionTime(calendarId);
+        if (nextExecution != null) {
+            return nextExecution.toString();
+        }
+        return null;
+    }
+    
+    @Override
+    public boolean pauseCalendarSchedule(Long calendarId) {
+        return calendarSchedulerService.pauseCalendarSchedule(calendarId);
+    }
+    
+    @Override
+    public boolean resumeCalendarSchedule(Long calendarId) {
+        return calendarSchedulerService.resumeCalendarSchedule(calendarId);
     }
 }

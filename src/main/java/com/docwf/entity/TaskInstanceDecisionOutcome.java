@@ -28,6 +28,12 @@ public class TaskInstanceDecisionOutcome {
     @Column(name = "OUTCOME_NAME", length = 255, nullable = false)
     private String outcomeName;
     
+    @Column(name = "OUTCOME_DESCRIPTION", length = 500)
+    private String outcomeDescription;
+    
+    @Column(name = "NEXT_ACTION", length = 100)
+    private String nextAction;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "NEXT_INSTANCE_TASK_ID")
     private WorkflowInstanceTask nextInstanceTask;
@@ -74,6 +80,22 @@ public class TaskInstanceDecisionOutcome {
     
     public void setOutcomeName(String outcomeName) {
         this.outcomeName = outcomeName;
+    }
+    
+    public String getOutcomeDescription() {
+        return outcomeDescription;
+    }
+    
+    public void setOutcomeDescription(String outcomeDescription) {
+        this.outcomeDescription = outcomeDescription;
+    }
+    
+    public String getNextAction() {
+        return nextAction;
+    }
+    
+    public void setNextAction(String nextAction) {
+        this.nextAction = nextAction;
     }
     
     public WorkflowInstanceTask getNextInstanceTask() {

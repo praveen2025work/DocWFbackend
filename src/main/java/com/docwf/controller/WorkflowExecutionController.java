@@ -3,10 +3,12 @@ package com.docwf.controller;
 import com.docwf.dto.WorkflowInstanceDto;
 import com.docwf.dto.WorkflowInstanceTaskDto;
 import com.docwf.dto.TaskInstanceDecisionOutcomeDto;
+import com.docwf.dto.CreateWorkflowInstanceDto;
 import com.docwf.service.WorkflowExecutionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/execution")
@@ -33,13 +37,11 @@ public class WorkflowExecutionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(instance);
     }
     
-    @PostMapping("/workflows/{workflowId}/start-with-calendar")
-    @Operation(summary = "Start workflow instance with calendar validation", description = "Starts a new workflow instance with calendar date validation")
+    @PostMapping("/workflows/start-with-calendar")
+    @Operation(summary = "Start workflow instance with calendar", description = "Starts a new workflow instance with optional calendar mapping")
     public ResponseEntity<WorkflowInstanceDto> startWorkflowWithCalendar(
-            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
-            @Parameter(description = "User ID who started the workflow") @RequestParam Long startedByUserId,
-            @Parameter(description = "Calendar ID for date validation") @RequestParam(required = false) Long calendarId) {
-        WorkflowInstanceDto instance = executionService.startWorkflowWithCalendar(workflowId, startedByUserId, calendarId);
+            @Valid @RequestBody CreateWorkflowInstanceDto createInstanceDto) {
+        WorkflowInstanceDto instance = executionService.startWorkflowWithCalendar(createInstanceDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(instance);
     }
     
@@ -66,6 +68,64 @@ public class WorkflowExecutionController {
             @Parameter(description = "Instance status") @PathVariable String status) {
         List<WorkflowInstanceDto> instances = executionService.getWorkflowInstancesByStatus(status);
         return ResponseEntity.ok(instances);
+    }
+    
+    // ===== SEARCH ENDPOINTS =====
+    
+    @GetMapping("/instances/search")
+    @Operation(summary = "Search workflow instances", description = "Search workflow instances using multiple criteria with pagination")
+    public ResponseEntity<Page<WorkflowInstanceDto>> searchInstances(
+            @Parameter(description = "Workflow ID") @RequestParam(required = false) Long workflowId,
+            @Parameter(description = "Instance status") @RequestParam(required = false) String status,
+            @Parameter(description = "Started by user ID") @RequestParam(required = false) Long startedBy,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore,
+            Pageable pageable) {
+        
+        Page<WorkflowInstanceDto> instances = executionService.searchInstances(
+                workflowId, status, startedBy, startedAfter, startedBefore, completedAfter, completedBefore, pageable);
+        return ResponseEntity.ok(instances);
+    }
+    
+    @GetMapping("/tasks/search")
+    @Operation(summary = "Search workflow tasks", description = "Search workflow tasks using multiple criteria with pagination")
+    public ResponseEntity<Page<WorkflowInstanceTaskDto>> searchTasks(
+            @Parameter(description = "Instance ID") @RequestParam(required = false) Long instanceId,
+            @Parameter(description = "Task status") @RequestParam(required = false) String status,
+            @Parameter(description = "Assigned to user ID") @RequestParam(required = false) Long assignedTo,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore,
+            Pageable pageable) {
+        
+        Page<WorkflowInstanceTaskDto> tasks = executionService.searchTasks(
+                instanceId, status, assignedTo, startedAfter, startedBefore, completedAfter, completedBefore, pageable);
+        return ResponseEntity.ok(tasks);
+    }
+    
+    @GetMapping("/instances/overdue")
+    @Operation(summary = "Get overdue instances", description = "Retrieves workflow instances that are overdue")
+    public ResponseEntity<List<WorkflowInstanceDto>> getOverdueInstances(
+            @Parameter(description = "Overdue threshold in hours") @RequestParam(defaultValue = "24") Integer thresholdHours) {
+        List<WorkflowInstanceDto> instances = executionService.getOverdueInstances(thresholdHours);
+        return ResponseEntity.ok(instances);
+    }
+    
+    @GetMapping("/tasks/overdue")
+    @Operation(summary = "Get overdue tasks", description = "Retrieves tasks that are overdue")
+    public ResponseEntity<List<WorkflowInstanceTaskDto>> getOverdueTasks() {
+        List<WorkflowInstanceTaskDto> tasks = executionService.getOverdueTasks();
+        return ResponseEntity.ok(tasks);
+    }
+    
+    @GetMapping("/tasks/attention")
+    @Operation(summary = "Get tasks needing attention", description = "Retrieves tasks that need attention")
+    public ResponseEntity<List<WorkflowInstanceTaskDto>> getTasksNeedingAttention() {
+        List<WorkflowInstanceTaskDto> tasks = executionService.getTasksNeedingAttention();
+        return ResponseEntity.ok(tasks);
     }
     
     @PatchMapping("/instances/{instanceId}/status")
@@ -235,20 +295,6 @@ public class WorkflowExecutionController {
     }
     
     // Utility endpoints
-    @GetMapping("/overdue-tasks")
-    @Operation(summary = "Get overdue tasks", description = "Retrieves all tasks that are overdue")
-    public ResponseEntity<List<WorkflowInstanceTaskDto>> getOverdueTasks() {
-        List<WorkflowInstanceTaskDto> tasks = executionService.getOverdueTasks();
-        return ResponseEntity.ok(tasks);
-    }
-    
-    @GetMapping("/tasks-needing-attention")
-    @Operation(summary = "Get tasks needing attention", description = "Retrieves tasks that need attention")
-    public ResponseEntity<List<WorkflowInstanceTaskDto>> getTasksNeedingAttention() {
-        List<WorkflowInstanceTaskDto> tasks = executionService.getTasksNeedingAttention();
-        return ResponseEntity.ok(tasks);
-    }
-    
     @PostMapping("/reminders/trigger")
     @Operation(summary = "Trigger workflow reminders", description = "Triggers reminder notifications for workflows")
     public ResponseEntity<Void> triggerWorkflowReminders() {

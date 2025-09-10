@@ -1,0 +1,326 @@
+{
+  "workflowName": "Financial Data Processing Workflow",
+  "workflowDescription": "Complex 5-step workflow for financial data processing with file uploads, updates, consolidation, and decision making",
+  "workflowStatus": "ACTIVE",
+  "createdBy": "admin",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "stepName": "File Upload",
+      "stepType": "FILE_UPLOAD",
+      "stepDescription": "Upload initial financial data files",
+      "assignedRole": "Data Entry Clerk",
+      "roleId": 1,
+      "canRunInParallel": false,
+      "allowNewFiles": true,
+      "fileSelectionMode": "USER_SELECT",
+      "priority": "HIGH",
+      "escalationEnabled": true,
+      "notificationsEnabled": true,
+      "fileRetentionDays": 90,
+      "keepFileVersions": true,
+      "maxFileVersions": 5,
+      "keepFileHistory": true,
+      "files": [
+        {
+          "fileName": "sales_data.xlsx",
+          "fileDescription": "Raw sales data for processing",
+          "fileType": "*.xlsx",
+          "isRequired": true,
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/"
+        },
+        {
+          "fileName": "expense_data.xlsx",
+          "fileDescription": "Raw expense data for processing",
+          "fileType": "*.xlsx",
+          "isRequired": true,
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/"
+        },
+        {
+          "fileName": "inventory_data.xlsx",
+          "fileDescription": "Raw inventory data for processing",
+          "fileType": "*.xlsx",
+          "isRequired": true,
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/"
+        }
+      ],
+      "dependencies": [],
+      "decisionOutcomes": []
+    },
+    {
+      "stepNumber": 2,
+      "stepName": "Sales Data Update",
+      "stepType": "FILE_UPDATE",
+      "stepDescription": "Update and validate sales data from Step 1",
+      "assignedRole": "Data Analyst",
+      "roleId": 2,
+      "canRunInParallel": false,
+      "allowNewFiles": false,
+      "fileSelectionMode": "AUTO_SELECT",
+      "sourceSteps": [1],
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 1,
+      "maxFileSelections": 1,
+      "priority": "HIGH",
+      "escalationEnabled": true,
+      "notificationsEnabled": true,
+      "fileRetentionDays": 60,
+      "keepFileVersions": true,
+      "maxFileVersions": 3,
+      "keepFileHistory": true,
+      "files": [
+        {
+          "fileName": "sales_data_validated.xlsx",
+          "fileDescription": "Validated and cleaned sales data",
+          "fileType": "*.xlsx",
+          "isRequired": true,
+          "filePath": "/data/validated/",
+          "fileLocation": "/s3/workflow-data/validated/",
+          "dependsOnFiles": [
+            {
+              "sourceStep": 1,
+              "sourceFile": "sales_data.xlsx"
+            }
+          ]
+        }
+      ],
+      "dependencies": [1],
+      "decisionOutcomes": []
+    },
+    {
+      "stepNumber": 3,
+      "stepName": "Expense Data Update",
+      "stepType": "FILE_UPDATE",
+      "stepDescription": "Update and validate expense data from Step 1",
+      "assignedRole": "Data Analyst",
+      "roleId": 2,
+      "canRunInParallel": true,
+      "allowNewFiles": false,
+      "fileSelectionMode": "AUTO_SELECT",
+      "sourceSteps": [1],
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 1,
+      "maxFileSelections": 1,
+      "priority": "HIGH",
+      "escalationEnabled": true,
+      "notificationsEnabled": true,
+      "fileRetentionDays": 60,
+      "keepFileVersions": true,
+      "maxFileVersions": 3,
+      "keepFileHistory": true,
+      "files": [
+        {
+          "fileName": "expense_data_validated.xlsx",
+          "fileDescription": "Validated and cleaned expense data",
+          "fileType": "*.xlsx",
+          "isRequired": true,
+          "filePath": "/data/validated/",
+          "fileLocation": "/s3/workflow-data/validated/",
+          "dependsOnFiles": [
+            {
+              "sourceStep": 1,
+              "sourceFile": "expense_data.xlsx"
+            }
+          ]
+        }
+      ],
+      "dependencies": [1],
+      "decisionOutcomes": []
+    },
+    {
+      "stepNumber": 4,
+      "stepName": "Data Consolidation",
+      "stepType": "CONSOLIDATE_FILE",
+      "stepDescription": "Consolidate data from all previous steps based on user selection",
+      "assignedRole": "Senior Analyst",
+      "roleId": 3,
+      "canRunInParallel": false,
+      "allowNewFiles": false,
+      "fileSelectionMode": "USER_SELECT",
+      "sourceSteps": [1, 2, 3],
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 2,
+      "maxFileSelections": 4,
+      "consolidationMode": "MANUAL",
+      "consolidationRules": {
+        "mergeStrategy": "APPEND",
+        "validationRules": ["checkDataIntegrity", "validateTotals"],
+        "outputFormat": "EXCEL",
+        "includeMetadata": true
+      },
+      "priority": "CRITICAL",
+      "escalationEnabled": true,
+      "notificationsEnabled": true,
+      "fileRetentionDays": 120,
+      "keepFileVersions": true,
+      "maxFileVersions": 5,
+      "keepFileHistory": true,
+      "files": [
+        {
+          "fileName": "consolidated_financial_report.xlsx",
+          "fileDescription": "Consolidated financial report from all data sources",
+          "fileType": "*.xlsx",
+          "isRequired": true,
+          "filePath": "/data/consolidated/",
+          "fileLocation": "/s3/workflow-data/consolidated/",
+          "dependsOnFiles": [
+            {
+              "sourceStep": 1,
+              "sourceFile": "sales_data.xlsx"
+            },
+            {
+              "sourceStep": 2,
+              "sourceFile": "sales_data_validated.xlsx"
+            },
+            {
+              "sourceStep": 3,
+              "sourceFile": "expense_data_validated.xlsx"
+            }
+          ]
+        }
+      ],
+      "dependencies": [1, 2, 3],
+      "decisionOutcomes": []
+    },
+    {
+      "stepNumber": 5,
+      "stepName": "Management Decision",
+      "stepType": "DECISION",
+      "stepDescription": "Management review and decision on consolidated data",
+      "assignedRole": "Manager",
+      "roleId": 4,
+      "canRunInParallel": false,
+      "allowNewFiles": false,
+      "isDecisionTask": true,
+      "decisionType": "MULTI_CHOICE",
+      "decisionRequiresApproval": true,
+      "decisionApprovalRoleId": 4,
+      "revisionStrategy": "SELECTIVE",
+      "revisionTaskMapping": {
+        "revisionPaths": [
+          {
+            "outcome": "REVISE_SALES",
+            "targetSteps": [2],
+            "description": "Revise sales data validation"
+          },
+          {
+            "outcome": "REVISE_EXPENSE",
+            "targetSteps": [3],
+            "description": "Revise expense data validation"
+          },
+          {
+            "outcome": "REVISE_UPLOAD",
+            "targetSteps": [1],
+            "description": "Revise original file uploads"
+          },
+          {
+            "outcome": "REVISE_CONSOLIDATION",
+            "targetSteps": [4],
+            "description": "Revise data consolidation"
+          }
+        ]
+      },
+      "priority": "CRITICAL",
+      "escalationEnabled": true,
+      "notificationsEnabled": true,
+      "fileRetentionDays": 180,
+      "keepFileVersions": true,
+      "maxFileVersions": 3,
+      "keepFileHistory": true,
+      "files": [],
+      "dependencies": [4],
+      "decisionOutcomes": [
+        {
+          "outcomeName": "APPROVE",
+          "outcomeDescription": "Approve the consolidated data and complete workflow",
+          "targetStep": null,
+          "revisionType": "SINGLE",
+          "revisionSteps": [],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 1,
+          "revisionConditions": {
+            "condition": "dataValid",
+            "action": "approve"
+          },
+          "autoEscalate": false,
+          "escalationRoleId": null
+        },
+        {
+          "outcomeName": "REVISE_SALES",
+          "outcomeDescription": "Send back to sales data validation step",
+          "targetStep": 2,
+          "revisionType": "SINGLE",
+          "revisionSteps": [2],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": {
+            "condition": "salesDataInvalid",
+            "action": "revise"
+          },
+          "autoEscalate": false,
+          "escalationRoleId": null
+        },
+        {
+          "outcomeName": "REVISE_EXPENSE",
+          "outcomeDescription": "Send back to expense data validation step",
+          "targetStep": 3,
+          "revisionType": "SINGLE",
+          "revisionSteps": [3],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": {
+            "condition": "expenseDataInvalid",
+            "action": "revise"
+          },
+          "autoEscalate": false,
+          "escalationRoleId": null
+        },
+        {
+          "outcomeName": "REVISE_UPLOAD",
+          "outcomeDescription": "Send back to file upload step and cascade to all dependent steps",
+          "targetStep": 1,
+          "revisionType": "CASCADE",
+          "revisionSteps": [1, 2, 3, 4],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 3,
+          "revisionConditions": {
+            "condition": "sourceDataInvalid",
+            "action": "reviseAll"
+          },
+          "autoEscalate": true,
+          "escalationRoleId": 4
+        },
+        {
+          "outcomeName": "REVISE_CONSOLIDATION",
+          "outcomeDescription": "Send back to data consolidation step",
+          "targetStep": 4,
+          "revisionType": "SINGLE",
+          "revisionSteps": [4],
+          "revisionStrategy": "REPLACE",
+          "revisionPriority": 2,
+          "revisionConditions": {
+            "condition": "consolidationInvalid",
+            "action": "revise"
+          },
+          "autoEscalate": false,
+          "escalationRoleId": null
+        }
+      ]
+    }
+  ],
+  "workflowSettings": {
+    "allowParallelExecution": false,
+    "maxConcurrentTasks": 1,
+    "escalationTimeout": 24,
+    "notificationChannels": ["EMAIL", "SMS"],
+    "auditLevel": "DETAILED",
+    "retentionPolicy": {
+      "completedWorkflows": 365,
+      "failedWorkflows": 90,
+      "fileVersions": 10
+    }
+  }
+}

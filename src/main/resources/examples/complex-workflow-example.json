@@ -1,0 +1,332 @@
+{
+  "name": "Document Review and Approval Workflow",
+  "description": "Complex workflow demonstrating file dependencies, updates, consolidation, and decision routing",
+  "reminderBeforeDueMins": 1440,
+  "minutesAfterDue": 2880,
+  "escalationAfterMins": 4320,
+  "dueInMins": 10080,
+  "isActive": "Y",
+  "createdBy": "admin@company.com",
+  
+  "calendarId": 1,
+  
+  "workflowRoles": [
+    {
+      "workflowId": null,
+      "roleId": 1,
+      "userId": 101,
+      "isActive": "Y"
+    },
+    {
+      "workflowId": null,
+      "roleId": 2,
+      "userId": 102,
+      "isActive": "Y"
+    },
+    {
+      "workflowId": null,
+      "roleId": 3,
+      "userId": 103,
+      "isActive": "Y"
+    },
+    {
+      "workflowId": null,
+      "roleId": 4,
+      "userId": 104,
+      "isActive": "Y"
+    }
+  ],
+  
+  "tasks": [
+    {
+      "name": "Initial Document Upload",
+      "taskType": "FILE_UPLOAD",
+      "roleId": 1,
+      "expectedCompletion": 60,
+      "sequenceOrder": 1,
+      "parentTaskIds": "",
+      "canBeRevisited": "Y",
+      "maxRevisits": 5,
+      "escalationRules": "Escalate to Process Owner if not completed within 2 hours",
+      "fileSelectionMode": "USER_SELECT",
+      "sourceTaskIds": "",
+      "fileSourceTaskIds": "",
+      "allowNewFiles": "Y",
+      "canRunInParallel": "N",
+      "parallelTaskIds": "",
+      "taskDescription": "Upload initial documents for processing",
+      "isDecisionTask": "N",
+      "taskPriority": "MEDIUM",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskStatus": "PENDING",
+      "consolidationMode": "MANUAL",
+      "fileSelectionStrategy": "ALL_AVAILABLE",
+      "minFileSelections": 1,
+      "maxFileSelections": 10,
+      
+      "taskFiles": [
+        {
+          "fileName": "document_1.pdf",
+          "filePath": "/uploads/document_1.pdf",
+          "fileLocation": "S3://company-docs/uploads/",
+          "fileTypeRegex": "*.pdf",
+          "actionType": "UPLOAD",
+          "fileDescription": "First document for review",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Initial document version",
+          "createdBy": "admin@company.com"
+        },
+        {
+          "fileName": "document_2.docx",
+          "filePath": "/uploads/document_2.docx",
+          "fileLocation": "S3://company-docs/uploads/",
+          "fileTypeRegex": "*.docx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Second document for review",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Initial document version",
+          "createdBy": "admin@company.com"
+        },
+        {
+          "fileName": "document_3.xlsx",
+          "filePath": "/uploads/document_3.xlsx",
+          "fileLocation": "S3://company-docs/uploads/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Third document for review",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Initial document version",
+          "createdBy": "admin@company.com"
+        }
+      ]
+    },
+    {
+      "name": "Document 1 and 2 Updates",
+      "taskType": "FILE_UPDATE",
+      "roleId": 2,
+      "expectedCompletion": 1440,
+      "sequenceOrder": 2,
+      "parentTaskIds": "1",
+      "canBeRevisited": "Y",
+      "maxRevisits": 5,
+      "escalationRules": "Escalate to Process Owner if not completed within 48 hours",
+      "fileSelectionMode": "USER_SELECT",
+      "sourceTaskIds": "1",
+      "fileSourceTaskIds": "1",
+      "allowNewFiles": "N",
+      "canRunInParallel": "Y",
+      "parallelTaskIds": "3",
+      "taskDescription": "Update documents 1 and 2 based on initial review",
+      "isDecisionTask": "N",
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskStatus": "PENDING",
+      "consolidationMode": "MANUAL",
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 2,
+      "maxFileSelections": 2,
+      
+      "taskFiles": [
+        {
+          "fileName": "document_1_updated.pdf",
+          "filePath": "/updates/document_1_updated.pdf",
+          "fileLocation": "S3://company-docs/updates/",
+          "fileTypeRegex": "*.pdf",
+          "actionType": "UPDATE",
+          "fileDescription": "Updated version of document 1",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Updated based on initial review feedback",
+          "createdBy": "admin@company.com"
+        },
+        {
+          "fileName": "document_2_updated.docx",
+          "filePath": "/updates/document_2_updated.docx",
+          "fileLocation": "S3://company-docs/updates/",
+          "fileTypeRegex": "*.docx",
+          "actionType": "UPDATE",
+          "fileDescription": "Updated version of document 2",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Updated based on initial review feedback",
+          "createdBy": "admin@company.com"
+        }
+      ]
+    },
+    {
+      "name": "Document 3 Update",
+      "taskType": "FILE_UPDATE",
+      "roleId": 3,
+      "expectedCompletion": 1200,
+      "sequenceOrder": 2,
+      "parentTaskIds": "1",
+      "canBeRevisited": "Y",
+      "maxRevisits": 5,
+      "escalationRules": "Escalate to Process Owner if not completed within 40 hours",
+      "fileSelectionMode": "USER_SELECT",
+      "sourceTaskIds": "1",
+      "fileSourceTaskIds": "1",
+      "allowNewFiles": "N",
+      "canRunInParallel": "Y",
+      "parallelTaskIds": "2",
+      "taskDescription": "Update document 3 based on initial review",
+      "isDecisionTask": "N",
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskStatus": "PENDING",
+      "consolidationMode": "MANUAL",
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 1,
+      "maxFileSelections": 1,
+      
+      "taskFiles": [
+        {
+          "fileName": "document_3_updated.xlsx",
+          "filePath": "/updates/document_3_updated.xlsx",
+          "fileLocation": "S3://company-docs/updates/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Updated version of document 3",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Updated based on initial review feedback",
+          "createdBy": "admin@company.com"
+        }
+      ]
+    },
+    {
+      "name": "File Consolidation",
+      "taskType": "CONSOLIDATE_FILE",
+      "roleId": 2,
+      "expectedCompletion": 480,
+      "sequenceOrder": 3,
+      "parentTaskIds": "2,3",
+      "canBeRevisited": "Y",
+      "maxRevisits": 3,
+      "escalationRules": "Escalate to Process Owner if not completed within 16 hours",
+      "fileSelectionMode": "USER_SELECT",
+      "sourceTaskIds": "1,2,3",
+      "fileSourceTaskIds": "1,2,3",
+      "allowNewFiles": "N",
+      "canRunInParallel": "N",
+      "parallelTaskIds": "",
+      "taskDescription": "Consolidate all documents and updates into final package",
+      "isDecisionTask": "Y",
+      "decisionType": "APPROVAL",
+      "taskPriority": "CRITICAL",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskStatus": "PENDING",
+      "consolidationMode": "HYBRID",
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 1,
+      "maxFileSelections": null,
+      "consolidationRules": "{\"strategy\": \"merge\", \"outputFormat\": \"pdf\", \"includeMetadata\": true}",
+      "decisionRequiresApproval": "Y",
+      "decisionApprovalRoleId": 4,
+      "revisionStrategy": "SELECTIVE",
+      "revisionTaskMapping": "{\"APPROVED\": \"\", \"REJECTED\": \"2,3\", \"NEEDS_REVISION\": \"2,3\"}",
+      
+      "taskFiles": [
+        {
+          "fileName": "consolidation_template.docx",
+          "filePath": "/templates/consolidation_template.docx",
+          "fileLocation": "S3://company-docs/templates/",
+          "fileTypeRegex": "*.docx",
+          "actionType": "CONSOLIDATE",
+          "fileDescription": "Template for final document consolidation",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Consolidation template v1.0",
+          "createdBy": "admin@company.com"
+        }
+      ]
+    },
+    {
+      "name": "Final Decision and Approval",
+      "taskType": "DECISION",
+      "roleId": 4,
+      "expectedCompletion": 240,
+      "sequenceOrder": 4,
+      "parentTaskIds": "4",
+      "canBeRevisited": "Y",
+      "maxRevisits": 2,
+      "escalationRules": "Escalate to Process Owner if not completed within 8 hours",
+      "fileSelectionMode": "USER_SELECT",
+      "sourceTaskIds": "4",
+      "fileSourceTaskIds": "4",
+      "allowNewFiles": "N",
+      "canRunInParallel": "N",
+      "parallelTaskIds": "",
+      "taskDescription": "Make final decision on consolidated documents",
+      "isDecisionTask": "Y",
+      "decisionType": "APPROVAL",
+      "taskPriority": "CRITICAL",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskStatus": "PENDING",
+      "consolidationMode": "MANUAL",
+      "fileSelectionStrategy": "USER_SELECT",
+      "minFileSelections": 1,
+      "maxFileSelections": 1,
+      "decisionRequiresApproval": "N",
+      "revisionStrategy": "CASCADE",
+      "revisionTaskMapping": "{\"APPROVED\": \"\", \"REJECTED\": \"2,3,4\", \"NEEDS_REVISION\": \"2,3\"}",
+      
+      "taskFiles": [
+        {
+          "fileName": "decision_checklist.pdf",
+          "filePath": "/checklists/decision_checklist.pdf",
+          "fileLocation": "S3://company-docs/checklists/",
+          "fileTypeRegex": "*.pdf",
+          "actionType": "UPDATE",
+          "fileDescription": "Checklist for final decision process",
+          "isRequired": "Y",
+          "fileStatus": "PENDING",
+          "keepFileVersions": "Y",
+          "retainForCurrentPeriod": "Y",
+          "fileCommentary": "Decision checklist v1.0",
+          "createdBy": "admin@company.com"
+        }
+      ]
+    }
+  ],
+  
+  "parameters": [
+    {
+      "paramKey": "CONSOLIDATION_STRATEGY",
+      "paramValue": "merge",
+      "createdBy": "admin@company.com"
+    },
+    {
+      "paramKey": "REVISION_APPROACH",
+      "paramValue": "selective",
+      "createdBy": "admin@company.com"
+    },
+    {
+      "paramKey": "DECISION_ESCALATION_ENABLED",
+      "paramValue": "true",
+      "createdBy": "admin@company.com"
+    }
+  ]
+}

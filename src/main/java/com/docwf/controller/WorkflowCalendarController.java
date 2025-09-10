@@ -2,7 +2,9 @@ package com.docwf.controller;
 
 import com.docwf.dto.WorkflowCalendarDto;
 import com.docwf.dto.WorkflowCalendarDayDto;
+import com.docwf.dto.CreateCalendarWithDaysDto;
 import com.docwf.service.WorkflowCalendarService;
+import com.docwf.service.CalendarSchedulerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,13 +29,56 @@ public class WorkflowCalendarController {
     @Autowired
     private WorkflowCalendarService calendarService;
     
+    @Autowired
+    private CalendarSchedulerService calendarSchedulerService;
+    
     // ===== CALENDAR CRUD OPERATIONS =====
     
     @PostMapping
-    @Operation(summary = "Create calendar", description = "Creates a new workflow calendar")
+    @Operation(summary = "Create calendar", description = "Creates a new workflow calendar and schedules it if it has a cron expression")
     public ResponseEntity<WorkflowCalendarDto> createCalendar(
             @Valid @RequestBody WorkflowCalendarDto calendarDto) {
         WorkflowCalendarDto createdCalendar = calendarService.createCalendar(calendarDto);
+        
+        // Schedule the calendar if it has a cron expression and is active
+        if (createdCalendar.getCronExpression() != null && 
+            !createdCalendar.getCronExpression().trim().isEmpty() &&
+            "Y".equals(createdCalendar.getIsActive())) {
+            try {
+                var calendarEntity = calendarService.getCalendarEntityById(createdCalendar.getCalendarId());
+                if (calendarEntity != null) {
+                    calendarSchedulerService.scheduleCalendarWorkflow(calendarEntity);
+                }
+            } catch (Exception e) {
+                // Log error but don't fail the calendar creation
+                System.err.println("Failed to schedule calendar: " + e.getMessage());
+            }
+        }
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCalendar);
+    }
+    
+    @PostMapping("/with-days")
+    @Operation(summary = "Create calendar with days", description = "Creates a new workflow calendar with calendar days and schedules it if it has a cron expression")
+    public ResponseEntity<WorkflowCalendarDto> createCalendarWithDays(
+            @Valid @RequestBody CreateCalendarWithDaysDto calendarWithDaysDto) {
+        WorkflowCalendarDto createdCalendar = calendarService.createCalendarWithDays(calendarWithDaysDto);
+        
+        // Schedule the calendar if it has a cron expression and is active
+        if (createdCalendar.getCronExpression() != null && 
+            !createdCalendar.getCronExpression().trim().isEmpty() &&
+            "Y".equals(createdCalendar.getIsActive())) {
+            try {
+                var calendarEntity = calendarService.getCalendarEntityById(createdCalendar.getCalendarId());
+                if (calendarEntity != null) {
+                    calendarSchedulerService.scheduleCalendarWorkflow(calendarEntity);
+                }
+            } catch (Exception e) {
+                // Log error but don't fail the calendar creation
+                System.err.println("Failed to schedule calendar: " + e.getMessage());
+            }
+        }
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCalendar);
     }
     
@@ -47,20 +92,138 @@ public class WorkflowCalendarController {
     }
     
     @PutMapping("/{calendarId}")
-    @Operation(summary = "Update calendar", description = "Updates an existing calendar")
+    @Operation(summary = "Update calendar", description = "Updates an existing calendar and updates its Quartz schedule")
     public ResponseEntity<WorkflowCalendarDto> updateCalendar(
             @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
             @Valid @RequestBody WorkflowCalendarDto calendarDto) {
         WorkflowCalendarDto updatedCalendar = calendarService.updateCalendar(calendarId, calendarDto);
+        
+        // Update the Quartz schedule for this calendar
+        try {
+            var calendarEntity = calendarService.getCalendarEntityById(calendarId);
+            if (calendarEntity != null) {
+                if (updatedCalendar.getCronExpression() != null && 
+                    !updatedCalendar.getCronExpression().trim().isEmpty() &&
+                    "Y".equals(updatedCalendar.getIsActive())) {
+                    // Schedule or update the calendar
+                    calendarSchedulerService.updateCalendarWorkflowSchedule(calendarEntity);
+                } else {
+                    // Unschedule the calendar if no cron expression or inactive
+                    calendarSchedulerService.unscheduleCalendarWorkflow(calendarId);
+                }
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the calendar update
+            System.err.println("Failed to update calendar schedule: " + e.getMessage());
+        }
+        
         return ResponseEntity.ok(updatedCalendar);
     }
     
     @DeleteMapping("/{calendarId}")
-    @Operation(summary = "Delete calendar", description = "Deletes a calendar from the system")
+    @Operation(summary = "Delete calendar", description = "Deletes a calendar from the system and unschedules its Quartz job")
     public ResponseEntity<Void> deleteCalendar(
             @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        // Unschedule the calendar before deleting
+        try {
+            calendarSchedulerService.unscheduleCalendarWorkflow(calendarId);
+        } catch (Exception e) {
+            // Log error but don't fail the calendar deletion
+            System.err.println("Failed to unschedule calendar: " + e.getMessage());
+        }
+        
         calendarService.deleteCalendar(calendarId);
         return ResponseEntity.noContent().build();
+    }
+    
+    // ===== QUARTZ SCHEDULE MANAGEMENT =====
+    
+    @PostMapping("/{calendarId}/schedule")
+    @Operation(summary = "Schedule calendar", description = "Manually schedule a calendar for Quartz execution")
+    public ResponseEntity<String> scheduleCalendar(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        try {
+            var calendarEntity = calendarService.getCalendarEntityById(calendarId);
+            if (calendarEntity == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            boolean success = calendarSchedulerService.scheduleCalendarWorkflow(calendarEntity);
+            if (success) {
+                return ResponseEntity.ok("Calendar scheduled successfully");
+            } else {
+                return ResponseEntity.badRequest().body("Failed to schedule calendar");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error scheduling calendar: " + e.getMessage());
+        }
+    }
+    
+    @DeleteMapping("/{calendarId}/schedule")
+    @Operation(summary = "Unschedule calendar", description = "Remove a calendar from Quartz execution")
+    public ResponseEntity<String> unscheduleCalendar(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        try {
+            boolean success = calendarSchedulerService.unscheduleCalendarWorkflow(calendarId);
+            if (success) {
+                return ResponseEntity.ok("Calendar unscheduled successfully");
+            } else {
+                return ResponseEntity.badRequest().body("Failed to unschedule calendar");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error unscheduling calendar: " + e.getMessage());
+        }
+    }
+    
+    @GetMapping("/{calendarId}/schedule/status")
+    @Operation(summary = "Get schedule status", description = "Check if a calendar is currently scheduled and get next execution time")
+    public ResponseEntity<Object> getScheduleStatus(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        try {
+            boolean isScheduled = calendarSchedulerService.isCalendarScheduled(calendarId);
+            java.util.Date nextExecution = calendarSchedulerService.getNextExecutionTime(calendarId);
+            
+            java.util.Map<String, Object> status = new java.util.HashMap<>();
+            status.put("calendarId", calendarId);
+            status.put("isScheduled", isScheduled);
+            status.put("nextExecutionTime", nextExecution != null ? nextExecution.toString() : null);
+            
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error checking schedule status: " + e.getMessage());
+        }
+    }
+    
+    @PostMapping("/{calendarId}/schedule/pause")
+    @Operation(summary = "Pause schedule", description = "Temporarily pause a calendar schedule")
+    public ResponseEntity<String> pauseSchedule(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        try {
+            boolean success = calendarSchedulerService.pauseCalendarSchedule(calendarId);
+            if (success) {
+                return ResponseEntity.ok("Calendar schedule paused successfully");
+            } else {
+                return ResponseEntity.badRequest().body("Failed to pause calendar schedule");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error pausing schedule: " + e.getMessage());
+        }
+    }
+    
+    @PostMapping("/{calendarId}/schedule/resume")
+    @Operation(summary = "Resume schedule", description = "Resume a paused calendar schedule")
+    public ResponseEntity<String> resumeSchedule(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        try {
+            boolean success = calendarSchedulerService.resumeCalendarSchedule(calendarId);
+            if (success) {
+                return ResponseEntity.ok("Calendar schedule resumed successfully");
+            } else {
+                return ResponseEntity.badRequest().body("Failed to resume calendar schedule");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error resuming schedule: " + e.getMessage());
+        }
     }
     
     // ===== PREDICATE-BASED SEARCH =====
@@ -99,6 +262,8 @@ public class WorkflowCalendarController {
     public ResponseEntity<WorkflowCalendarDayDto> addCalendarDay(
             @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
             @Valid @RequestBody WorkflowCalendarDayDto dayDto) {
+        // Set the calendarId from the path variable
+        dayDto.setCalendarId(calendarId);
         WorkflowCalendarDayDto addedDay = calendarService.addCalendarDay(calendarId, dayDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(addedDay);
     }
@@ -108,6 +273,8 @@ public class WorkflowCalendarController {
     public ResponseEntity<List<WorkflowCalendarDayDto>> addCalendarDaysBatch(
             @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
             @Valid @RequestBody List<WorkflowCalendarDayDto> daysDto) {
+        // Set the calendarId for all days in the batch
+        daysDto.forEach(dayDto -> dayDto.setCalendarId(calendarId));
         List<WorkflowCalendarDayDto> addedDays = calendarService.addCalendarDaysBatch(calendarId, daysDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(addedDays);
     }
@@ -214,5 +381,147 @@ public class WorkflowCalendarController {
             @Parameter(description = "End date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         List<WorkflowCalendarDayDto> runDays = calendarService.getRunDaysInRange(calendarId, startDate, endDate);
         return ResponseEntity.ok(runDays);
+    }
+    
+    // ===== ADDITIONAL ENDPOINTS TO MATCH SAMPLE_REQUESTS.JSON =====
+    
+    @GetMapping("/calendars")
+    @Operation(summary = "Get all calendars", description = "Retrieves all calendars with optional filtering and pagination")
+    public ResponseEntity<Page<WorkflowCalendarDto>> getAllCalendarsPlural(
+            @Parameter(description = "Filter by recurrence type") @RequestParam(required = false) String recurrence,
+            Pageable pageable) {
+        Page<WorkflowCalendarDto> calendars = calendarService.getAllCalendars(recurrence, pageable);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @PostMapping("/calendars")
+    @Operation(summary = "Create new calendar", description = "Creates a new workflow calendar")
+    public ResponseEntity<WorkflowCalendarDto> createCalendarPlural(
+            @Valid @RequestBody WorkflowCalendarDto calendarDto) {
+        WorkflowCalendarDto createdCalendar = calendarService.createCalendar(calendarDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCalendar);
+    }
+    
+    @GetMapping("/calendars/{calendarId}/days")
+    @Operation(summary = "Get all days for a calendar", description = "Retrieves all calendar days for a specific calendar")
+    public ResponseEntity<List<WorkflowCalendarDayDto>> getCalendarDaysPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        List<WorkflowCalendarDayDto> days = calendarService.getCalendarDays(calendarId);
+        return ResponseEntity.ok(days);
+    }
+    
+    @PostMapping("/calendars/{calendarId}/days")
+    @Operation(summary = "Add a day to calendar", description = "Adds a single day to a calendar")
+    public ResponseEntity<WorkflowCalendarDayDto> addCalendarDayPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Valid @RequestBody WorkflowCalendarDayDto dayDto) {
+        WorkflowCalendarDayDto createdDay = calendarService.addCalendarDay(calendarId, dayDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdDay);
+    }
+    
+    @PostMapping("/calendars/{calendarId}/days/batch")
+    @Operation(summary = "Add multiple days to calendar in batch", description = "Adds multiple calendar days in a single operation")
+    public ResponseEntity<List<WorkflowCalendarDayDto>> addCalendarDaysBatchPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Valid @RequestBody List<WorkflowCalendarDayDto> daysDto) {
+        List<WorkflowCalendarDayDto> createdDays = calendarService.addCalendarDaysBatch(calendarId, daysDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdDays);
+    }
+    
+    @GetMapping("/calendars/{calendarId}/validate-date")
+    @Operation(summary = "Check if a specific date is valid for workflow execution", description = "Validates a date against calendar rules")
+    public ResponseEntity<Boolean> validateDatePlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Parameter(description = "Date to validate") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        boolean isValid = calendarService.isDateValid(calendarId, date);
+        return ResponseEntity.ok(isValid);
+    }
+    
+    @GetMapping("/calendars/{calendarId}/can-execute")
+    @Operation(summary = "Check if a workflow can execute on a specific date", description = "Determines if workflow execution is allowed on a given date")
+    public ResponseEntity<Boolean> canExecuteWorkflowPlural(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId,
+            @Parameter(description = "Date to check") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        boolean canExecute = calendarService.canExecuteWorkflow(calendarId, date);
+        return ResponseEntity.ok(canExecute);
+    }
+    
+    // ===== NEW ENDPOINTS FOR CRON AND REGION FUNCTIONALITY =====
+    
+    @GetMapping("/calendars/region/{region}")
+    @Operation(summary = "Get calendars by region", description = "Retrieves all calendars for a specific region")
+    public ResponseEntity<List<WorkflowCalendarDto>> getCalendarsByRegion(
+            @Parameter(description = "Region code") @PathVariable String region) {
+        List<WorkflowCalendarDto> calendars = calendarService.getCalendarsByRegion(region);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/active/cron")
+    @Operation(summary = "Get active calendars with cron expressions", description = "Retrieves all active calendars that have cron expressions")
+    public ResponseEntity<List<WorkflowCalendarDto>> getActiveCalendarsWithCron() {
+        List<WorkflowCalendarDto> calendars = calendarService.getActiveCalendarsWithCron();
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/timezone/{timezone}")
+    @Operation(summary = "Get calendars by timezone", description = "Retrieves all calendars for a specific timezone")
+    public ResponseEntity<List<WorkflowCalendarDto>> getCalendarsByTimezone(
+            @Parameter(description = "Timezone") @PathVariable String timezone) {
+        List<WorkflowCalendarDto> calendars = calendarService.getCalendarsByTimezone(timezone);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/offset/{offsetDays}")
+    @Operation(summary = "Get calendars by offset days", description = "Retrieves all calendars with specific offset days")
+    public ResponseEntity<List<WorkflowCalendarDto>> getCalendarsWithOffset(
+            @Parameter(description = "Offset days") @PathVariable Integer offsetDays) {
+        List<WorkflowCalendarDto> calendars = calendarService.getCalendarsWithOffset(offsetDays);
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/active")
+    @Operation(summary = "Get active calendars", description = "Retrieves all active calendars")
+    public ResponseEntity<List<WorkflowCalendarDto>> getActiveCalendars() {
+        List<WorkflowCalendarDto> calendars = calendarService.getActiveCalendars();
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @GetMapping("/calendars/inactive")
+    @Operation(summary = "Get inactive calendars", description = "Retrieves all inactive calendars")
+    public ResponseEntity<List<WorkflowCalendarDto>> getInactiveCalendars() {
+        List<WorkflowCalendarDto> calendars = calendarService.getInactiveCalendars();
+        return ResponseEntity.ok(calendars);
+    }
+    
+    @PostMapping("/calendars/{calendarId}/activate")
+    @Operation(summary = "Activate calendar", description = "Activates a calendar for scheduling")
+    public ResponseEntity<Void> activateCalendar(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        calendarService.activateCalendar(calendarId);
+        return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/calendars/{calendarId}/deactivate")
+    @Operation(summary = "Deactivate calendar", description = "Deactivates a calendar from scheduling")
+    public ResponseEntity<Void> deactivateCalendar(
+            @Parameter(description = "Calendar ID") @PathVariable Long calendarId) {
+        calendarService.deactivateCalendar(calendarId);
+        return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/calendars/validate-cron")
+    @Operation(summary = "Validate cron expression", description = "Validates a cron expression")
+    public ResponseEntity<Boolean> validateCronExpression(
+            @Parameter(description = "Cron expression to validate") @RequestParam String cronExpression) {
+        boolean isValid = calendarService.isValidCronExpression(cronExpression);
+        return ResponseEntity.ok(isValid);
+    }
+    
+    @GetMapping("/calendars/cron-description")
+    @Operation(summary = "Get cron expression description", description = "Gets human-readable description of a cron expression")
+    public ResponseEntity<String> getCronDescription(
+            @Parameter(description = "Cron expression") @RequestParam String cronExpression) {
+        String description = calendarService.getCronDescription(cronExpression);
+        return ResponseEntity.ok(description);
     }
 }

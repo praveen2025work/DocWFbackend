@@ -3,7 +3,10 @@ package com.docwf.service;
 import com.docwf.dto.WorkflowConfigDto;
 import com.docwf.dto.WorkflowConfigRoleDto;
 import com.docwf.dto.WorkflowConfigTaskDto;
+import com.docwf.dto.WorkflowConfigTaskFileDto;
+import com.docwf.dto.WorkflowConfigTaskFileDependencyDto;
 import com.docwf.dto.WorkflowConfigParamDto;
+import com.docwf.entity.WorkflowConfig;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -69,9 +72,44 @@ public interface WorkflowConfigService {
     List<WorkflowConfigDto> getWorkflowsNeedingReminders();
     
     /**
-     * Get workflows that need escalation
+     * Get workflows by status
      */
-    List<WorkflowConfigDto> getWorkflowsNeedingEscalation();
+    List<WorkflowConfigDto> getWorkflowsByStatus(String status);
+    
+    /**
+     * Get workflows with pagination (alias for getAllWorkflows)
+     */
+    Page<WorkflowConfigDto> getWorkflowConfigs(Pageable pageable);
+    
+    /**
+     * Get workflows by status (alias for getWorkflowsByStatus)
+     */
+    List<WorkflowConfigDto> getWorkflowConfigsByStatus(String status);
+    
+    /**
+     * Delete workflow (alias for deleteWorkflow)
+     */
+    void deleteWorkflowConfig(Long workflowId);
+    
+    /**
+     * Create workflow (alias for createWorkflow)
+     */
+    WorkflowConfigDto createWorkflowConfig(WorkflowConfigDto workflowDto);
+    
+    /**
+     * Update workflow (alias for updateWorkflow)
+     */
+    WorkflowConfigDto updateWorkflowConfig(Long workflowId, WorkflowConfigDto workflowDto);
+    
+    /**
+     * Get active workflows for execution (used by Quartz jobs)
+     */
+    List<WorkflowConfig> getActiveWorkflowEntitiesForExecution();
+    
+    /**
+     * Get workflows by calendar ID
+     */
+    List<WorkflowConfig> getWorkflowsByCalendarId(Long calendarId);
     
     /**
      * Check if workflow name exists
@@ -155,4 +193,58 @@ public interface WorkflowConfigService {
      * Get parameter value by key
      */
     String getParameterValue(Long workflowId, String paramKey);
+    
+    // Enhanced Workflow Creation with Sequence-based Mapping
+    /**
+     * Create workflow with tasks and files using sequence-based mapping
+     */
+    WorkflowConfigDto createWorkflowWithSequenceMapping(WorkflowConfigDto workflowDto);
+    
+    /**
+     * Update workflow with tasks and files using sequence-based mapping
+     */
+    WorkflowConfigDto updateWorkflowWithSequenceMapping(Long workflowId, WorkflowConfigDto workflowDto);
+    
+    
+    // Task File Management
+    /**
+     * Add file to task
+     */
+    WorkflowConfigTaskFileDto addFileToTask(Long taskId, WorkflowConfigTaskFileDto fileDto);
+    
+    /**
+     * Get task files
+     */
+    List<WorkflowConfigTaskFileDto> getTaskFiles(Long taskId);
+    
+    /**
+     * Update task file
+     */
+    WorkflowConfigTaskFileDto updateTaskFile(Long taskId, Long fileId, WorkflowConfigTaskFileDto fileDto);
+    
+    /**
+     * Delete task file
+     */
+    void deleteTaskFile(Long taskId, Long fileId);
+    
+    // File Dependency Management
+    /**
+     * Add file dependency
+     */
+    WorkflowConfigTaskFileDependencyDto addFileDependency(WorkflowConfigTaskFileDependencyDto dependencyDto);
+    
+    /**
+     * Get file dependencies
+     */
+    List<WorkflowConfigTaskFileDependencyDto> getFileDependencies(Long fileId);
+    
+    /**
+     * Update file dependency
+     */
+    WorkflowConfigTaskFileDependencyDto updateFileDependency(Long dependencyId, WorkflowConfigTaskFileDependencyDto dependencyDto);
+    
+    /**
+     * Delete file dependency
+     */
+    void deleteFileDependency(Long dependencyId);
 }

@@ -45,8 +45,23 @@ public class WorkflowInstanceTask {
     @Column(name = "COMPLETED_ON")
     private LocalDateTime completedOn;
     
+    @Column(name = "REJECTED_ON")
+    private LocalDateTime rejectedOn;
+    
+    @Column(name = "REASON", length = 500)
+    private String reason;
+    
+    @Column(name = "COMPLETED_BY", length = 100)
+    private String completedBy;
+    
+    @Column(name = "REJECTED_BY", length = 100)
+    private String rejectedBy;
+    
     @Column(name = "DECISION_OUTCOME", length = 255)
     private String decisionOutcome;
+    
+    @Column(name = "PARENT_TASK_IDS", length = 500)
+    private String parentTaskIds;
     
     // Relationships
     @OneToMany(mappedBy = "instanceTask", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -61,7 +76,8 @@ public class WorkflowInstanceTask {
         IN_PROGRESS,
         COMPLETED,
         FAILED,
-        ESCALATED
+        ESCALATED,
+        REJECTED
     }
     
     // Constructors
@@ -129,12 +145,52 @@ public class WorkflowInstanceTask {
         this.completedOn = completedOn;
     }
     
+    public LocalDateTime getRejectedOn() {
+        return rejectedOn;
+    }
+    
+    public void setRejectedOn(LocalDateTime rejectedOn) {
+        this.rejectedOn = rejectedOn;
+    }
+    
+    public String getReason() {
+        return reason;
+    }
+    
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+    
+    public String getCompletedBy() {
+        return completedBy;
+    }
+    
+    public void setCompletedBy(String completedBy) {
+        this.completedBy = completedBy;
+    }
+    
+    public String getRejectedBy() {
+        return rejectedBy;
+    }
+    
+    public void setRejectedBy(String rejectedBy) {
+        this.rejectedBy = rejectedBy;
+    }
+    
     public String getDecisionOutcome() {
         return decisionOutcome;
     }
     
     public void setDecisionOutcome(String decisionOutcome) {
         this.decisionOutcome = decisionOutcome;
+    }
+    
+    public String getParentTaskIds() {
+        return parentTaskIds;
+    }
+    
+    public void setParentTaskIds(String parentTaskIds) {
+        this.parentTaskIds = parentTaskIds;
     }
     
     public List<WorkflowInstanceTaskFile> getInstanceTaskFiles() {

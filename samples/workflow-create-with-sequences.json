@@ -1,0 +1,177 @@
+{
+  "name": "Monthly Financial Reporting Workflow",
+  "description": "Complete monthly financial reporting workflow with file dependencies",
+  "reminderBeforeDueMins": 30,
+  "minutesAfterDue": 15,
+  "escalationAfterMins": 60,
+  "dueInMins": 480,
+  "isActive": "Y",
+  "createdBy": "admin",
+  "tasks": [
+    {
+      "name": "Data Collection",
+      "taskType": "FILE_UPLOAD",
+      "roleId": 1,
+      "sequenceOrder": 1,
+      "taskSequence": 1,
+      "taskDescription": "Collect raw financial data from various sources",
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskFiles": [
+        {
+          "fileName": "raw_sales_data.xlsx",
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Raw sales data for the month",
+          "isRequired": "Y",
+          "fileSequence": 1,
+          "createdBy": "admin"
+        },
+        {
+          "fileName": "raw_expense_data.xlsx",
+          "filePath": "/data/uploads/",
+          "fileLocation": "/s3/workflow-data/uploads/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPLOAD",
+          "fileDescription": "Raw expense data for the month",
+          "isRequired": "Y",
+          "fileSequence": 2,
+          "createdBy": "admin"
+        }
+      ]
+    },
+    {
+      "name": "Data Validation",
+      "taskType": "FILE_UPDATE",
+      "roleId": 2,
+      "sequenceOrder": 2,
+      "taskSequence": 2,
+      "parentTaskSequences": [1],
+      "taskDescription": "Validate and clean the collected data",
+      "taskPriority": "HIGH",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskFiles": [
+        {
+          "fileName": "validated_sales_data.xlsx",
+          "filePath": "/data/validated/",
+          "fileLocation": "/s3/workflow-data/validated/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Validated and cleaned sales data",
+          "isRequired": "Y",
+          "fileSequence": 1,
+          "createdBy": "admin",
+          "dependencies": [
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            }
+          ]
+        },
+        {
+          "fileName": "validated_expense_data.xlsx",
+          "filePath": "/data/validated/",
+          "fileLocation": "/s3/workflow-data/validated/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "UPDATE",
+          "fileDescription": "Validated and cleaned expense data",
+          "isRequired": "Y",
+          "fileSequence": 2,
+          "createdBy": "admin",
+          "dependencies": [
+            {
+              "fileSequence": 2,
+              "parentFileSequence": 2,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Report Generation",
+      "taskType": "CONSOLIDATE_FILE",
+      "roleId": 2,
+      "sequenceOrder": 3,
+      "taskSequence": 3,
+      "parentTaskSequences": [2],
+      "taskDescription": "Generate consolidated monthly financial report",
+      "taskPriority": "CRITICAL",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "taskFiles": [
+        {
+          "fileName": "monthly_financial_report.xlsx",
+          "filePath": "/data/reports/",
+          "fileLocation": "/s3/workflow-data/reports/",
+          "fileTypeRegex": "*.xlsx",
+          "actionType": "CONSOLIDATE",
+          "fileDescription": "Consolidated monthly financial report",
+          "isRequired": "Y",
+          "fileSequence": 1,
+          "createdBy": "admin",
+          "dependencies": [
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 1,
+              "createdBy": "admin"
+            },
+            {
+              "fileSequence": 1,
+              "parentFileSequence": 2,
+              "createdBy": "admin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Management Review",
+      "taskType": "DECISION",
+      "roleId": 3,
+      "sequenceOrder": 4,
+      "taskSequence": 4,
+      "parentTaskSequences": [3],
+      "taskDescription": "Management review and approval of the financial report",
+      "taskPriority": "CRITICAL",
+      "autoEscalationEnabled": "Y",
+      "notificationRequired": "Y",
+      "isDecisionTask": "Y",
+      "decisionType": "APPROVAL"
+    }
+  ],
+  "workflowRoles": [
+    {
+      "roleId": 1,
+      "userId": 1,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 2,
+      "userId": 2,
+      "isActive": "Y"
+    },
+    {
+      "roleId": 3,
+      "userId": 3,
+      "isActive": "Y"
+    }
+  ],
+  "parameters": [
+    {
+      "paramKey": "REPORT_PERIOD",
+      "paramValue": "2024-01",
+      "createdBy": "admin"
+    },
+    {
+      "paramKey": "DEPARTMENT",
+      "paramValue": "FINANCE",
+      "createdBy": "admin"
+    }
+  ]
+}

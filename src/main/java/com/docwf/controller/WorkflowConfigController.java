@@ -3,6 +3,8 @@ package com.docwf.controller;
 import com.docwf.dto.WorkflowConfigDto;
 import com.docwf.dto.WorkflowConfigRoleDto;
 import com.docwf.dto.WorkflowConfigTaskDto;
+import com.docwf.dto.WorkflowConfigTaskFileDto;
+import com.docwf.dto.WorkflowConfigTaskFileDependencyDto;
 import com.docwf.dto.WorkflowConfigParamDto;
 import com.docwf.service.WorkflowConfigService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +38,7 @@ public class WorkflowConfigController {
         WorkflowConfigDto createdWorkflow = workflowService.createWorkflow(workflowDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdWorkflow);
     }
+    
     
     @GetMapping("/{workflowId}")
     @Operation(summary = "Get workflow by ID", description = "Retrieves a workflow configuration by ID")
@@ -214,5 +217,102 @@ public class WorkflowConfigController {
             @RequestBody List<Long> taskIds) {
         List<WorkflowConfigTaskDto> reorderedTasks = workflowService.reorderTasks(workflowId, taskIds);
         return ResponseEntity.ok(reorderedTasks);
+    }
+    
+    // ===== ENHANCED WORKFLOW CREATION WITH SEQUENCE MAPPING =====
+    
+    @PostMapping("/create-with-sequences")
+    @Operation(summary = "Create workflow with sequence mapping", description = "Creates a workflow with tasks and files using sequence-based mapping for new workflows")
+    public ResponseEntity<WorkflowConfigDto> createWorkflowWithSequenceMapping(
+            @Valid @RequestBody WorkflowConfigDto workflowDto) {
+        WorkflowConfigDto createdWorkflow = workflowService.createWorkflowWithSequenceMapping(workflowDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdWorkflow);
+    }
+    
+    @PutMapping("/{workflowId}/update-with-sequences")
+    @Operation(summary = "Update workflow with sequence mapping", description = "Updates a workflow with tasks and files using sequence-based mapping")
+    public ResponseEntity<WorkflowConfigDto> updateWorkflowWithSequenceMapping(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Valid @RequestBody WorkflowConfigDto workflowDto) {
+        WorkflowConfigDto updatedWorkflow = workflowService.updateWorkflowWithSequenceMapping(workflowId, workflowDto);
+        return ResponseEntity.ok(updatedWorkflow);
+    }
+    
+    // ===== TASK FILE MANAGEMENT =====
+    
+    @PostMapping("/{workflowId}/tasks/{taskId}/files")
+    @Operation(summary = "Add file to task", description = "Adds a file to a workflow task")
+    public ResponseEntity<WorkflowConfigTaskFileDto> addFileToTask(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Parameter(description = "Task ID") @PathVariable Long taskId,
+            @Valid @RequestBody WorkflowConfigTaskFileDto fileDto) {
+        WorkflowConfigTaskFileDto addedFile = workflowService.addFileToTask(taskId, fileDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedFile);
+    }
+    
+    @GetMapping("/{workflowId}/tasks/{taskId}/files")
+    @Operation(summary = "Get task files", description = "Retrieves all files for a workflow task")
+    public ResponseEntity<List<WorkflowConfigTaskFileDto>> getTaskFiles(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Parameter(description = "Task ID") @PathVariable Long taskId) {
+        List<WorkflowConfigTaskFileDto> files = workflowService.getTaskFiles(taskId);
+        return ResponseEntity.ok(files);
+    }
+    
+    @PutMapping("/{workflowId}/tasks/{taskId}/files/{fileId}")
+    @Operation(summary = "Update task file", description = "Updates a file in a workflow task")
+    public ResponseEntity<WorkflowConfigTaskFileDto> updateTaskFile(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Parameter(description = "Task ID") @PathVariable Long taskId,
+            @Parameter(description = "File ID") @PathVariable Long fileId,
+            @Valid @RequestBody WorkflowConfigTaskFileDto fileDto) {
+        WorkflowConfigTaskFileDto updatedFile = workflowService.updateTaskFile(taskId, fileId, fileDto);
+        return ResponseEntity.ok(updatedFile);
+    }
+    
+    @DeleteMapping("/{workflowId}/tasks/{taskId}/files/{fileId}")
+    @Operation(summary = "Delete task file", description = "Deletes a file from a workflow task")
+    public ResponseEntity<Void> deleteTaskFile(
+            @Parameter(description = "Workflow ID") @PathVariable Long workflowId,
+            @Parameter(description = "Task ID") @PathVariable Long taskId,
+            @Parameter(description = "File ID") @PathVariable Long fileId) {
+        workflowService.deleteTaskFile(taskId, fileId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    // ===== FILE DEPENDENCY MANAGEMENT =====
+    
+    @PostMapping("/files/{fileId}/dependencies")
+    @Operation(summary = "Add file dependency", description = "Adds a dependency relationship between files")
+    public ResponseEntity<WorkflowConfigTaskFileDependencyDto> addFileDependency(
+            @Parameter(description = "File ID") @PathVariable Long fileId,
+            @Valid @RequestBody WorkflowConfigTaskFileDependencyDto dependencyDto) {
+        WorkflowConfigTaskFileDependencyDto addedDependency = workflowService.addFileDependency(dependencyDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedDependency);
+    }
+    
+    @GetMapping("/files/{fileId}/dependencies")
+    @Operation(summary = "Get file dependencies", description = "Retrieves all dependencies for a file")
+    public ResponseEntity<List<WorkflowConfigTaskFileDependencyDto>> getFileDependencies(
+            @Parameter(description = "File ID") @PathVariable Long fileId) {
+        List<WorkflowConfigTaskFileDependencyDto> dependencies = workflowService.getFileDependencies(fileId);
+        return ResponseEntity.ok(dependencies);
+    }
+    
+    @PutMapping("/dependencies/{dependencyId}")
+    @Operation(summary = "Update file dependency", description = "Updates a file dependency relationship")
+    public ResponseEntity<WorkflowConfigTaskFileDependencyDto> updateFileDependency(
+            @Parameter(description = "Dependency ID") @PathVariable Long dependencyId,
+            @Valid @RequestBody WorkflowConfigTaskFileDependencyDto dependencyDto) {
+        WorkflowConfigTaskFileDependencyDto updatedDependency = workflowService.updateFileDependency(dependencyId, dependencyDto);
+        return ResponseEntity.ok(updatedDependency);
+    }
+    
+    @DeleteMapping("/dependencies/{dependencyId}")
+    @Operation(summary = "Delete file dependency", description = "Deletes a file dependency relationship")
+    public ResponseEntity<Void> deleteFileDependency(
+            @Parameter(description = "Dependency ID") @PathVariable Long dependencyId) {
+        workflowService.deleteFileDependency(dependencyId);
+        return ResponseEntity.noContent().build();
     }
 }

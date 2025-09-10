@@ -1,0 +1,86 @@
+{
+  "description": "Examples of file dependency relationships for workflow tasks",
+  "examples": [
+    {
+      "scenario": "Simple File Chain",
+      "description": "File B depends on File A",
+      "dependencies": [
+        {
+          "fileId": 2,
+          "parentFileId": 1,
+          "createdBy": "admin"
+        }
+      ]
+    },
+    {
+      "scenario": "Multiple Dependencies",
+      "description": "File C depends on both File A and File B",
+      "dependencies": [
+        {
+          "fileId": 3,
+          "parentFileId": 1,
+          "createdBy": "admin"
+        },
+        {
+          "fileId": 3,
+          "parentFileId": 2,
+          "createdBy": "admin"
+        }
+      ]
+    },
+    {
+      "scenario": "Multiple Parent Dependencies",
+      "description": "File D depends on multiple parent files",
+      "dependencies": [
+        {
+          "fileId": 4,
+          "parentFileId": 1,
+          "createdBy": "admin"
+        },
+        {
+          "fileId": 4,
+          "parentFileId": 2,
+          "createdBy": "admin"
+        },
+        {
+          "fileId": 4,
+          "parentFileId": 3,
+          "createdBy": "admin"
+        }
+      ]
+    },
+    {
+      "scenario": "Sequence-based Creation",
+      "description": "Using sequence numbers for new workflow creation",
+      "dependencies": [
+        {
+          "fileSequence": 2,
+          "parentFileSequence": 1,
+          "createdBy": "admin"
+        },
+        {
+          "fileSequence": 3,
+          "parentFileSequence": 1,
+          "createdBy": "admin"
+        },
+        {
+          "fileSequence": 3,
+          "parentFileSequence": 2,
+          "createdBy": "admin"
+        }
+      ]
+    }
+  ],
+  "dependencyStructure": {
+    "description": "Simple file dependency structure with file_id and parent_file_id",
+    "purpose": "Establishes that file_id depends on parent_file_id from previous or parent step based on user selection"
+  },
+  "usageNotes": [
+    "For new workflows, use fileSequence and parentFileSequence instead of fileId and parentFileId",
+    "For existing workflows, use fileId and parentFileId to reference actual file records",
+    "All dependencies are treated as required - file_id cannot be processed until parent_file_id is completed",
+    "Circular dependencies are automatically prevented by the system",
+    "When a parent file is deleted, all dependent relationships are automatically cleaned up",
+    "Composite primary key (FILE_ID, PARENT_FILE_ID) ensures unique dependency relationships"
+  ]
+}

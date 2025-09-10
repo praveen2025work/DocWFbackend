@@ -20,7 +20,17 @@ public class WorkflowInstanceTaskDto {
     
     private LocalDateTime completedOn;
     
+    private LocalDateTime rejectedOn;
+    
+    private String reason;
+    
+    private String completedBy;
+    
+    private String rejectedBy;
+    
     private String decisionOutcome;
+    
+    private String parentTaskIds;
     
     // Related data
     private String taskName;
@@ -95,12 +105,52 @@ public class WorkflowInstanceTaskDto {
         this.completedOn = completedOn;
     }
     
+    public LocalDateTime getRejectedOn() {
+        return rejectedOn;
+    }
+    
+    public void setRejectedOn(LocalDateTime rejectedOn) {
+        this.rejectedOn = rejectedOn;
+    }
+    
+    public String getReason() {
+        return reason;
+    }
+    
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+    
+    public String getCompletedBy() {
+        return completedBy;
+    }
+    
+    public void setCompletedBy(String completedBy) {
+        this.completedBy = completedBy;
+    }
+    
+    public String getRejectedBy() {
+        return rejectedBy;
+    }
+    
+    public void setRejectedBy(String rejectedBy) {
+        this.rejectedBy = rejectedBy;
+    }
+    
     public String getDecisionOutcome() {
         return decisionOutcome;
     }
     
     public void setDecisionOutcome(String decisionOutcome) {
         this.decisionOutcome = decisionOutcome;
+    }
+    
+    public String getParentTaskIds() {
+        return parentTaskIds;
+    }
+    
+    public void setParentTaskIds(String parentTaskIds) {
+        this.parentTaskIds = parentTaskIds;
     }
     
     public String getTaskName() {

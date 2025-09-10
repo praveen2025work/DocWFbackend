@@ -3,6 +3,8 @@ package com.docwf.controller;
 import com.docwf.dto.*;
 import com.docwf.service.WorkflowExecutionService;
 import com.docwf.service.WorkflowUserService;
+import com.docwf.entity.WorkflowInstance;
+import com.docwf.repository.WorkflowInstanceRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,15 +29,22 @@ public class UserDashboardController {
     @Autowired
     private WorkflowUserService userService;
 
+    @Autowired
+    private WorkflowInstanceRepository instanceRepository;
+
     /**
-     * Get user dashboard based on user's role
+     * Get user dashboard data
      */
     @GetMapping("/user")
-    @Operation(summary = "Get User Dashboard", description = "Retrieves role-based dashboard for the authenticated user")
+    @Operation(summary = "Get User Dashboard", description = "Retrieves comprehensive dashboard for the specified user")
     public ResponseEntity<UserDashboardDto> getUserDashboard(
-            @Parameter(description = "User ID") @RequestParam Long userId) {
-        // TODO: Implement user dashboard service method
-        return ResponseEntity.ok().build();
+            @Parameter(description = "User ID") @RequestParam(required = false) Long userId) {
+        // If no userId provided, use default user (Alice) for testing purposes
+        if (userId == null) {
+            userId = 1L; // Default to Alice (user ID 1) for testing
+        }
+        UserDashboardDto dashboard = executionService.getUserDashboard(userId);
+        return ResponseEntity.ok(dashboard);
     }
 
     /**
@@ -45,8 +54,8 @@ public class UserDashboardController {
     @Operation(summary = "Get Process Owner Dashboard", description = "Retrieves process owner specific dashboard with escalation and management features")
     public ResponseEntity<ProcessOwnerDashboardDto> getProcessOwnerDashboard(
             @Parameter(description = "Process owner user ID") @RequestParam Long processOwnerId) {
-        // TODO: Implement process owner dashboard service method
-        return ResponseEntity.ok().build();
+        ProcessOwnerDashboardDto dashboard = executionService.getProcessOwnerDashboard(processOwnerId);
+        return ResponseEntity.ok(dashboard);
     }
 
     /**
@@ -56,8 +65,9 @@ public class UserDashboardController {
     @Operation(summary = "Get Manager Dashboard", description = "Retrieves manager dashboard with team overview and workflow monitoring")
     public ResponseEntity<ManagerDashboardDto> getManagerDashboard(
             @Parameter(description = "Manager user ID") @RequestParam Long managerId) {
-        // TODO: Implement manager dashboard service method
-        return ResponseEntity.ok().build();
+        
+        ManagerDashboardDto dashboard = executionService.getManagerDashboard(managerId);
+        return ResponseEntity.ok(dashboard);
     }
 
     /**
@@ -67,8 +77,9 @@ public class UserDashboardController {
     @Operation(summary = "Get Admin Dashboard", description = "Retrieves admin dashboard with system overview and administrative functions")
     public ResponseEntity<AdminDashboardDto> getAdminDashboard(
             @Parameter(description = "Admin user ID") @RequestParam Long adminId) {
-        // TODO: Implement admin dashboard service method
-        return ResponseEntity.ok().build();
+        
+        AdminDashboardDto dashboard = executionService.getAdminDashboard(adminId);
+        return ResponseEntity.ok(dashboard);
     }
 
     /**
@@ -93,8 +104,70 @@ public class UserDashboardController {
     public ResponseEntity<List<WorkflowInstanceDto>> getUserWorkflows(
             @Parameter(description = "User ID") @RequestParam Long userId,
             @Parameter(description = "Filter by workflow status") @RequestParam(required = false) String status) {
-        // TODO: Implement user workflows service method
-        return ResponseEntity.ok().build();
+        
+        List<WorkflowInstanceDto> workflows = executionService.getWorkflowInstancesByProcessOwner(userId, status, null);
+        return ResponseEntity.ok(workflows);
+    }
+    
+    // ===== SEARCH ENDPOINTS =====
+    
+    @GetMapping("/search/tasks")
+    @Operation(summary = "Search User Tasks", description = "Search user tasks with multiple criteria")
+    public ResponseEntity<List<WorkflowInstanceTaskDto>> searchUserTasks(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Task status") @RequestParam(required = false) String status,
+            @Parameter(description = "Priority") @RequestParam(required = false) String priority,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore) {
+        
+        List<WorkflowInstanceTaskDto> tasks = executionService.searchUserTasks(
+                userId, status, priority, startedAfter, startedBefore, completedAfter, completedBefore);
+        return ResponseEntity.ok(tasks);
+    }
+    
+    @GetMapping("/search/workflows")
+    @Operation(summary = "Search User Workflows", description = "Search user workflows with multiple criteria")
+    public ResponseEntity<List<WorkflowInstanceDto>> searchUserWorkflows(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Workflow status") @RequestParam(required = false) String status,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Completed after date (ISO format)") @RequestParam(required = false) String completedAfter,
+            @Parameter(description = "Completed before date (ISO format)") @RequestParam(required = false) String completedBefore) {
+        
+        List<WorkflowInstanceDto> workflows = executionService.searchUserWorkflows(
+                userId, status, startedAfter, startedBefore, completedAfter, completedBefore);
+        return ResponseEntity.ok(workflows);
+    }
+    
+    @GetMapping("/search/activities")
+    @Operation(summary = "Search User Activities", description = "Search user activities with multiple criteria")
+    public ResponseEntity<List<UserActivityDto>> searchUserActivities(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Activity type") @RequestParam(required = false) String activityType,
+            @Parameter(description = "Started after date (ISO format)") @RequestParam(required = false) String startedAfter,
+            @Parameter(description = "Started before date (ISO format)") @RequestParam(required = false) String startedBefore,
+            @Parameter(description = "Limit results") @RequestParam(defaultValue = "50") Integer limit) {
+        
+        List<UserActivityDto> activities = executionService.searchUserActivities(
+                userId, activityType, startedAfter, startedBefore, limit);
+        return ResponseEntity.ok(activities);
+    }
+    
+    @GetMapping("/search/notifications")
+    @Operation(summary = "Search User Notifications", description = "Search user notifications with multiple criteria")
+    public ResponseEntity<List<UserNotificationDto>> searchUserNotifications(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Notification status") @RequestParam(required = false) String status,
+            @Parameter(description = "Notification type") @RequestParam(required = false) String type,
+            @Parameter(description = "Created after date (ISO format)") @RequestParam(required = false) String createdAfter,
+            @Parameter(description = "Created before date (ISO format)") @RequestParam(required = false) String createdBefore) {
+        
+        List<UserNotificationDto> notifications = executionService.searchUserNotifications(
+                userId, status, type, createdAfter, createdBefore);
+        return ResponseEntity.ok(notifications);
     }
 
     /**
@@ -117,8 +190,9 @@ public class UserDashboardController {
     public ResponseEntity<List<UserActivityDto>> getUserActivities(
             @Parameter(description = "User ID") @RequestParam Long userId,
             @Parameter(description = "Number of activities to retrieve") @RequestParam(defaultValue = "10") Integer limit) {
-        // TODO: Implement user activities service method
-        return ResponseEntity.ok().build();
+        
+        List<UserActivityDto> activities = executionService.getUserActivities(userId, limit);
+        return ResponseEntity.ok(activities);
     }
 
     /**
@@ -129,8 +203,9 @@ public class UserDashboardController {
     public ResponseEntity<List<UserNotificationDto>> getUserNotifications(
             @Parameter(description = "User ID") @RequestParam Long userId,
             @Parameter(description = "Filter by notification status") @RequestParam(required = false) String status) {
-        // TODO: Implement user notifications service method
-        return ResponseEntity.ok().build();
+        
+        List<UserNotificationDto> notifications = executionService.getUserNotifications(userId, status);
+        return ResponseEntity.ok(notifications);
     }
 
     /**
@@ -140,8 +215,9 @@ public class UserDashboardController {
     @Operation(summary = "Mark Notification as Read", description = "Marks a notification as read for the authenticated user")
     public ResponseEntity<UserNotificationDto> markNotificationAsRead(
             @Parameter(description = "Notification ID") @PathVariable Long notificationId) {
-        // TODO: Implement mark notification as read service method
-        return ResponseEntity.ok().build();
+        
+        UserNotificationDto notification = executionService.markNotificationAsRead(notificationId);
+        return ResponseEntity.ok(notification);
     }
 
     /**
@@ -153,8 +229,9 @@ public class UserDashboardController {
             @Parameter(description = "User ID") @RequestParam Long userId,
             @Parameter(description = "Start date (ISO 8601)") @RequestParam String startDate,
             @Parameter(description = "End date (ISO 8601)") @RequestParam String endDate) {
-        // TODO: Implement user calendar service method
-        return ResponseEntity.ok().build();
+        
+        UserCalendarDto calendar = executionService.getUserCalendar(userId, startDate, endDate);
+        return ResponseEntity.ok(calendar);
     }
 
     /**
@@ -165,8 +242,9 @@ public class UserDashboardController {
     public ResponseEntity<UserPerformanceDto> getUserPerformance(
             @Parameter(description = "User ID") @RequestParam Long userId,
             @Parameter(description = "Performance period (WEEKLY, MONTHLY, QUARTERLY)") @RequestParam(defaultValue = "MONTHLY") String period) {
-        // TODO: Implement user performance service method
-        return ResponseEntity.ok().build();
+        
+        UserPerformanceDto performance = executionService.getUserPerformance(userId, period);
+        return ResponseEntity.ok(performance);
     }
 
     /**
@@ -176,8 +254,9 @@ public class UserDashboardController {
     @Operation(summary = "Get User Roles", description = "Retrieves all roles assigned to the authenticated user")
     public ResponseEntity<List<WorkflowRoleDto>> getUserRoles(
             @Parameter(description = "User ID") @RequestParam Long userId) {
-        // TODO: Implement user roles service method
-        return ResponseEntity.ok().build();
+        
+        List<WorkflowRoleDto> roles = executionService.getUserRoles(userId);
+        return ResponseEntity.ok(roles);
     }
 
     /**
@@ -187,8 +266,9 @@ public class UserDashboardController {
     @Operation(summary = "Get User Permissions", description = "Retrieves all permissions for the authenticated user based on their roles")
     public ResponseEntity<List<UserPermissionDto>> getUserPermissions(
             @Parameter(description = "User ID") @RequestParam Long userId) {
-        // TODO: Implement user permissions service method
-        return ResponseEntity.ok().build();
+        
+        List<UserPermissionDto> permissions = executionService.getUserPermissions(userId);
+        return ResponseEntity.ok(permissions);
     }
 
     /**
@@ -210,8 +290,9 @@ public class UserDashboardController {
     @Operation(summary = "Get User Team", description = "Retrieves team information for the authenticated user")
     public ResponseEntity<UserTeamDto> getUserTeam(
             @Parameter(description = "User ID") @RequestParam Long userId) {
-        // TODO: Implement user team service method
-        return ResponseEntity.ok().build();
+        
+        UserTeamDto team = executionService.getUserTeam(userId);
+        return ResponseEntity.ok(team);
     }
 
     /**
@@ -221,8 +302,9 @@ public class UserDashboardController {
     @Operation(summary = "Get User Preferences", description = "Retrieves user preferences and settings")
     public ResponseEntity<UserPreferencesDto> getUserPreferences(
             @Parameter(description = "User ID") @RequestParam Long userId) {
-        // TODO: Implement user preferences service method
-        return ResponseEntity.ok().build();
+        
+        UserPreferencesDto preferences = executionService.getUserPreferences(userId);
+        return ResponseEntity.ok(preferences);
     }
 
     /**
@@ -233,7 +315,8 @@ public class UserDashboardController {
     public ResponseEntity<UserPreferencesDto> updateUserPreferences(
             @Parameter(description = "User ID") @RequestParam Long userId,
             @RequestBody UserPreferencesDto preferences) {
-        // TODO: Implement update user preferences service method
-        return ResponseEntity.ok().build();
+        
+        UserPreferencesDto updatedPreferences = executionService.updateUserPreferences(userId, preferences);
+        return ResponseEntity.ok(updatedPreferences);
     }
 }

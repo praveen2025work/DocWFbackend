@@ -41,11 +41,12 @@ public class WorkflowConfig {
     @Column(name = "DUE_IN_MINS")
     private Integer dueInMins;
     
-    @NotNull
-    @Column(name = "IS_ACTIVE", length = 1, nullable = false)
+    @Column(name = "IS_ACTIVE", length = 1)
     private String isActive = "Y";
     
-    @NotBlank
+    @Column(name = "CALENDAR_ID")
+    private Long calendarId;  // Reference to the assigned calendar for this workflow
+    
     @Column(name = "CREATED_BY", length = 100, nullable = false)
     private String createdBy;
     
@@ -142,6 +143,14 @@ public class WorkflowConfig {
     
     public void setIsActive(String isActive) {
         this.isActive = isActive;
+    }
+    
+    public Long getCalendarId() {
+        return calendarId;
+    }
+    
+    public void setCalendarId(Long calendarId) {
+        this.calendarId = calendarId;
     }
     
     public String getCreatedBy() {

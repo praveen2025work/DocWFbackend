@@ -6,6 +6,8 @@ import com.docwf.exception.WorkflowException;
 import com.docwf.repository.WorkflowUserRepository;
 import com.docwf.service.WorkflowUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +89,45 @@ public class WorkflowUserServiceImpl implements WorkflowUserService {
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowUserDto> getAllUsers(String isActive, Pageable pageable) {
+        Page<WorkflowUser> users;
+        if (isActive != null && !isActive.isEmpty()) {
+            users = userRepository.findByIsActive(isActive, pageable);
+        } else {
+            users = userRepository.findAll(pageable);
+        }
+        return users.map(this::convertToDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkflowUserDto> searchUsers(String username, String firstName, String lastName, String email, 
+                                           String isActive, String createdBy, Long escalationTo, 
+                                           String createdAfter, String createdBefore, Pageable pageable) {
+        // Use repository method for better performance
+        java.time.LocalDateTime afterDate = null;
+        java.time.LocalDateTime beforeDate = null;
+        
+        try {
+            if (createdAfter != null) {
+                afterDate = java.time.LocalDateTime.parse(createdAfter);
+            }
+            if (createdBefore != null) {
+                beforeDate = java.time.LocalDateTime.parse(createdBefore);
+            }
+        } catch (Exception e) {
+            // If date parsing fails, return empty results
+            return Page.empty(pageable);
+        }
+        
+        Page<WorkflowUser> users = userRepository.searchUsers(
+                username, firstName, lastName, email, isActive, createdBy, escalationTo, afterDate, beforeDate, pageable);
+        
+        return users.map(this::convertToDto);
     }
     
     @Override

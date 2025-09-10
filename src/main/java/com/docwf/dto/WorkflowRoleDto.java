@@ -3,40 +3,43 @@ package com.docwf.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class WorkflowRoleDto {
     
-    private Long roleId;
+    @NotNull(message = "Role sequence is required")
+    private Integer roleSequence;
     
     @NotBlank(message = "Role name is required")
     private String roleName;
     
-    @NotNull(message = "Active status is required")
-    private String isActive;
+    private String roleDescription;
+    
+    private List<String> users;
     
     private String createdBy;
     
+    private Long roleId;
+    private String isActive;
     private LocalDateTime createdOn;
-    
     private String updatedBy;
-    
     private LocalDateTime updatedOn;
     
     // Constructors
     public WorkflowRoleDto() {}
     
-    public WorkflowRoleDto(String roleName, String createdBy) {
+    public WorkflowRoleDto(Integer roleSequence, String roleName) {
+        this.roleSequence = roleSequence;
         this.roleName = roleName;
-        this.createdBy = createdBy;
     }
     
     // Getters and Setters
-    public Long getRoleId() {
-        return roleId;
+    public Integer getRoleSequence() {
+        return roleSequence;
     }
     
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
+    public void setRoleSequence(Integer roleSequence) {
+        this.roleSequence = roleSequence;
     }
     
     public String getRoleName() {
@@ -47,12 +50,20 @@ public class WorkflowRoleDto {
         this.roleName = roleName;
     }
     
-    public String getIsActive() {
-        return isActive;
+    public String getRoleDescription() {
+        return roleDescription;
     }
     
-    public void setIsActive(String isActive) {
-        this.isActive = isActive;
+    public void setRoleDescription(String roleDescription) {
+        this.roleDescription = roleDescription;
+    }
+    
+    public List<String> getUsers() {
+        return users;
+    }
+    
+    public void setUsers(List<String> users) {
+        this.users = users;
     }
     
     public String getCreatedBy() {
@@ -61,6 +72,22 @@ public class WorkflowRoleDto {
     
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+    
+    public Long getRoleId() {
+        return roleId;
+    }
+    
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
+    }
+    
+    public String getIsActive() {
+        return isActive;
+    }
+    
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
     }
     
     public LocalDateTime getCreatedOn() {
@@ -90,9 +117,9 @@ public class WorkflowRoleDto {
     @Override
     public String toString() {
         return "WorkflowRoleDto{" +
-                "roleId=" + roleId +
+                "roleSequence=" + roleSequence +
                 ", roleName='" + roleName + '\'' +
-                ", isActive='" + isActive + '\'' +
+                ", users=" + (users != null ? users.size() : 0) +
                 '}';
     }
 }
