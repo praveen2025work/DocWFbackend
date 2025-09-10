@@ -25,6 +25,11 @@ public interface WorkflowConfigRepository extends JpaRepository<WorkflowConfig, 
     List<WorkflowConfig> findByIsActive(String isActive);
     
     /**
+     * Find workflows by calendar ID and active status
+     */
+    List<WorkflowConfig> findByCalendarIdAndIsActive(Long calendarId, String isActive);
+    
+    /**
      * Find workflows by description containing text
      */
     List<WorkflowConfig> findByDescriptionContainingIgnoreCase(String description);
@@ -81,11 +86,6 @@ public interface WorkflowConfigRepository extends JpaRepository<WorkflowConfig, 
     @Query("SELECT wc FROM WorkflowConfig wc WHERE wc.isActive = 'Y' AND wc.calendarId IS NOT NULL")
     List<WorkflowConfig> findActiveWorkflowsForExecution();
     
-    /**
-     * Find workflows by specific calendar ID and active status
-     */
-    @Query("SELECT wc FROM WorkflowConfig wc WHERE wc.calendarId = :calendarId AND wc.isActive = :isActive")
-    List<WorkflowConfig> findByCalendarIdAndIsActive(@Param("calendarId") Long calendarId, @Param("isActive") String isActive);
     
     /**
      * Find workflows by active status with pagination

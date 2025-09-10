@@ -56,6 +56,9 @@ public class WorkflowCalendar {
     @Column(name = "IS_ACTIVE", length = 1)
     private String isActive = "Y"; // Y/N - whether calendar is active for scheduling
     
+    @Column(name = "WORKFLOW_ID")
+    private Long workflowId; // Associated workflow configuration ID
+    
     @NotBlank
     @Column(name = "CREATED_BY", length = 100, nullable = false)
     private String createdBy;
@@ -262,6 +265,14 @@ public class WorkflowCalendar {
     
     public void setIsActive(String isActive) {
         this.isActive = isActive;
+    }
+    
+    public Long getWorkflowId() {
+        return workflowId;
+    }
+    
+    public void setWorkflowId(Long workflowId) {
+        this.workflowId = workflowId;
     }
     
     // Helper methods

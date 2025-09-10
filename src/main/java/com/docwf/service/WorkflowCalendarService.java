@@ -106,4 +106,41 @@ public interface WorkflowCalendarService {
     boolean isValidCronExpression(String cronExpression);
     
     String getCronDescription(String cronExpression);
+    
+    // Scheduler integration methods
+    boolean isDateValidForExecution(Long calendarId, LocalDate date);
+    
+    void scheduleCalendarWorkflow(com.docwf.entity.WorkflowCalendar calendar);
+    
+    void unscheduleCalendarWorkflow(Long calendarId);
+    
+    void updateCalendarSchedule(com.docwf.entity.WorkflowCalendar calendar);
+    
+    /**
+     * Check if a calendar is currently scheduled
+     * @param calendarId The calendar ID to check
+     * @return true if the calendar is scheduled
+     */
+    boolean isCalendarScheduled(Long calendarId);
+    
+    /**
+     * Get the next execution time for a calendar
+     * @param calendarId The calendar ID
+     * @return The next execution time as a string, or null if not scheduled
+     */
+    String getNextExecutionTime(Long calendarId);
+    
+    /**
+     * Pause a calendar schedule
+     * @param calendarId The calendar ID to pause
+     * @return true if pausing was successful
+     */
+    boolean pauseCalendarSchedule(Long calendarId);
+    
+    /**
+     * Resume a paused calendar schedule
+     * @param calendarId The calendar ID to resume
+     * @return true if resuming was successful
+     */
+    boolean resumeCalendarSchedule(Long calendarId);
 }

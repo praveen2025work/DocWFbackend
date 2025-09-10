@@ -9,6 +9,8 @@ import com.docwf.exception.WorkflowException;
 import com.docwf.repository.WorkflowCalendarRepository;
 import com.docwf.repository.WorkflowCalendarDayRepository;
 import com.docwf.service.WorkflowCalendarService;
+import com.docwf.service.CalendarSchedulerService;
+import com.docwf.config.CalendarSchedulerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,12 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
     @Autowired
     private WorkflowCalendarDayRepository calendarDayRepository;
     
+    @Autowired
+    private CalendarSchedulerConfig calendarSchedulerConfig;
+    
+    @Autowired
+    private CalendarSchedulerService calendarSchedulerService;
+    
     @Override
     public WorkflowCalendarDto createCalendar(WorkflowCalendarDto calendarDto) {
         WorkflowCalendar calendar = new WorkflowCalendar(
@@ -50,6 +58,10 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         calendar.setIsActive(calendarDto.getIsActive() != null ? calendarDto.getIsActive() : "Y");
         
         WorkflowCalendar savedCalendar = calendarRepository.save(calendar);
+        
+        // Schedule the workflow if it has a cron expression and is active
+        scheduleCalendarWorkflow(savedCalendar);
+        
         return convertToDto(savedCalendar);
     }
     
@@ -180,9 +192,16 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         calendar.setStartDate(calendarDto.getStartDate());
         calendar.setEndDate(calendarDto.getEndDate());
         calendar.setRecurrence(calendarDto.getRecurrence());
+        calendar.setCronExpression(calendarDto.getCronExpression());
+        calendar.setTimezone(calendarDto.getTimezone());
+        calendar.setIsActive(calendarDto.getIsActive());
         calendar.setUpdatedBy(calendarDto.getUpdatedBy());
         
         WorkflowCalendar updatedCalendar = calendarRepository.save(calendar);
+        
+        // Update the schedule
+        updateCalendarSchedule(updatedCalendar);
+        
         return convertToDto(updatedCalendar);
     }
     
@@ -191,6 +210,10 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         if (!calendarRepository.existsById(calendarId)) {
             throw new WorkflowException("Calendar not found with ID: " + calendarId);
         }
+        
+        // Unschedule the workflow before deleting
+        unscheduleCalendarWorkflow(calendarId);
+        
         calendarRepository.deleteById(calendarId);
     }
     
@@ -531,5 +554,79 @@ public class WorkflowCalendarServiceImpl implements WorkflowCalendarService {
         } catch (Exception e) {
             return "Invalid cron expression";
         }
+    }
+    
+    // Scheduler integration methods
+    @Override
+    public boolean isDateValidForExecution(Long calendarId, LocalDate date) {
+        try {
+            WorkflowCalendar calendar = getCalendarEntityById(calendarId);
+            if (calendar == null || !"Y".equals(calendar.getIsActive())) {
+                return false;
+            }
+            
+            // Check if date is within calendar range
+            if (calendar.getStartDate() != null && date.isBefore(calendar.getStartDate())) {
+                return false;
+            }
+            
+            if (calendar.getEndDate() != null && date.isAfter(calendar.getEndDate())) {
+                return false;
+            }
+            
+            // Check if date is a valid run day
+            return isDateValid(calendarId, date);
+            
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public void scheduleCalendarWorkflow(WorkflowCalendar calendar) {
+        if (calendar != null && "Y".equals(calendar.getIsActive()) && 
+            calendar.getCronExpression() != null && !calendar.getCronExpression().trim().isEmpty()) {
+            calendarSchedulerConfig.scheduleWorkflow(calendar);
+        }
+    }
+    
+    @Override
+    public void unscheduleCalendarWorkflow(Long calendarId) {
+        calendarSchedulerConfig.unscheduleWorkflow(calendarId);
+    }
+    
+    @Override
+    public void updateCalendarSchedule(WorkflowCalendar calendar) {
+        if (calendar != null && "Y".equals(calendar.getIsActive()) && 
+            calendar.getCronExpression() != null && !calendar.getCronExpression().trim().isEmpty()) {
+            calendarSchedulerConfig.updateWorkflowSchedule(calendar);
+        } else {
+            // If calendar is inactive or has no cron expression, unschedule it
+            unscheduleCalendarWorkflow(calendar.getCalendarId());
+        }
+    }
+    
+    @Override
+    public boolean isCalendarScheduled(Long calendarId) {
+        return calendarSchedulerService.isCalendarScheduled(calendarId);
+    }
+    
+    @Override
+    public String getNextExecutionTime(Long calendarId) {
+        java.util.Date nextExecution = calendarSchedulerService.getNextExecutionTime(calendarId);
+        if (nextExecution != null) {
+            return nextExecution.toString();
+        }
+        return null;
+    }
+    
+    @Override
+    public boolean pauseCalendarSchedule(Long calendarId) {
+        return calendarSchedulerService.pauseCalendarSchedule(calendarId);
+    }
+    
+    @Override
+    public boolean resumeCalendarSchedule(Long calendarId) {
+        return calendarSchedulerService.resumeCalendarSchedule(calendarId);
     }
 }

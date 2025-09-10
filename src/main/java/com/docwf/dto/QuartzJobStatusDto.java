@@ -233,4 +233,33 @@ public class QuartzJobStatusDto {
     public void setWorkflowId(Long workflowId) {
         this.workflowId = workflowId;
     }
+    
+    // Additional methods for scheduler management
+    public Integer getTriggerCount() {
+        return triggerCount;
+    }
+    
+    public void setTriggerCount(Integer triggerCount) {
+        this.triggerCount = triggerCount;
+    }
+    
+    public java.util.Date getNextFireTime() {
+        return nextFireTime;
+    }
+    
+    public void setNextFireTime(java.util.Date nextFireTime) {
+        this.nextFireTime = nextFireTime;
+    }
+    
+    public java.util.Date getPreviousFireTime() {
+        return previousFireTime;
+    }
+    
+    public void setPreviousFireTime(java.util.Date previousFireTime) {
+        this.previousFireTime = previousFireTime;
+    }
+    
+    private Integer triggerCount;
+    private java.util.Date nextFireTime;
+    private java.util.Date previousFireTime;
 }
